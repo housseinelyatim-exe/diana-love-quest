@@ -182,9 +182,31 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
       }
     }
 
-    // Compose deterministic next question to avoid repetition
-    const newProfileState = { ...profile, ...profileUpdates };
-    const nextQuestion = getNextQuestion(newProfileState);
+// Compose deterministic next question to avoid repetition
+const userMsg = (message || '');
+// Fallback: extract name if tool didn't and message looks like a name
+if (!profile?.name && !profileUpdates.name) {
+  const inferredName = extractNameFromMessage(userMsg);
+  if (inferredName) {
+    profileUpdates.name = inferredName;
+    console.log('🧩 Fallback extracted name:', inferredName);
+    const { error: nameUpdateError } = await supabase
+      .from('profiles')
+      .update({
+        name: inferredName,
+        is_profile_complete: calculateProfileCompletion({ ...profile, name: inferredName }) === 100,
+      })
+      .eq('id', userId);
+    if (nameUpdateError) {
+      console.error('❌ Error updating name via fallback:', nameUpdateError);
+      delete profileUpdates.name;
+    } else {
+      console.log('✅ Name updated via fallback.');
+    }
+  }
+}
+const newProfileState = { ...profile, ...profileUpdates };
+const nextQuestion = getNextQuestion(newProfileState);
 
     let ack = '';
     if (profileUpdates && Object.keys(profileUpdates).length > 0) {
@@ -195,11 +217,12 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
     }
 
     const modelText = (assistantMessage?.content || '').trim();
-    const userMsg = (message || '');
     const appExplain = "Soulmate helps you find serious, compatible partners leading to marriage. I ask a few simple questions to build your profile, then suggest matches based on shared values, lifestyle, and goals. The more complete your profile, the better your matches.";
-
+    
     let replyText = '';
-    if (modelText) {
+    if (profileUpdates && Object.keys(profileUpdates).length > 0) {
+      replyText = `${ack}${nextQuestion}`.trim();
+    } else if (modelText) {
       replyText = modelText;
     } else if (looksLikeAppQuestion(userMsg)) {
       replyText = `${appExplain}\n\n${nextQuestion}`;
@@ -314,5 +337,35 @@ function calculateProfileCompletion(profile: any): number {
   ).length;
   
   return Math.round((filledFields / requiredFields.length) * 100);
+}
+
+function extractNameFromMessage(msg: string): string | null {
+  if (!msg) return null;
+  const text = msg.trim();
+
+  const patterns = [
+    /my\s+name\s+is\s+([A-Za-zÀ-ÖØ-öø-ÿ' -]{2,40})/i,
+    /\bi['’]m\s+([A-Za-zÀ-ÖØ-öø-ÿ' -]{2,40})/i,
+    /\bi\s+am\s+([A-Za-zÀ-ÖØ-öø-ÿ' -]{2,40})/i,
+    /\bit['’]?s\s+([A-Za-zÀ-ÖØ-öø-ÿ' -]{2,40})/i,
+    /name\s*[:\-]\s*([A-Za-zÀ-ÖØ-öø-ÿ' -]{2,40})/i,
+  ];
+  for (const re of patterns) {
+    const m = text.match(re);
+    if (m && m[1]) return sanitizeName(m[1]);
+  }
+
+  if (/^[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,40}$/.test(text) && !/\d/.test(text)) {
+    return sanitizeName(text);
+  }
+  return null;
+
+  function sanitizeName(n: string) {
+    return n
+      .trim()
+      .replace(/\s+/g, ' ')
+      .replace(/^([a-zà-öø-ÿ])/g, (c) => c.toUpperCase())
+      .replace(/([ -][a-zà-öø-ÿ])/g, (c) => c.toUpperCase());
+  }
 }
 
