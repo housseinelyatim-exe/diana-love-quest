@@ -163,6 +163,14 @@ After each response, use the extract_profile_data function to update the profile
       }
     }
 
+    // Absolute fallback to ensure a message is always returned
+    if (!replyText) {
+      const completionPercentage = calculateProfileCompletion(profile);
+      replyText = completionPercentage < 10
+        ? "Nice to meet you! How old are you?"
+        : "Thanks! Could you tell me where you currently live?";
+    }
+
     // Store message in database
     await supabase.from('messages').insert({
       sender_id: userId,
