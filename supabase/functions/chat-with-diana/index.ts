@@ -198,7 +198,20 @@ After each response, use the extract_profile_data function to update the profile
     }
 
     const modelText = (assistantMessage?.content || '').trim();
-    let replyText = modelText ? modelText : `${ack}${nextQuestion}`.trim();
+    const userMsg = (message || '');
+    const appExplain = "Soulmate helps you find serious, compatible partners leading to marriage. I ask a few simple questions to build your profile, then suggest matches based on shared values, lifestyle, and goals. The more complete your profile, the better your matches.";
+
+    let replyText = '';
+    if (modelText) {
+      replyText = modelText;
+    } else if (looksLikeAppQuestion(userMsg)) {
+      replyText = `${appExplain}\n\n${nextQuestion}`;
+    } else if (looksLikeClarifyQuestion(userMsg)) {
+      replyText = `${getExplanationForQuestion(nextQuestion)} ${nextQuestion}`;
+    } else {
+      replyText = `${ack}${nextQuestion}`.trim();
+    }
+
     if (!replyText) {
       replyText = nextQuestion;
     }
@@ -267,6 +280,28 @@ function getNextQuestion(p: any): string {
   return "What are you looking for in a life partner?";
 }
 
+function looksLikeAppQuestion(msg: string): boolean {
+  return /how\s+(does|do)?\s*(this\s+)?(app|application|soulmate)\s+(work|works)\??/i.test(msg) || /(what|how).*app.*work/i.test(msg);
+}
+
+function looksLikeClarifyQuestion(msg: string): boolean {
+  return /(what.*(mean|meaning)|explain|clarify|what do you mean|why.*ask)/i.test(msg);
+}
+
+function getExplanationForQuestion(q: string): string {
+  const s = (q || '').toLowerCase();
+  if (s.includes('gender')) return "I'm asking your gender to personalize matches. Options: Male, Female, Other.";
+  if (s.includes('marital status')) return "Marital status helps understand your current situation. Options: Single, Divorced, Widowed.";
+  if (s.includes('religion')) return "Religion helps respect your beliefs and preferences. Options: Muslim, Christian, Jewish, Buddhist, Hindu, Other, None.";
+  if (s.includes('religious practice') || s.includes('practice')) return "Religious practice shows how observant you are. Options: Very Religious, Religious, Moderate, Not Religious.";
+  if (s.includes('education level')) return "Education level helps match lifestyles and goals. Options: High School, Bachelor, Master, PhD, Vocational, Other.";
+  if (s.includes('employment status')) return "Employment status gives a snapshot of your work life. Options: Employed, Self-Employed, Student, Unemployed, Retired.";
+  if (s.includes('children')) return "This tells us about your family situation. Options: Yes, No, Prefer not to say.";
+  if (s.includes('smoke') || s.includes('drink')) return "These lifestyle choices help gauge compatibility. Options: Yes, No, Prefer not to say.";
+  if (s.includes('travel')) return "Travel frequency shows lifestyle and interests. Options: Never, Rarely, Sometimes, Often, Very Often.";
+  return "I'm asking this to complete your profile so I can find the best compatible matches for you.";
+}
+
 function calculateProfileCompletion(profile: any): number {
   if (!profile) return 0;
   
@@ -283,3 +318,4 @@ function calculateProfileCompletion(profile: any): number {
   
   return Math.round((filledFields / requiredFields.length) * 100);
 }
+
