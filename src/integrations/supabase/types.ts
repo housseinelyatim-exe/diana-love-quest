@@ -94,7 +94,7 @@ export type Database = {
           height: number | null
           height_preference: string | null
           id: string
-          is_profile_complete: boolean | null
+          is_profile_complete: number | null
           job: string | null
           language: Database["public"]["Enums"]["language_type"] | null
           life_goal: string | null
@@ -158,7 +158,7 @@ export type Database = {
           height?: number | null
           height_preference?: string | null
           id: string
-          is_profile_complete?: boolean | null
+          is_profile_complete?: number | null
           job?: string | null
           language?: Database["public"]["Enums"]["language_type"] | null
           life_goal?: string | null
@@ -224,7 +224,7 @@ export type Database = {
           height?: number | null
           height_preference?: string | null
           id?: string
-          is_profile_complete?: boolean | null
+          is_profile_complete?: number | null
           job?: string | null
           language?: Database["public"]["Enums"]["language_type"] | null
           life_goal?: string | null

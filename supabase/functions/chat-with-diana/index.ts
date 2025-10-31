@@ -192,7 +192,7 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
           .from('profiles')
           .update({
             ...profileUpdates,
-            is_profile_complete: calculateProfileCompletion({ ...profile, ...profileUpdates }) === 100,
+            is_profile_complete: calculateProfileCompletion({ ...profile, ...profileUpdates }),
           })
           .eq('id', userId);
 
@@ -216,7 +216,7 @@ if (!profile?.name && !profileUpdates.name) {
       .from('profiles')
       .update({
         name: inferredName,
-        is_profile_complete: calculateProfileCompletion({ ...profile, name: inferredName }) === 100,
+        is_profile_complete: calculateProfileCompletion({ ...profile, name: inferredName }),
       })
       .eq('id', userId);
     if (nameUpdateError) {
