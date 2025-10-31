@@ -108,7 +108,7 @@ After each response, use the extract_profile_data function to update the profile
             }
           }
         ],
-        tool_choice: { type: 'function', function: { name: 'extract_profile_data' } }
+        tool_choice: 'auto' // Let AI decide when to extract data while maintaining conversation
       }),
     });
 
@@ -143,6 +143,26 @@ After each response, use the extract_profile_data function to update the profile
       }
     }
 
+    // Get the reply text - handle case where AI calls tool without providing content
+    let replyText = assistantMessage.content || '';
+    
+    // If no content but tool was called, generate a follow-up response
+    if (!replyText && profileUpdates && Object.keys(profileUpdates).length > 0) {
+      replyText = "Thank you for sharing! Let me get to know you better. ";
+      
+      // Add contextual follow-up based on what was collected
+      const completionPercentage = calculateProfileCompletion({ ...profile, ...profileUpdates });
+      if (completionPercentage < 20) {
+        replyText += "How old are you?";
+      } else if (completionPercentage < 40) {
+        replyText += "Where are you currently living?";
+      } else if (completionPercentage < 60) {
+        replyText += "Tell me about your education and career.";
+      } else {
+        replyText += "What are you looking for in a life partner?";
+      }
+    }
+
     // Store message in database
     await supabase.from('messages').insert({
       sender_id: userId,
@@ -154,7 +174,7 @@ After each response, use the extract_profile_data function to update the profile
     await supabase.from('messages').insert({
       sender_id: null,
       receiver_id: userId,
-      content: assistantMessage.content,
+      content: replyText,
       is_from_diana: true,
     });
 
@@ -164,7 +184,7 @@ After each response, use the extract_profile_data function to update the profile
 
     return new Response(
       JSON.stringify({
-        reply: assistantMessage.content,
+        reply: replyText,
         profileUpdates,
         completionPercentage,
       }),
