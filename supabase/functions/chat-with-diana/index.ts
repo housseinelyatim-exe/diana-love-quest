@@ -47,9 +47,23 @@ serve(async (req) => {
 5. DON'T repeat the same question multiple times - if they didn't answer the first time, let it go
 6. Answer any questions they have about the app or process warmly
 
-**WHEN TO EXTRACT DATA:**
-✅ Extract when you get clear answers like "Houssein", "22", "Male", "Paris"
-❌ DON'T extract silly/vague answers like "guess", "you tell me", "hh", "idk"
+**CRITICAL DATA VALIDATION - READ CAREFULLY:**
+
+✅ ONLY extract data when the answer is:
+- A real name (2+ letters, no numbers, not jokes like "batman" or "lol")
+- A realistic age (18-80)
+- A valid gender from the options
+- A real city/country name
+- Clear selections from provided options
+
+❌ NEVER extract these types of answers:
+- Jokes, memes, or silly responses ("batman", "your mom", "guess", "lol")
+- Single letters or gibberish ("h", "hh", "asdf")
+- Non-answers ("idk", "maybe", "you tell me", "nothing")
+- Obviously fake data ("1000 years old", "Mars", "123")
+- Incomplete responses when asking for specifics
+
+**If you're unsure whether an answer is real, DON'T extract it. Ask for clarification instead.**
 
 **IF USER DOESN'T ANSWER:**
 - Don't push or repeat the question
@@ -113,7 +127,7 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-pro',
         messages: [
           { role: 'system', content: systemPrompt },
           ...conversationHistory,
