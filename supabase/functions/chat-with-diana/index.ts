@@ -98,9 +98,15 @@ CONVERSATION FLOW RULE:
 
 Ask the NEXT missing field from the priority list. If user provides info about multiple fields, acknowledge all but ask only about the next missing field.
 
-IMPORTANT: When a user gives an unclear or silly answer (like "guess", "you tell me", "hh", etc.), DO NOT extract data and DO NOT call the extract_profile_data function. Instead, respond conversationally asking them to provide a proper answer.
+IMPORTANT DATA EXTRACTION RULES:
+- When the user gives a clear answer (like "Houssein", "22", "Male"), IMMEDIATELY call extract_profile_data
+- When the user gives an unclear/silly answer (like "guess", "you tell me", "hh"), DO NOT extract data - ask them nicely to provide a proper answer
+- NEVER skip extraction when you receive a valid answer - it's critical for saving their data
 
-Use the extract_profile_data function ONLY when the user provides a clear, valid answer to your question.`;
+Examples:
+- User says "My name is Houssein" → MUST call extract_profile_data with {name: "Houssein"}
+- User says "22" when asked about age → MUST call extract_profile_data with {age: 22}
+- User says "guess" → DO NOT extract, ask for proper answer`;
 
     // Call Lovable AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -121,7 +127,7 @@ Use the extract_profile_data function ONLY when the user provides a clear, valid
             type: 'function',
             function: {
               name: 'extract_profile_data',
-              description: 'Extract and update profile information from user messages. Call this after every user message to update their profile.',
+              description: 'CRITICAL: Call this function EVERY TIME the user provides ANY answer to your question. Extract and store the relevant profile field(s) from their response. This is mandatory - do not skip this step.',
               parameters: {
                 type: 'object',
                 properties: {
@@ -170,7 +176,8 @@ Use the extract_profile_data function ONLY when the user provides a clear, valid
       const toolCall = assistantMessage.tool_calls[0];
       if (toolCall.function.name === 'extract_profile_data') {
         profileUpdates = JSON.parse(toolCall.function.arguments);
-        console.log('Profile updates extracted:', profileUpdates);
+        console.log('✅ Profile updates extracted:', profileUpdates);
+        console.log('📝 Updating profile for user:', userId);
         
         // Update profile in database
         const { error: updateError } = await supabase
@@ -182,7 +189,9 @@ Use the extract_profile_data function ONLY when the user provides a clear, valid
           .eq('id', userId);
 
         if (updateError) {
-          console.error('Error updating profile:', updateError);
+          console.error('❌ Error updating profile:', updateError);
+        } else {
+          console.log('✅ Profile updated successfully with:', profileUpdates);
         }
       }
     }
