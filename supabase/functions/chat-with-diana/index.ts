@@ -89,8 +89,19 @@ ${JSON.stringify(profile, null, 2)}
 15. life_goal
 16. height
 17. physical_activities
-18. travel_frequency
-19. work_life_balance
+18. cultural_activities
+19. creative_hobbies
+20. gaming_hobbies
+21. travel_frequency
+22. type_of_trips
+23. travel_style
+24. dietary_habits
+25. have_pet (+ pet if yes)
+26. relocation_same_country
+27. relocation_across_countries
+28. work_life_balance
+29. red_flags
+30. role_in_relationship
 
 Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally.`;
 
@@ -136,7 +147,18 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
                   want_children: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
                   physical_activities: { type: 'array', items: { type: 'string' } },
                   cultural_activities: { type: 'array', items: { type: 'string' } },
+                  creative_hobbies: { type: 'array', items: { type: 'string' } },
+                  gaming_hobbies: { type: 'array', items: { type: 'string' } },
                   travel_frequency: { type: 'string', enum: ['never', 'rarely', 'sometimes', 'often', 'very_often'] },
+                  type_of_trips: { type: 'string' },
+                  travel_style: { type: 'string' },
+                  dietary_habits: { type: 'string' },
+                  have_pet: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  pet: { type: 'string' },
+                  relocation_same_country: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  relocation_across_countries: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  red_flags: { type: 'array', items: { type: 'string' } },
+                  role_in_relationship: { type: 'string' },
                 },
               }
             }
@@ -295,8 +317,20 @@ function getNextQuestion(p: any): string {
   if (!p.life_goal) return "What's your main life goal or aspiration?";
   if (!p.height) return "What's your height in centimeters?";
   if (!p.physical_activities || p.physical_activities.length === 0) return "What physical activities do you enjoy? (e.g., gym, running, yoga)";
+  if (!p.cultural_activities || p.cultural_activities.length === 0) return "What cultural activities do you enjoy? (e.g., museums, theater, concerts)";
+  if (!p.creative_hobbies || p.creative_hobbies.length === 0) return "Do you have any creative hobbies? (e.g., painting, writing, music)";
+  if (!p.gaming_hobbies || p.gaming_hobbies.length === 0) return "What gaming hobbies do you have, if any? (e.g., video games, board games)";
   if (!p.travel_frequency) return "How often do you travel? (Never / Rarely / Sometimes / Often / Very Often)";
+  if (!p.type_of_trips) return "What type of trips do you prefer? (e.g., adventure, relaxation, cultural)";
+  if (!p.travel_style) return "How would you describe your travel style? (e.g., budget, luxury, backpacking)";
+  if (!p.dietary_habits) return "What are your dietary habits? (e.g., vegetarian, vegan, no restrictions)";
+  if (!p.have_pet) return "Do you have any pets? (Yes / No / Prefer not to say)";
+  if (p.have_pet === 'yes' && !p.pet) return "What kind of pet(s) do you have?";
+  if (!p.relocation_same_country) return "Would you be open to relocating within the same country? (Yes / No / Prefer not to say)";
+  if (!p.relocation_across_countries) return "Would you be open to relocating to another country? (Yes / No / Prefer not to say)";
   if (!p.work_life_balance) return "How would you describe your work-life balance?";
+  if (!p.red_flags || p.red_flags.length === 0) return "What are your relationship red flags or deal-breakers?";
+  if (!p.role_in_relationship) return "What role do you see yourself playing in a relationship?";
   return "What are you looking for in a life partner?";
 }
 
@@ -327,9 +361,12 @@ function calculateProfileCompletion(profile: any): number {
   
   const requiredFields = [
     'name', 'age', 'gender', 'height', 'where_he_live',
-    'education_lvl', 'employment_status', 'religion', 'practice_lvl',
+    'education_lvl', 'employment_status', 'job', 'religion', 'practice_lvl',
     'smoking', 'drinking', 'life_goal', 'marital_status',
-    'have_children', 'want_children', 'travel_frequency'
+    'have_children', 'want_children', 'physical_activities', 'cultural_activities',
+    'creative_hobbies', 'gaming_hobbies', 'travel_frequency', 'type_of_trips',
+    'travel_style', 'dietary_habits', 'have_pet', 'relocation_same_country',
+    'relocation_across_countries', 'work_life_balance', 'red_flags', 'role_in_relationship'
   ];
   
   const filledFields = requiredFields.filter(field => 
