@@ -13,6 +13,7 @@ serve(async (req) => {
 
   try {
     const { message, conversationHistory, userId } = await req.json();
+    console.log('Chat request received:', { userId, messageLength: (message?.length ?? 0) });
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -26,6 +27,8 @@ serve(async (req) => {
       .select('*')
       .eq('id', userId)
       .single();
+
+    console.log('Current profile data:', profile);
 
     const systemPrompt = `You are Diana, a warm and empathetic AI matchmaking assistant for Soulmate, an app focused on serious relationships leading to marriage. Your role is to:
 
@@ -66,6 +69,13 @@ PRIORITY ORDER OF QUESTIONS (ask missing fields in this order):
 3. gender - "What's your gender? (Male / Female / Other)"
 4. where_he_live - "Where do you currently live?"
 5. marital_status - "What's your marital status? (Single / Divorced / Widowed)"
+
+Ask the NEXT missing field from the priority list. If the user just provided their age, move to gender question. NEVER repeat the same question twice in a row.
+
+CONVERSATION FLOW RULE: 
+- After user answers a question, acknowledge their answer AND move to the next missing field
+- Don't ask about fields that are already filled
+- Check what data you already have before choosing the next question
 6. have_children - "Do you have children? (Yes / No / Prefer not to say)"
 7. education_lvl - "What's your education level? (High School / Bachelor / Master / PhD / Vocational / Other)"
 8. employment_status - "What's your employment status? (Employed / Self-Employed / Student / Unemployed / Retired)"
@@ -82,6 +92,8 @@ PRIORITY ORDER OF QUESTIONS (ask missing fields in this order):
 19. work_life_balance - "How would you describe your work-life balance?"
 
 Ask the NEXT missing field from the priority list. If user provides info about multiple fields, acknowledge all but ask only about the next missing field.
+
+IMPORTANT: Add console.log statements to track conversation flow and data extraction.
 
 After each response, use the extract_profile_data function to update the profile with any new information.`;
 
@@ -144,14 +156,16 @@ After each response, use the extract_profile_data function to update the profile
     }
 
     const aiData = await aiResponse.json();
+    console.log('AI Response:', JSON.stringify(aiData, null, 2));
     const assistantMessage = aiData.choices[0].message;
     
     // Extract profile data if tool was called
-    let profileUpdates = {};
+    let profileUpdates: Record<string, any> = {};
     if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
       const toolCall = assistantMessage.tool_calls[0];
       if (toolCall.function.name === 'extract_profile_data') {
         profileUpdates = JSON.parse(toolCall.function.arguments);
+        console.log('Profile updates extracted:', profileUpdates);
         
         // Update profile in database
         const { error: updateError } = await supabase
@@ -168,33 +182,19 @@ After each response, use the extract_profile_data function to update the profile
       }
     }
 
-    // Get the reply text - handle case where AI calls tool without providing content
-    let replyText = assistantMessage.content || '';
-    
-    // If no content but tool was called, generate a follow-up response
-    if (!replyText && profileUpdates && Object.keys(profileUpdates).length > 0) {
-      replyText = "Thank you for sharing! Let me get to know you better. ";
-      
-      // Add contextual follow-up based on what was collected
-      const completionPercentage = calculateProfileCompletion({ ...profile, ...profileUpdates });
-      if (completionPercentage < 20) {
-        replyText += "How old are you?";
-      } else if (completionPercentage < 40) {
-        replyText += "Where are you currently living?";
-      } else if (completionPercentage < 60) {
-        replyText += "Tell me about your education and career.";
-      } else {
-        replyText += "What are you looking for in a life partner?";
-      }
+    // Compose deterministic next question to avoid repetition
+    const newProfileState = { ...profile, ...profileUpdates };
+    const nextQuestion = getNextQuestion(newProfileState);
+
+    let ack = '';
+    if (profileUpdates && Object.keys(profileUpdates).length > 0) {
+      if (profileUpdates.name) ack += `Nice to meet you, ${profileUpdates.name}. `;
+      if (profileUpdates.age) ack += `Got it, you're ${profileUpdates.age}. `;
+      if (profileUpdates.gender) ack += `Thanks for sharing your gender. `;
+      if (profileUpdates.where_he_live) ack += `Thanks, noted your location. `;
     }
 
-    // Absolute fallback to ensure a message is always returned
-    if (!replyText) {
-      const completionPercentage = calculateProfileCompletion(profile);
-      replyText = completionPercentage < 10
-        ? "Nice to meet you! How old are you?"
-        : "Thanks! Could you tell me where you currently live?";
-    }
+    let replyText = `${ack}${nextQuestion}`.trim();
 
     // Store message in database
     await supabase.from('messages').insert({
@@ -236,6 +236,29 @@ After each response, use the extract_profile_data function to update the profile
     );
   }
 });
+
+function getNextQuestion(p: any): string {
+  if (!p || !p.name) return "What's your name?";
+  if (!p.age) return "How old are you?";
+  if (!p.gender) return "What's your gender? (Male / Female / Other)";
+  if (!p.where_he_live) return "Where do you currently live?";
+  if (!p.marital_status) return "What's your marital status? (Single / Divorced / Widowed)";
+  if (!p.have_children) return "Do you have children? (Yes / No / Prefer not to say)";
+  if (!p.education_lvl) return "What's your education level? (High School / Bachelor / Master / PhD / Vocational / Other)";
+  if (!p.employment_status) return "What's your employment status? (Employed / Self-Employed / Student / Unemployed / Retired)";
+  if (!p.job) return "What do you do for work?";
+  if (!p.religion) return "What's your religion? (Muslim / Christian / Jewish / Buddhist / Hindu / Other / None)";
+  if (!p.practice_lvl) return "How would you describe your religious practice? (Very Religious / Religious / Moderate / Not Religious)";
+  if (!p.smoking) return "Do you smoke? (Yes / No / Prefer not to say)";
+  if (!p.drinking) return "Do you drink alcohol? (Yes / No / Prefer not to say)";
+  if (!p.want_children) return "Do you want children in the future? (Yes / No / Prefer not to say)";
+  if (!p.life_goal) return "What's your main life goal or aspiration?";
+  if (!p.height) return "What's your height in centimeters?";
+  if (!p.physical_activities || p.physical_activities.length === 0) return "What physical activities do you enjoy? (e.g., gym, running, yoga)";
+  if (!p.travel_frequency) return "How often do you travel? (Never / Rarely / Sometimes / Often / Very Often)";
+  if (!p.work_life_balance) return "How would you describe your work-life balance?";
+  return "What are you looking for in a life partner?";
+}
 
 function calculateProfileCompletion(profile: any): number {
   if (!profile) return 0;
