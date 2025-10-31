@@ -40,15 +40,47 @@ const Chat = () => {
     }
   };
 
-  const initializeChat = () => {
-    const welcomeMessage: Message = {
-      role: "assistant",
-      content: "Hello! I'm Diana, your personal matchmaking assistant. I'm here to help you find your soulmate. Let's start by getting to know you better. What's your name?",
-      timestamp: new Date(),
-    };
-    setMessages([welcomeMessage]);
-  };
+  const initializeChat = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return; // checkAuth will redirect
 
+      const { data, error } = await supabase.functions.invoke('chat-with-diana', {
+        body: {
+          message: "", // trigger deterministic next question based on profile
+          conversationHistory: [],
+          userId: session.user.id,
+        },
+      });
+
+      if (error) {
+        console.error('Error initializing chat:', error);
+        // Fallback welcome if function call fails
+        setMessages([{
+          role: 'assistant',
+          content: "Hello! I'm Diana. Let's continue where we left off — what's your next update?",
+          timestamp: new Date(),
+        }]);
+        return;
+      }
+
+      setMessages([{
+        role: 'assistant',
+        content: data.reply,
+        timestamp: new Date(),
+      }]);
+      if (typeof data.completionPercentage === 'number') {
+        setProfileCompletion(data.completionPercentage);
+      }
+    } catch (e) {
+      console.error('Init error:', e);
+      setMessages([{
+        role: 'assistant',
+        content: "Hello! I'm Diana, your personal matchmaking assistant.",
+        timestamp: new Date(),
+      }]);
+    }
+  };
   const scrollToBottom = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
