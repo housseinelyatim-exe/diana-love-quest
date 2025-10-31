@@ -87,6 +87,25 @@ const Chat = () => {
     }
   };
 
+  const extractOptions = (text: string): string[] => {
+    const optionMatch = text.match(/\(([^)]+)\)/);
+    if (!optionMatch) return [];
+    
+    return optionMatch[1]
+      .split('/')
+      .map(opt => opt.trim())
+      .filter(opt => opt.length > 0);
+  };
+
+  const handleQuickReply = (option: string) => {
+    setInput(option);
+    // Trigger form submission programmatically
+    const form = document.querySelector('form');
+    if (form) {
+      form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
@@ -98,6 +117,7 @@ const Chat = () => {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const messageToSend = input;
     setInput("");
     setLoading(true);
 
@@ -111,7 +131,7 @@ const Chat = () => {
 
       const { data, error } = await supabase.functions.invoke('chat-with-diana', {
         body: {
-          message: input,
+          message: messageToSend,
           conversationHistory: messages.map(m => ({
             role: m.role,
             content: m.content
@@ -212,31 +232,55 @@ const Chat = () => {
         <Card className="h-[calc(100vh-280px)] flex flex-col">
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex gap-3 ${
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  {message.role === "assistant" && (
-                    <Avatar className="h-8 w-8 border-2 border-primary/20">
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xs">
-                        D
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div
-                    className={`rounded-2xl px-4 py-3 max-w-[80%] ${
-                      message.role === "user"
-                        ? "bg-gradient-to-br from-primary to-secondary text-white"
-                        : "bg-muted"
-                    }`}
-                  >
-                    <p className="text-sm">{message.content}</p>
+              {messages.map((message, index) => {
+                const options = message.role === 'assistant' && index === messages.length - 1 
+                  ? extractOptions(message.content) 
+                  : [];
+
+                return (
+                  <div key={index} className="space-y-2">
+                    <div
+                      className={`flex gap-3 ${
+                        message.role === "user" ? "justify-end" : "justify-start"
+                      }`}
+                    >
+                      {message.role === "assistant" && (
+                        <Avatar className="h-8 w-8 border-2 border-primary/20">
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xs">
+                            D
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div
+                        className={`rounded-2xl px-4 py-3 max-w-[80%] ${
+                          message.role === "user"
+                            ? "bg-gradient-to-br from-primary to-secondary text-white"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <p className="text-sm">{message.content}</p>
+                      </div>
+                    </div>
+
+                    {/* Quick reply buttons */}
+                    {options.length > 0 && !loading && (
+                      <div className="flex flex-wrap gap-2 pl-11">
+                        {options.map((option, optIndex) => (
+                          <Button
+                            key={optIndex}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleQuickReply(option)}
+                            className="rounded-full hover:bg-primary hover:text-white transition-colors"
+                          >
+                            {option}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {loading && (
                 <div className="flex gap-3">
                   <Avatar className="h-8 w-8 border-2 border-primary/20">
