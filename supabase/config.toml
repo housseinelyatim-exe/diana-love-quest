@@ -1,0 +1,4 @@
+project_id = "xjlexjtqdqtlwjvxrsjv"
+
+[functions.chat-with-diana]
+verify_jwt = true
