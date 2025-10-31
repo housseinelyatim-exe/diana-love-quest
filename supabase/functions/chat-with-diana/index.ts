@@ -197,7 +197,11 @@ After each response, use the extract_profile_data function to update the profile
       if (profileUpdates.where_he_live) ack += `Thanks, noted your location. `;
     }
 
-    let replyText = `${ack}${nextQuestion}`.trim();
+    const modelText = (assistantMessage?.content || '').trim();
+    let replyText = modelText ? modelText : `${ack}${nextQuestion}`.trim();
+    if (!replyText) {
+      replyText = nextQuestion;
+    }
 
     // Store message in database
     await supabase.from('messages').insert({
