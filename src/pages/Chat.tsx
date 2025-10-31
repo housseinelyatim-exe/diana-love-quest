@@ -99,11 +99,13 @@ const Chat = () => {
 
   const handleQuickReply = (option: string) => {
     setInput(option);
-    // Trigger form submission programmatically
-    const form = document.querySelector('form');
-    if (form) {
-      form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-    }
+    // Defer submit to ensure state updates and avoid race conditions
+    setTimeout(() => {
+      const form = document.querySelector('form');
+      if (form) {
+        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }
+    }, 0);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -132,7 +134,7 @@ const Chat = () => {
       const { data, error } = await supabase.functions.invoke('chat-with-diana', {
         body: {
           message: messageToSend,
-          conversationHistory: messages.map(m => ({
+          conversationHistory: [...messages, userMessage].map(m => ({
             role: m.role,
             content: m.content
           })),
