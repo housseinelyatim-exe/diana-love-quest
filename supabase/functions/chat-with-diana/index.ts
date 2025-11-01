@@ -370,7 +370,12 @@ function getNextQuestion(p: any): string {
   if (!p.have_children) return "Do you have children? (Yes / No / Prefer not to say)";
   if (!p.education_lvl) return "What's your education level? (High School / Bachelor / Master / PhD / Vocational / Other)";
   if (!p.employment_status) return "What's your employment status? (Employed / Self-Employed / Student / Unemployed / Retired)";
-  if (!p.job) return "What do you do for work?";
+  
+  // Only ask about job if they're employed, self-employed, or student
+  if (!p.job && p.employment_status && ['employed', 'self_employed', 'student'].includes(p.employment_status)) {
+    return "What do you do for work?";
+  }
+  
   if (!p.religion) return "What's your religion? (Muslim / Christian / Jewish / Buddhist / Hindu / Other / None)";
   if (!p.practice_lvl) return "How would you describe your religious practice? (Very Religious / Religious / Moderate / Not Religious)";
   if (!p.smoking) return "Do you smoke? (Yes / No / Prefer not to say)";
