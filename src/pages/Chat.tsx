@@ -23,6 +23,8 @@ const Chat = () => {
   const [loading, setLoading] = useState(false);
   const [profileCompletion, setProfileCompletion] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const hasShown50Toast = useRef(false);
+  const hasShown100Toast = useRef(false);
 
   useEffect(() => {
     checkAuth();
@@ -193,10 +195,12 @@ const Chat = () => {
       setMessages((prev) => [...prev, aiResponse]);
       setProfileCompletion(data.completionPercentage);
 
-      if (data.completionPercentage >= 50 && data.completionPercentage < 100) {
+      if (data.completionPercentage >= 50 && data.completionPercentage < 100 && !hasShown50Toast.current) {
         toast.success("You can now access your dashboard! Continue chatting for better matches.");
-      } else if (data.completionPercentage === 100) {
+        hasShown50Toast.current = true;
+      } else if (data.completionPercentage === 100 && !hasShown100Toast.current) {
         toast.success("Profile complete! You'll get the best possible matches now.");
+        hasShown100Toast.current = true;
       }
     } catch (error) {
       console.error('Error:', error);
