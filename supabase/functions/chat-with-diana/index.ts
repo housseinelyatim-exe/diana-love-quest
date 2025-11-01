@@ -142,7 +142,7 @@ ${JSON.stringify(profile, null, 2)}
 6. have_children
 7. education_lvl
 8. employment_status
-9. job
+9. job (⚠️ SKIP IF employment_status is "unemployed" or "retired" - they don't have a job!)
 10. religion
 11. practice_lvl
 12. smoking
@@ -164,6 +164,10 @@ ${JSON.stringify(profile, null, 2)}
 28. work_life_balance
 29. red_flags
 30. role_in_relationship
+
+**CONDITIONAL LOGIC - VERY IMPORTANT:**
+- NEVER ask about "job" if employment_status is "unemployed" or "retired"
+- If they're unemployed/retired, move directly to the next question (religion)
 
 Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally.`;
 
