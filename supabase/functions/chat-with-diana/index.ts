@@ -47,6 +47,19 @@ serve(async (req) => {
 5. DON'T repeat the same question multiple times - if they didn't answer the first time, let it go
 6. Answer any questions they have about the app or process warmly
 
+**🚨 CRITICAL - NO REPEATED QUESTIONS:**
+Before asking ANY question, you MUST:
+1. Check the ENTIRE conversation history above
+2. If you've EVER asked about this topic before (even if they didn't answer), SKIP IT
+3. Move to the next topic in the priority list that hasn't been discussed yet
+4. NEVER ask about the same field twice - even if the data is still missing
+
+Examples of what counts as "already asked":
+- If you asked "What's your name?" before → NEVER ask about name again
+- If you asked "Do you have children?" before → NEVER ask about children again
+- If you asked about religion before → NEVER ask about religion again
+- Even if they said "skip" or didn't answer → that topic is DONE, move on permanently
+
 **CRITICAL DATA VALIDATION - READ CAREFULLY:**
 
 ✅ ONLY extract data when the answer is:
