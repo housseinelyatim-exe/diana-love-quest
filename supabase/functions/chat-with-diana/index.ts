@@ -90,12 +90,13 @@ serve(async (req) => {
 - Be helpful when they ask questions about the app or process
 
 **CORE RULES:**
-1. Ask ONE question at a time
-2. Always provide answer options for multiple-choice questions
-3. ONLY extract data when you get a CLEAR, VALID answer
-4. If the user dodges, gives a silly answer, or doesn't respond → acknowledge casually and move on naturally to chat about something else
-5. DON'T repeat the same question multiple times - if they didn't answer the first time, let it go
-6. Answer any questions they have about the app or process warmly
+1. Ask ONE question at a time in a natural, conversational way
+2. Users can answer however they want - accept natural language, not just specific options
+3. Provide examples or suggestions casually, but NEVER make them look like required choices
+4. ONLY extract data when you get a CLEAR, VALID answer
+5. If the user dodges, gives a silly answer, or doesn't respond → acknowledge casually and move on naturally to chat about something else
+6. DON'T repeat the same question multiple times - if they didn't answer the first time, let it go
+7. Answer any questions they have about the app or process warmly
 
 **🚨 CRITICAL - NO REPEATED QUESTIONS:**
 Before asking ANY question, you MUST:
@@ -186,7 +187,14 @@ Current profile completion: ${calculateProfileCompletion(profile)}%
 Profile data collected so far:
 ${JSON.stringify(profile, null, 2)}
 
-**ANSWER OPTIONS BY FIELD:**
+**HOW TO ASK QUESTIONS:**
+- Ask naturally and conversationally
+- Provide examples or casual suggestions, but don't make them look like forced options
+- Example: "What's your marital status?" NOT "What's your marital status? (Single / Divorced / Widowed)"
+- Example: "Do you smoke?" NOT "Do you smoke? (Yes / No / Prefer not to say)"
+- Users can answer in their own words - accept natural language
+
+**VALID OPTIONS BY FIELD (map natural answers to these):**
 - gender: Male, Female, Other
 - marital_status: Single, Divorced, Widowed
 - religion: Muslim, Christian, Jewish, Buddhist, Hindu, Other, None
@@ -393,37 +401,37 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
 function getNextQuestion(p: any, askedTopics: Set<string> = new Set()): string {
   if (!p || (!p.name && !askedTopics.has('name'))) return "What's your name?";
   if (!p.age && !askedTopics.has('age')) return "How old are you?";
-  if (!p.gender && !askedTopics.has('gender')) return "What's your gender? (Male / Female / Other)";
+  if (!p.gender && !askedTopics.has('gender')) return "What's your gender?";
   if (!p.where_he_live && !askedTopics.has('where_he_live')) return "Where do you currently live?";
-  if (!p.marital_status && !askedTopics.has('marital_status')) return "What's your marital status? (Single / Divorced / Widowed)";
-  if (!p.have_children && !askedTopics.has('have_children')) return "Do you have children? (Yes / No / Prefer not to say)";
-  if (!p.education_lvl && !askedTopics.has('education_lvl')) return "What's your education level? (High School / Bachelor / Master / PhD / Vocational / Other)";
-  if (!p.employment_status && !askedTopics.has('employment_status')) return "What's your employment status? (Employed / Self-Employed / Student / Unemployed / Retired)";
+  if (!p.marital_status && !askedTopics.has('marital_status')) return "What's your marital status?";
+  if (!p.have_children && !askedTopics.has('have_children')) return "Do you have children?";
+  if (!p.education_lvl && !askedTopics.has('education_lvl')) return "What's your education level?";
+  if (!p.employment_status && !askedTopics.has('employment_status')) return "What's your employment status?";
   
   // Only ask about job if they're employed, self-employed, or student AND haven't been asked
   if (!p.job && !askedTopics.has('job') && p.employment_status && ['employed', 'self_employed', 'student'].includes(p.employment_status)) {
     return "What do you do for work?";
   }
   
-  if (!p.religion && !askedTopics.has('religion')) return "What's your religion? (Muslim / Christian / Jewish / Buddhist / Hindu / Other / None)";
-  if (!p.practice_lvl && !askedTopics.has('practice_lvl')) return "How would you describe your religious practice? (Very Religious / Religious / Moderate / Not Religious)";
-  if (!p.smoking && !askedTopics.has('smoking')) return "Do you smoke? (Yes / No / Prefer not to say)";
-  if (!p.drinking && !askedTopics.has('drinking')) return "Do you drink alcohol? (Yes / No / Prefer not to say)";
-  if (!p.want_children && !askedTopics.has('want_children')) return "Do you want children in the future? (Yes / No / Prefer not to say)";
+  if (!p.religion && !askedTopics.has('religion')) return "What's your religion?";
+  if (!p.practice_lvl && !askedTopics.has('practice_lvl')) return "How would you describe your religious practice?";
+  if (!p.smoking && !askedTopics.has('smoking')) return "Do you smoke?";
+  if (!p.drinking && !askedTopics.has('drinking')) return "Do you drink alcohol?";
+  if (!p.want_children && !askedTopics.has('want_children')) return "Do you want children in the future?";
   if (!p.life_goal && !askedTopics.has('life_goal')) return "What's your main life goal or aspiration?";
   if (!p.height && !askedTopics.has('height')) return "What's your height in centimeters?";
-  if ((!p.physical_activities || p.physical_activities.length === 0) && !askedTopics.has('physical_activities')) return "What physical activities do you enjoy? (e.g., gym, running, yoga)";
-  if ((!p.cultural_activities || p.cultural_activities.length === 0) && !askedTopics.has('cultural_activities')) return "What cultural activities do you enjoy? (e.g., museums, theater, concerts)";
-  if ((!p.creative_hobbies || p.creative_hobbies.length === 0) && !askedTopics.has('creative_hobbies')) return "Do you have any creative hobbies? (e.g., painting, writing, music)";
-  if ((!p.gaming_hobbies || p.gaming_hobbies.length === 0) && !askedTopics.has('gaming_hobbies')) return "What gaming hobbies do you have, if any? (e.g., video games, board games)";
-  if (!p.travel_frequency && !askedTopics.has('travel_frequency')) return "How often do you travel? (Never / Rarely / Sometimes / Often / Very Often)";
-  if (!p.type_of_trips && !askedTopics.has('type_of_trips')) return "What type of trips do you prefer? (e.g., adventure, relaxation, cultural)";
-  if (!p.travel_style && !askedTopics.has('travel_style')) return "How would you describe your travel style? (e.g., budget, luxury, backpacking)";
-  if (!p.dietary_habits && !askedTopics.has('dietary_habits')) return "What are your dietary habits? (e.g., vegetarian, vegan, no restrictions)";
-  if (!p.have_pet && !askedTopics.has('have_pet')) return "Do you have any pets? (Yes / No / Prefer not to say)";
+  if ((!p.physical_activities || p.physical_activities.length === 0) && !askedTopics.has('physical_activities')) return "What physical activities do you enjoy?";
+  if ((!p.cultural_activities || p.cultural_activities.length === 0) && !askedTopics.has('cultural_activities')) return "What cultural activities interest you?";
+  if ((!p.creative_hobbies || p.creative_hobbies.length === 0) && !askedTopics.has('creative_hobbies')) return "Do you have any creative hobbies?";
+  if ((!p.gaming_hobbies || p.gaming_hobbies.length === 0) && !askedTopics.has('gaming_hobbies')) return "What gaming hobbies do you have, if any?";
+  if (!p.travel_frequency && !askedTopics.has('travel_frequency')) return "How often do you travel?";
+  if (!p.type_of_trips && !askedTopics.has('type_of_trips')) return "What type of trips do you prefer?";
+  if (!p.travel_style && !askedTopics.has('travel_style')) return "How would you describe your travel style?";
+  if (!p.dietary_habits && !askedTopics.has('dietary_habits')) return "What are your dietary habits?";
+  if (!p.have_pet && !askedTopics.has('have_pet')) return "Do you have any pets?";
   if (p.have_pet === 'yes' && !p.pet && !askedTopics.has('pet')) return "What kind of pet(s) do you have?";
-  if (!p.relocation_same_country && !askedTopics.has('relocation_same_country')) return "Would you be open to relocating within the same country? (Yes / No / Prefer not to say)";
-  if (!p.relocation_across_countries && !askedTopics.has('relocation_across_countries')) return "Would you be open to relocating to another country? (Yes / No / Prefer not to say)";
+  if (!p.relocation_same_country && !askedTopics.has('relocation_same_country')) return "Would you be open to relocating within the same country?";
+  if (!p.relocation_across_countries && !askedTopics.has('relocation_across_countries')) return "Would you be open to relocating to another country?";
   if (!p.work_life_balance && !askedTopics.has('work_life_balance')) return "How would you describe your work-life balance?";
   if ((!p.red_flags || p.red_flags.length === 0) && !askedTopics.has('red_flags')) return "What are your relationship red flags or deal-breakers?";
   if (!p.role_in_relationship && !askedTopics.has('role_in_relationship')) return "What role do you see yourself playing in a relationship?";
