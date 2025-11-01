@@ -548,20 +548,47 @@ function calculateProfileCompletion(profile: any): number {
   if (!profile) return 0;
   
   const requiredFields = [
-    'name', 'age', 'gender', 'height', 'where_he_live',
-    'education_lvl', 'employment_status', 'job', 'religion', 'practice_lvl',
+    'name', 'age', 'gender', 'height', 'where_he_live', 'where_want_to_live', 'where_was_born',
+    'health', 'disabilities_and_special_need', 'health_disability_preference',
+    'education_lvl', 'employment_status', 'religion', 'practice_lvl',
     'smoking', 'drinking', 'life_goal', 'marital_status',
     'have_children', 'want_children', 'physical_activities', 'cultural_activities',
     'creative_hobbies', 'gaming_hobbies', 'travel_frequency', 'type_of_trips',
-    'travel_style', 'dietary_habits', 'have_pet', 'relocation_same_country',
-    'relocation_across_countries', 'work_life_balance', 'red_flags', 'role_in_relationship'
+    'travel_style', 'travel_planning', 'dietary_habits', 'sleep_habits', 'have_pet',
+    'relocation_same_country', 'relocation_across_countries', 'work_life_balance',
+    'volunteer_community_work', 'red_flags', 'role_in_relationship',
+    'age_range_preference', 'height_preference'
   ];
   
-  const filledFields = requiredFields.filter(field => 
-    profile[field] !== null && profile[field] !== undefined && profile[field] !== ''
-  ).length;
+  // Conditional fields (only count if applicable)
+  const conditionalFields = [];
   
-  return Math.round((filledFields / requiredFields.length) * 100);
+  // Job only required if employed/self-employed/student
+  if (profile.employment_status && ['employed', 'self_employed', 'student'].includes(profile.employment_status)) {
+    conditionalFields.push('job');
+  }
+  
+  // Pet type only required if has pets
+  if (profile.have_pet === 'yes') {
+    conditionalFields.push('pet');
+  }
+  
+  // Disability type only required if has disability
+  if (profile.disabilities_and_special_need === 'yes') {
+    conditionalFields.push('disabilities_and_special_need_type');
+  }
+  
+  const allRequiredFields = [...requiredFields, ...conditionalFields];
+  
+  const filledFields = allRequiredFields.filter(field => {
+    const value = profile[field];
+    if (value === null || value === undefined || value === '') return false;
+    // Arrays should have at least one item
+    if (Array.isArray(value)) return value.length > 0;
+    return true;
+  }).length;
+  
+  return Math.round((filledFields / allRequiredFields.length) * 100);
 }
 
 function extractNameFromMessage(msg: string): string | null {
