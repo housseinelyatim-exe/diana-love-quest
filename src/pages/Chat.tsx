@@ -48,7 +48,7 @@ const Chat = () => {
       if (!session) return; // checkAuth will redirect
 
       // Sync language from localStorage to profile
-      const savedLanguage = localStorage.getItem('language');
+      const savedLanguage = localStorage.getItem('preferredLanguage') || localStorage.getItem('language');
       if (savedLanguage && ['en', 'fr', 'ar', 'tn'].includes(savedLanguage)) {
         const { data: currentProfile } = await supabase
           .from('profiles')
