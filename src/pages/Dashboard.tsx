@@ -62,11 +62,14 @@ const Dashboard = () => {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profile) {
         setUserName(profile.name || 'User');
-        setProfileCompletion(calculateProfileCompletion(profile));
+        const completion = typeof profile.is_profile_complete === 'number'
+          ? profile.is_profile_complete
+          : calculateProfileCompletion(profile);
+        setProfileCompletion(Math.max(0, Math.min(100, completion)));
       }
 
       // Fetch real matches
