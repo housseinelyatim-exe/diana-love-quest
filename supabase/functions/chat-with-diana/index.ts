@@ -409,43 +409,78 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
 });
 
 function getNextQuestion(p: any, askedTopics: Set<string> = new Set()): string {
+  // Basic info
   if (!p || (!p.name && !askedTopics.has('name'))) return "What's your name?";
   if (!p.age && !askedTopics.has('age')) return "How old are you?";
   if (!p.gender && !askedTopics.has('gender')) return "What's your gender?";
+  if (!p.where_was_born && !askedTopics.has('where_was_born')) return "Where were you born?";
   if (!p.where_he_live && !askedTopics.has('where_he_live')) return "Where do you currently live?";
+  if (!p.where_want_to_live && !askedTopics.has('where_want_to_live')) return "Where would you like to live in the future?";
+  
+  // Health & Disabilities
+  if (!p.health && !askedTopics.has('health')) return "How would you describe your overall health?";
+  if (!p.disabilities_and_special_need && !askedTopics.has('disabilities_and_special_need')) return "Do you have any disabilities or special needs?";
+  if (p.disabilities_and_special_need === 'yes' && !p.disabilities_and_special_need_type && !askedTopics.has('disabilities_and_special_need_type')) {
+    return "Could you share more about your disability or special need?";
+  }
+  if (!p.health_disability_preference && !askedTopics.has('health_disability_preference')) {
+    return "Do you have any preferences regarding health or disabilities in a partner?";
+  }
+  
+  // Family & Relationships
   if (!p.marital_status && !askedTopics.has('marital_status')) return "What's your marital status?";
   if (!p.have_children && !askedTopics.has('have_children')) return "Do you have children?";
+  if (!p.want_children && !askedTopics.has('want_children')) return "Do you want children in the future?";
+  
+  // Education & Work
   if (!p.education_lvl && !askedTopics.has('education_lvl')) return "What's your education level?";
   if (!p.employment_status && !askedTopics.has('employment_status')) return "What's your employment status?";
-  
-  // Only ask about job if they're employed, self-employed, or student AND haven't been asked
   if (!p.job && !askedTopics.has('job') && p.employment_status && ['employed', 'self_employed', 'student'].includes(p.employment_status)) {
     return "What do you do for work?";
   }
+  if (!p.work_life_balance && !askedTopics.has('work_life_balance')) return "How would you describe your work-life balance?";
   
+  // Religion & Lifestyle
   if (!p.religion && !askedTopics.has('religion')) return "What's your religion?";
-  if (!p.practice_lvl && !askedTopics.has('practice_lvl')) return "How would you describe your religious practice?";
+  if (!p.practice_lvl && !askedTopics.has('practice_lvl')) return "How would you describe your religious practice level?";
   if (!p.smoking && !askedTopics.has('smoking')) return "Do you smoke?";
   if (!p.drinking && !askedTopics.has('drinking')) return "Do you drink alcohol?";
-  if (!p.want_children && !askedTopics.has('want_children')) return "Do you want children in the future?";
+  if (!p.dietary_habits && !askedTopics.has('dietary_habits')) return "What are your dietary habits?";
+  if (!p.sleep_habits && !askedTopics.has('sleep_habits')) return "What are your sleep habits?";
+  
+  // Hobbies & Interests
   if (!p.life_goal && !askedTopics.has('life_goal')) return "What's your main life goal or aspiration?";
-  if (!p.height && !askedTopics.has('height')) return "What's your height in centimeters?";
   if ((!p.physical_activities || p.physical_activities.length === 0) && !askedTopics.has('physical_activities')) return "What physical activities do you enjoy?";
   if ((!p.cultural_activities || p.cultural_activities.length === 0) && !askedTopics.has('cultural_activities')) return "What cultural activities interest you?";
   if ((!p.creative_hobbies || p.creative_hobbies.length === 0) && !askedTopics.has('creative_hobbies')) return "Do you have any creative hobbies?";
   if ((!p.gaming_hobbies || p.gaming_hobbies.length === 0) && !askedTopics.has('gaming_hobbies')) return "What gaming hobbies do you have, if any?";
+  
+  // Travel
   if (!p.travel_frequency && !askedTopics.has('travel_frequency')) return "How often do you travel?";
   if (!p.type_of_trips && !askedTopics.has('type_of_trips')) return "What type of trips do you prefer?";
   if (!p.travel_style && !askedTopics.has('travel_style')) return "How would you describe your travel style?";
-  if (!p.dietary_habits && !askedTopics.has('dietary_habits')) return "What are your dietary habits?";
+  if (!p.travel_planning && !askedTopics.has('travel_planning')) return "How do you prefer to plan trips?";
+  
+  // Pets & Community
   if (!p.have_pet && !askedTopics.has('have_pet')) return "Do you have any pets?";
   if (p.have_pet === 'yes' && !p.pet && !askedTopics.has('pet')) return "What kind of pet(s) do you have?";
+  if (!p.volunteer_community_work && !askedTopics.has('volunteer_community_work')) return "Do you participate in volunteer or community work?";
+  
+  // Location & Relocation
   if (!p.relocation_same_country && !askedTopics.has('relocation_same_country')) return "Would you be open to relocating within the same country?";
   if (!p.relocation_across_countries && !askedTopics.has('relocation_across_countries')) return "Would you be open to relocating to another country?";
-  if (!p.work_life_balance && !askedTopics.has('work_life_balance')) return "How would you describe your work-life balance?";
+  
+  // Physical Attributes
+  if (!p.height && !askedTopics.has('height')) return "What's your height in centimeters?";
+  
+  // Relationship Preferences - Now decomposed into specific questions
+  if (!p.age_range_preference && !askedTopics.has('age_range_preference')) return "What age range are you looking for in a partner?";
+  if (!p.height_preference && !askedTopics.has('height_preference')) return "Do you have any height preferences for a partner?";
   if ((!p.red_flags || p.red_flags.length === 0) && !askedTopics.has('red_flags')) return "What are your relationship red flags or deal-breakers?";
   if (!p.role_in_relationship && !askedTopics.has('role_in_relationship')) return "What role do you see yourself playing in a relationship?";
-  return "What are you looking for in a life partner?";
+  
+  // Fallback - All major fields covered
+  return "Is there anything else you'd like to share about yourself or what you're looking for?";
 }
 
 function getNonRepeatingFollowUp(): string {
