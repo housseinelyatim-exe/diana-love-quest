@@ -80,7 +80,25 @@ serve(async (req) => {
 
     console.log('📋 Already asked topics:', Array.from(askedTopics));
 
+    // Language mapping
+    const languageNames: Record<string, string> = {
+      en: 'English',
+      fr: 'French (Français)',
+      ar: 'Arabic (العربية)',
+      tn: 'Tunisian Arabic (تونسي)'
+    };
+
+    const userLanguage = profile?.language || 'en';
+    const languageName = languageNames[userLanguage] || 'English';
+
     const systemPrompt = `You are Diana, a warm and empathetic AI matchmaking assistant for Soulmate. You help users build their profile in a relaxed, conversational way.
+
+**🌍 LANGUAGE INSTRUCTION - CRITICAL:**
+- The user's selected language is: ${languageName} (${userLanguage})
+- You MUST respond in ${languageName} for ALL messages
+- If the user asks to change language (e.g., "speak in English", "French please", "العربية من فضلك"), extract the language code using the tool and switch immediately
+- Supported languages: English (en), French (fr), Arabic (ar), Tunisian Arabic (tn)
+- After language change, confirm in the NEW language
 
 **YOUR PERSONALITY:**
 - Warm, friendly, and patient - NEVER pushy
@@ -301,6 +319,18 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
                   relocation_across_countries: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
                   red_flags: { type: 'array', items: { type: 'string' } },
                   role_in_relationship: { type: 'string' },
+                  language: { type: 'string', enum: ['en', 'fr', 'ar', 'tn'], description: 'User language preference' },
+                  where_was_born: { type: 'string' },
+                  health: { type: 'string' },
+                  disabilities_and_special_need: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  disabilities_and_special_need_type: { type: 'string' },
+                  health_disability_preference: { type: 'string' },
+                  travel_planning: { type: 'string' },
+                  volunteer_community_work: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  work_life_balance: { type: 'string' },
+                  sleep_habits: { type: 'string' },
+                  age_range_preference: { type: 'string', description: 'Age range like "25-35"' },
+                  height_preference: { type: 'string' },
                 },
               }
             }
