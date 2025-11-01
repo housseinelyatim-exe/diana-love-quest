@@ -45,32 +45,67 @@ const Chat = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return; // checkAuth will redirect
 
-      const { data, error } = await supabase.functions.invoke('chat-with-diana', {
-        body: {
-          message: "", // trigger deterministic next question based on profile
-          conversationHistory: [],
-          userId: session.user.id,
-        },
-      });
+      // Load previous messages from database
+      const { data: dbMessages, error: messagesError } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`sender_id.eq.${session.user.id},receiver_id.eq.${session.user.id}`)
+        .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error('Error initializing chat:', error);
-        // Fallback welcome if function call fails
-        setMessages([{
-          role: 'assistant',
-          content: "Hello! I'm Diana. Let's continue where we left off — what's your next update?",
-          timestamp: new Date(),
-        }]);
-        return;
+      if (messagesError) {
+        console.error('Error loading messages:', messagesError);
       }
 
-      setMessages([{
-        role: 'assistant',
-        content: data.reply,
-        timestamp: new Date(),
-      }]);
-      if (typeof data.completionPercentage === 'number') {
-        setProfileCompletion(data.completionPercentage);
+      // Convert database messages to frontend format
+      const loadedMessages: Message[] = dbMessages?.map(msg => ({
+        role: msg.is_from_diana ? 'assistant' as const : 'user' as const,
+        content: msg.content,
+        timestamp: new Date(msg.created_at),
+      })) || [];
+
+      // If there are previous messages, load them
+      if (loadedMessages.length > 0) {
+        setMessages(loadedMessages);
+        
+        // Get current profile completion
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_profile_complete')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profile?.is_profile_complete) {
+          setProfileCompletion(profile.is_profile_complete);
+        }
+      } else {
+        // No previous messages, get initial greeting
+        const { data, error } = await supabase.functions.invoke('chat-with-diana', {
+          body: {
+            message: "",
+            conversationHistory: [],
+            userId: session.user.id,
+          },
+        });
+
+        if (error) {
+          console.error('Error initializing chat:', error);
+          setMessages([{
+            role: 'assistant',
+            content: "Hello! I'm Diana, your personal matchmaking assistant. Let's get to know each other!",
+            timestamp: new Date(),
+          }]);
+          return;
+        }
+
+        setMessages([{
+          role: 'assistant',
+          content: data.reply,
+          timestamp: new Date(),
+        }]);
+        
+        if (typeof data.completionPercentage === 'number') {
+          setProfileCompletion(data.completionPercentage);
+        }
       }
     } catch (e) {
       console.error('Init error:', e);
