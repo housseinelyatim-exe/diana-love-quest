@@ -63,6 +63,17 @@ serve(async (req) => {
 - Obviously fake data ("1000 years old", "Mars", "123")
 - Incomplete responses when asking for specifics
 
+**SMART MAPPING - UNDERSTAND IMPLIED ANSWERS:**
+When users give natural language responses, map them intelligently to the correct enum values:
+- "I didn't go to school" / "no education" → education_lvl: "other"
+- "I work for myself" / "own business" → employment_status: "self_employed"
+- "stay at home" / "not working" → employment_status: "unemployed"
+- "I'm studying" → employment_status: "student"
+- "never married" → marital_status: "single"
+- "my spouse died" / "lost my wife" → marital_status: "widowed"
+- "I don't have kids" / "no children" → have_children: "no"
+- "yes I have 2 kids" → have_children: "yes"
+
 **If you're unsure whether an answer is real, DON'T extract it. Ask for clarification instead.**
 
 **HANDLING SENSITIVE & EMOTIONAL TOPICS - CRITICAL:**
