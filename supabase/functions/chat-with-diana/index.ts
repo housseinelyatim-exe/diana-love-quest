@@ -266,58 +266,15 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
       }
     }
 
-// Compose deterministic next question to avoid repetition
-const userMsg = (message || '');
-// Fallback: extract name if tool didn't and message looks like a name
-if (!profile?.name && !profileUpdates.name) {
-  const inferredName = extractNameFromMessage(userMsg);
-  if (inferredName) {
-    profileUpdates.name = inferredName;
-    console.log('🧩 Fallback extracted name:', inferredName);
-    const { error: nameUpdateError } = await supabase
-      .from('profiles')
-      .update({
-        name: inferredName,
-        is_profile_complete: calculateProfileCompletion({ ...profile, name: inferredName }),
-      })
-      .eq('id', userId);
-    if (nameUpdateError) {
-      console.error('❌ Error updating name via fallback:', nameUpdateError);
-      delete profileUpdates.name;
-    } else {
-      console.log('✅ Name updated via fallback.');
-    }
-  }
-}
-const newProfileState = { ...profile, ...profileUpdates };
-const nextQuestion = getNextQuestion(newProfileState);
-
-    let ack = '';
-    if (profileUpdates && Object.keys(profileUpdates).length > 0) {
-      if (profileUpdates.name) ack += `Nice to meet you, ${profileUpdates.name}. `;
-      if (profileUpdates.age) ack += `Got it, you're ${profileUpdates.age}. `;
-      if (profileUpdates.gender) ack += `Thanks for sharing your gender. `;
-      if (profileUpdates.where_he_live) ack += `Thanks, noted your location. `;
-    }
-
     const modelText = (assistantMessage?.content || '').trim();
-    const appExplain = "Soulmate helps you find serious, compatible partners leading to marriage. I ask a few simple questions to build your profile, then suggest matches based on shared values, lifestyle, and goals. The more complete your profile, the better your matches.";
     
-    let replyText = '';
-    if (profileUpdates && Object.keys(profileUpdates).length > 0) {
-      replyText = `${ack}${nextQuestion}`.trim();
-    } else if (modelText) {
-      replyText = modelText;
-    } else if (looksLikeAppQuestion(userMsg)) {
-      replyText = `${appExplain}\n\n${nextQuestion}`;
-    } else if (looksLikeClarifyQuestion(userMsg)) {
-      replyText = `${getExplanationForQuestion(nextQuestion)} ${nextQuestion}`;
-    } else {
-      replyText = `${ack}${nextQuestion}`.trim();
-    }
-
+    // Use the AI's natural response - it knows how to handle conversation flow
+    let replyText = modelText;
+    
+    // Only use fallback if AI didn't provide a response
     if (!replyText) {
-      replyText = nextQuestion;
+      const newProfileState = { ...profile, ...profileUpdates };
+      replyText = getNextQuestion(newProfileState);
     }
 
     // Store message in database
