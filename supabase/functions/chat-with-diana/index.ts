@@ -30,6 +30,56 @@ serve(async (req) => {
 
     console.log('Current profile data:', profile);
 
+    // Track which topics have already been asked about
+    const askedTopics = new Set<string>();
+    const topicKeywords: Record<string, string[]> = {
+      name: ['name', 'called', 'what should i call'],
+      age: ['age', 'old are you', 'how old'],
+      gender: ['gender', 'male or female', 'man or woman'],
+      where_he_live: ['where do you live', 'where are you living', 'current location', 'where you live'],
+      marital_status: ['marital status', 'married', 'single', 'divorced', 'widowed'],
+      have_children: ['have children', 'do you have kids', 'any children'],
+      education_lvl: ['education', 'school', 'degree', 'studied'],
+      employment_status: ['employment', 'work status', 'employed', 'working'],
+      job: ['what do you do', 'your job', 'work', 'occupation', 'profession'],
+      religion: ['religion', 'religious', 'faith', 'belief'],
+      practice_lvl: ['religious practice', 'how religious', 'practice your faith'],
+      smoking: ['smoke', 'smoking'],
+      drinking: ['drink', 'alcohol', 'drinking'],
+      want_children: ['want children', 'children in the future', 'have kids in future'],
+      life_goal: ['life goal', 'aspiration', 'dream', 'ambition'],
+      height: ['height', 'tall', 'how tall'],
+      physical_activities: ['physical activities', 'exercise', 'sports', 'gym'],
+      cultural_activities: ['cultural activities', 'museums', 'theater', 'concerts'],
+      creative_hobbies: ['creative hobbies', 'artistic', 'painting', 'writing', 'music'],
+      gaming_hobbies: ['gaming', 'games', 'video games', 'board games'],
+      travel_frequency: ['how often', 'travel frequency', 'often do you travel'],
+      type_of_trips: ['type of trips', 'kind of trips', 'trips do you prefer'],
+      travel_style: ['travel style', 'how do you travel', 'budget or luxury'],
+      dietary_habits: ['dietary', 'food', 'eating habits', 'vegetarian', 'vegan'],
+      have_pet: ['pet', 'have any pets', 'do you have pets'],
+      relocation_same_country: ['relocat', 'move within', 'same country'],
+      relocation_across_countries: ['relocat', 'move to another country', 'different country'],
+      work_life_balance: ['work-life balance', 'balance work', 'work and life'],
+      red_flags: ['red flags', 'deal-breakers', 'dealbreakers', 'what would be a dealbreaker'],
+      role_in_relationship: ['role in relationship', 'what role', 'see yourself in a relationship']
+    };
+
+    // Check conversation history for already asked topics
+    for (const msg of conversationHistory) {
+      if (msg.role === 'assistant') {
+        const msgLower = msg.content.toLowerCase();
+        for (const [topic, keywords] of Object.entries(topicKeywords)) {
+          if (keywords.some(kw => msgLower.includes(kw))) {
+            askedTopics.add(topic);
+            console.log(`🔍 Detected already asked topic: ${topic} in message: "${msg.content.substring(0, 60)}..."`);
+          }
+        }
+      }
+    }
+
+    console.log('📋 Already asked topics:', Array.from(askedTopics));
+
     const systemPrompt = `You are Diana, a warm and empathetic AI matchmaking assistant for Soulmate. You help users build their profile in a relaxed, conversational way.
 
 **YOUR PERSONALITY:**
@@ -182,6 +232,11 @@ ${JSON.stringify(profile, null, 2)}
 - NEVER ask about "job" if employment_status is "unemployed" or "retired"
 - If they're unemployed/retired, move directly to the next question (religion)
 
+**🚫 TOPICS YOU'VE ALREADY ASKED ABOUT (NEVER ASK AGAIN):**
+${Array.from(askedTopics).map(t => `- ${t}`).join('\n') || '(none yet)'}
+
+These topics are FORBIDDEN - skip them completely even if data is missing.
+
 Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally.`;
 
     // Call Lovable AI
@@ -291,7 +346,7 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
     // Only use fallback if AI didn't provide a response
     if (!replyText) {
       const newProfileState = { ...profile, ...profileUpdates };
-      replyText = getNextQuestion(newProfileState);
+      replyText = getNextQuestion(newProfileState, askedTopics);
     }
 
     // Store message in database
@@ -335,43 +390,43 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
   }
 });
 
-function getNextQuestion(p: any): string {
-  if (!p || !p.name) return "What's your name?";
-  if (!p.age) return "How old are you?";
-  if (!p.gender) return "What's your gender? (Male / Female / Other)";
-  if (!p.where_he_live) return "Where do you currently live?";
-  if (!p.marital_status) return "What's your marital status? (Single / Divorced / Widowed)";
-  if (!p.have_children) return "Do you have children? (Yes / No / Prefer not to say)";
-  if (!p.education_lvl) return "What's your education level? (High School / Bachelor / Master / PhD / Vocational / Other)";
-  if (!p.employment_status) return "What's your employment status? (Employed / Self-Employed / Student / Unemployed / Retired)";
+function getNextQuestion(p: any, askedTopics: Set<string> = new Set()): string {
+  if (!p || (!p.name && !askedTopics.has('name'))) return "What's your name?";
+  if (!p.age && !askedTopics.has('age')) return "How old are you?";
+  if (!p.gender && !askedTopics.has('gender')) return "What's your gender? (Male / Female / Other)";
+  if (!p.where_he_live && !askedTopics.has('where_he_live')) return "Where do you currently live?";
+  if (!p.marital_status && !askedTopics.has('marital_status')) return "What's your marital status? (Single / Divorced / Widowed)";
+  if (!p.have_children && !askedTopics.has('have_children')) return "Do you have children? (Yes / No / Prefer not to say)";
+  if (!p.education_lvl && !askedTopics.has('education_lvl')) return "What's your education level? (High School / Bachelor / Master / PhD / Vocational / Other)";
+  if (!p.employment_status && !askedTopics.has('employment_status')) return "What's your employment status? (Employed / Self-Employed / Student / Unemployed / Retired)";
   
-  // Only ask about job if they're employed, self-employed, or student
-  if (!p.job && p.employment_status && ['employed', 'self_employed', 'student'].includes(p.employment_status)) {
+  // Only ask about job if they're employed, self-employed, or student AND haven't been asked
+  if (!p.job && !askedTopics.has('job') && p.employment_status && ['employed', 'self_employed', 'student'].includes(p.employment_status)) {
     return "What do you do for work?";
   }
   
-  if (!p.religion) return "What's your religion? (Muslim / Christian / Jewish / Buddhist / Hindu / Other / None)";
-  if (!p.practice_lvl) return "How would you describe your religious practice? (Very Religious / Religious / Moderate / Not Religious)";
-  if (!p.smoking) return "Do you smoke? (Yes / No / Prefer not to say)";
-  if (!p.drinking) return "Do you drink alcohol? (Yes / No / Prefer not to say)";
-  if (!p.want_children) return "Do you want children in the future? (Yes / No / Prefer not to say)";
-  if (!p.life_goal) return "What's your main life goal or aspiration?";
-  if (!p.height) return "What's your height in centimeters?";
-  if (!p.physical_activities || p.physical_activities.length === 0) return "What physical activities do you enjoy? (e.g., gym, running, yoga)";
-  if (!p.cultural_activities || p.cultural_activities.length === 0) return "What cultural activities do you enjoy? (e.g., museums, theater, concerts)";
-  if (!p.creative_hobbies || p.creative_hobbies.length === 0) return "Do you have any creative hobbies? (e.g., painting, writing, music)";
-  if (!p.gaming_hobbies || p.gaming_hobbies.length === 0) return "What gaming hobbies do you have, if any? (e.g., video games, board games)";
-  if (!p.travel_frequency) return "How often do you travel? (Never / Rarely / Sometimes / Often / Very Often)";
-  if (!p.type_of_trips) return "What type of trips do you prefer? (e.g., adventure, relaxation, cultural)";
-  if (!p.travel_style) return "How would you describe your travel style? (e.g., budget, luxury, backpacking)";
-  if (!p.dietary_habits) return "What are your dietary habits? (e.g., vegetarian, vegan, no restrictions)";
-  if (!p.have_pet) return "Do you have any pets? (Yes / No / Prefer not to say)";
-  if (p.have_pet === 'yes' && !p.pet) return "What kind of pet(s) do you have?";
-  if (!p.relocation_same_country) return "Would you be open to relocating within the same country? (Yes / No / Prefer not to say)";
-  if (!p.relocation_across_countries) return "Would you be open to relocating to another country? (Yes / No / Prefer not to say)";
-  if (!p.work_life_balance) return "How would you describe your work-life balance?";
-  if (!p.red_flags || p.red_flags.length === 0) return "What are your relationship red flags or deal-breakers?";
-  if (!p.role_in_relationship) return "What role do you see yourself playing in a relationship?";
+  if (!p.religion && !askedTopics.has('religion')) return "What's your religion? (Muslim / Christian / Jewish / Buddhist / Hindu / Other / None)";
+  if (!p.practice_lvl && !askedTopics.has('practice_lvl')) return "How would you describe your religious practice? (Very Religious / Religious / Moderate / Not Religious)";
+  if (!p.smoking && !askedTopics.has('smoking')) return "Do you smoke? (Yes / No / Prefer not to say)";
+  if (!p.drinking && !askedTopics.has('drinking')) return "Do you drink alcohol? (Yes / No / Prefer not to say)";
+  if (!p.want_children && !askedTopics.has('want_children')) return "Do you want children in the future? (Yes / No / Prefer not to say)";
+  if (!p.life_goal && !askedTopics.has('life_goal')) return "What's your main life goal or aspiration?";
+  if (!p.height && !askedTopics.has('height')) return "What's your height in centimeters?";
+  if ((!p.physical_activities || p.physical_activities.length === 0) && !askedTopics.has('physical_activities')) return "What physical activities do you enjoy? (e.g., gym, running, yoga)";
+  if ((!p.cultural_activities || p.cultural_activities.length === 0) && !askedTopics.has('cultural_activities')) return "What cultural activities do you enjoy? (e.g., museums, theater, concerts)";
+  if ((!p.creative_hobbies || p.creative_hobbies.length === 0) && !askedTopics.has('creative_hobbies')) return "Do you have any creative hobbies? (e.g., painting, writing, music)";
+  if ((!p.gaming_hobbies || p.gaming_hobbies.length === 0) && !askedTopics.has('gaming_hobbies')) return "What gaming hobbies do you have, if any? (e.g., video games, board games)";
+  if (!p.travel_frequency && !askedTopics.has('travel_frequency')) return "How often do you travel? (Never / Rarely / Sometimes / Often / Very Often)";
+  if (!p.type_of_trips && !askedTopics.has('type_of_trips')) return "What type of trips do you prefer? (e.g., adventure, relaxation, cultural)";
+  if (!p.travel_style && !askedTopics.has('travel_style')) return "How would you describe your travel style? (e.g., budget, luxury, backpacking)";
+  if (!p.dietary_habits && !askedTopics.has('dietary_habits')) return "What are your dietary habits? (e.g., vegetarian, vegan, no restrictions)";
+  if (!p.have_pet && !askedTopics.has('have_pet')) return "Do you have any pets? (Yes / No / Prefer not to say)";
+  if (p.have_pet === 'yes' && !p.pet && !askedTopics.has('pet')) return "What kind of pet(s) do you have?";
+  if (!p.relocation_same_country && !askedTopics.has('relocation_same_country')) return "Would you be open to relocating within the same country? (Yes / No / Prefer not to say)";
+  if (!p.relocation_across_countries && !askedTopics.has('relocation_across_countries')) return "Would you be open to relocating to another country? (Yes / No / Prefer not to say)";
+  if (!p.work_life_balance && !askedTopics.has('work_life_balance')) return "How would you describe your work-life balance?";
+  if ((!p.red_flags || p.red_flags.length === 0) && !askedTopics.has('red_flags')) return "What are your relationship red flags or deal-breakers?";
+  if (!p.role_in_relationship && !askedTopics.has('role_in_relationship')) return "What role do you see yourself playing in a relationship?";
   return "What are you looking for in a life partner?";
 }
 
