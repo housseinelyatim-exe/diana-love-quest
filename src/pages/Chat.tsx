@@ -147,10 +147,15 @@ const Chat = () => {
     const optionMatch = text.match(/\(([^)]+)\)/);
     if (!optionMatch) return [];
     
-    return optionMatch[1]
+    const content = optionMatch[1];
+    
+    // Only extract as options if there are slashes (multiple choices)
+    if (!content.includes('/')) return [];
+    
+    return content
       .split('/')
       .map(opt => opt.trim())
-      .filter(opt => opt.length > 0);
+      .filter(opt => opt.length > 0 && opt.length < 50); // Reasonable option length
   };
 
   const handleQuickReply = (option: string) => {
