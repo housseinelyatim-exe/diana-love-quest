@@ -47,6 +47,23 @@ const Chat = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return; // checkAuth will redirect
 
+      // Sync language from localStorage to profile
+      const savedLanguage = localStorage.getItem('language');
+      if (savedLanguage && ['en', 'fr', 'ar', 'tn'].includes(savedLanguage)) {
+        const { data: currentProfile } = await supabase
+          .from('profiles')
+          .select('language')
+          .eq('id', session.user.id)
+          .single();
+
+        if (currentProfile && currentProfile.language !== savedLanguage) {
+          await supabase
+            .from('profiles')
+            .update({ language: savedLanguage as 'en' | 'fr' | 'ar' | 'tn' })
+            .eq('id', session.user.id);
+        }
+      }
+
       // Load previous messages from database
       const { data: dbMessages, error: messagesError } = await supabase
         .from('messages')
