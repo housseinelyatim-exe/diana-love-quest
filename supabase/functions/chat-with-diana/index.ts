@@ -357,6 +357,16 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
       replyText = getNextQuestion(newProfileState, askedTopics);
     }
 
+    // Deduplicate: never repeat a question already asked in the conversation
+    const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+    const wasAlreadyAsked = conversationHistory.some(
+      (m: any) => m.role === 'assistant' && normalize(m.content) === normalize(replyText)
+    );
+    if (wasAlreadyAsked) {
+      console.log('♻️ Avoiding repeated question. Falling back to open-ended follow-up.');
+      replyText = getNonRepeatingFollowUp();
+    }
+
     // Store message in database
     await supabase.from('messages').insert({
       sender_id: userId,
@@ -436,6 +446,15 @@ function getNextQuestion(p: any, askedTopics: Set<string> = new Set()): string {
   if ((!p.red_flags || p.red_flags.length === 0) && !askedTopics.has('red_flags')) return "What are your relationship red flags or deal-breakers?";
   if (!p.role_in_relationship && !askedTopics.has('role_in_relationship')) return "What role do you see yourself playing in a relationship?";
   return "What are you looking for in a life partner?";
+}
+
+function getNonRepeatingFollowUp(): string {
+  const options = [
+    "Thanks! Tell me anything else that's important to you—values, hobbies, or what makes you happy.",
+    "Got it. Share more about yourself—interests, routines, or what a perfect weekend looks like.",
+    "Noted. Ask me anything about how I match people, or share more about what you value in relationships."
+  ];
+  return options[Math.floor(Math.random() * options.length)];
 }
 
 function looksLikeAppQuestion(msg: string): boolean {
