@@ -8,9 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Heart } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +30,7 @@ const Auth = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Welcome back!");
+      toast.success(t.common.welcomeBack);
       navigate("/chat");
     }
     setLoading(false);
@@ -49,7 +51,7 @@ const Auth = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Account created! Please check your email to verify.");
+      toast.success(t.common.accountCreated);
     }
     setLoading(false);
   };
@@ -64,38 +66,38 @@ const Auth = () => {
             </div>
           </div>
           <CardTitle className="text-3xl font-bold bg-[var(--gradient-romantic)] bg-clip-text text-transparent">
-            Welcome to Soulmate
+            {t.auth.welcome}
           </CardTitle>
           <CardDescription className="text-base">
-            Begin your journey to finding meaningful connection
+            {t.auth.subtitle}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin">{t.auth.signIn}</TabsTrigger>
+              <TabsTrigger value="signup">{t.auth.signUp}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
               <form onSubmit={handleEmailSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
+                  <Label htmlFor="signin-email">{t.auth.email}</Label>
                   <Input
                     id="signin-email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder={t.auth.emailPlaceholder}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                  <Label htmlFor="signin-password">{t.auth.password}</Label>
                   <Input
                     id="signin-password"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder={t.auth.passwordPlaceholder}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -106,7 +108,7 @@ const Auth = () => {
                   className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
                   disabled={loading}
                 >
-                  {loading ? "Signing in..." : "Sign In"}
+                  {loading ? t.auth.signingIn : t.auth.signIn}
                 </Button>
               </form>
             </TabsContent>
@@ -114,22 +116,22 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleEmailSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email">{t.auth.email}</Label>
                   <Input
                     id="signup-email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder={t.auth.emailPlaceholder}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password">{t.auth.password}</Label>
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder={t.auth.passwordPlaceholder}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -140,14 +142,14 @@ const Auth = () => {
                   className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
                   disabled={loading}
                 >
-                  {loading ? "Creating account..." : "Sign Up"}
+                  {loading ? t.auth.creatingAccount : t.auth.signUp}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            By continuing, you agree to our Terms of Service
+            {t.auth.terms}
           </div>
         </CardContent>
       </Card>

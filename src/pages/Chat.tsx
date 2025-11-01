@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { Send, LogOut, LayoutDashboard, Sparkles } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Message {
   role: "user" | "assistant";
@@ -18,6 +19,7 @@ interface Message {
 
 const Chat = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -213,7 +215,7 @@ const Chat = () => {
       setProfileCompletion(data.completionPercentage);
 
       if (data.completionPercentage >= 50 && data.completionPercentage < 100 && !hasShown50Toast.current) {
-        toast.success("You can now access your dashboard! Continue chatting for better matches.");
+        toast.success(t.chat.greatProgress);
         hasShown50Toast.current = true;
       } else if (data.completionPercentage === 100 && !hasShown100Toast.current) {
         toast.success("Profile complete! You'll get the best possible matches now.");
@@ -236,7 +238,7 @@ const Chat = () => {
     if (profileCompletion >= 50) {
       navigate("/dashboard");
     } else {
-      toast.error("Please complete at least 50% of your profile first");
+      toast.error(t.chat.dashboardError);
     }
   };
 
@@ -251,8 +253,8 @@ const Chat = () => {
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">Chat with Diana</h1>
-                <p className="text-sm text-muted-foreground">Your AI matchmaking assistant</p>
+                <h1 className="text-xl font-bold">{t.chat.title}</h1>
+                <p className="text-sm text-muted-foreground">{t.chat.subtitle}</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -263,7 +265,7 @@ const Chat = () => {
                 disabled={profileCompletion < 50}
               >
                 <LayoutDashboard className="h-4 w-4 mr-2" />
-                Dashboard
+                {t.chat.dashboard}
               </Button>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />
@@ -274,13 +276,13 @@ const Chat = () => {
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Profile Completion</span>
+              <span className="text-muted-foreground">{t.chat.profileCompletion}</span>
               <span className="font-semibold">{profileCompletion}%</span>
             </div>
             <Progress value={profileCompletion} className="h-2" />
             {profileCompletion >= 50 && profileCompletion < 100 && (
               <p className="text-xs text-muted-foreground">
-                Great progress! You can now access your dashboard, but completing 100% gives you better matches.
+                {t.chat.greatProgress}
               </p>
             )}
           </div>
@@ -365,7 +367,7 @@ const Chat = () => {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message..."
+                placeholder={t.chat.typePlaceholder}
                 disabled={loading}
                 className="flex-1"
               />

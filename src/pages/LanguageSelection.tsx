@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import heroImage from "@/assets/hero-romantic.jpg";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const languages = [
   { code: "en", name: "English", nativeName: "English" },
@@ -12,9 +13,10 @@ const languages = [
 
 const LanguageSelection = () => {
   const navigate = useNavigate();
+  const { setLanguage, t } = useLanguage();
 
   const handleLanguageSelect = (code: string) => {
-    localStorage.setItem("preferredLanguage", code);
+    setLanguage(code as 'en' | 'fr' | 'ar' | 'tn');
     navigate("/auth");
   };
 
@@ -33,16 +35,16 @@ const LanguageSelection = () => {
           <div className="relative z-10 p-8 md:p-12 bg-gradient-to-b from-background/95 to-background/85 backdrop-blur-sm">
             <div className="text-center mb-12">
               <h1 className="text-5xl md:text-6xl font-bold bg-[var(--gradient-romantic)] bg-clip-text text-transparent mb-4">
-                Soulmate
+                {t.languageSelection.title}
               </h1>
               <p className="text-xl text-muted-foreground">
-                Your journey to meaningful connection begins here
+                {t.languageSelection.subtitle}
               </p>
             </div>
 
             <Card className="p-6 bg-card/80 backdrop-blur-sm border-border/50">
               <h2 className="text-2xl font-semibold text-center mb-6">
-                Choose Your Language
+                {t.languageSelection.chooseLanguage}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {languages.map((lang) => (

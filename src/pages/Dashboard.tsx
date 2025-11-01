@@ -8,9 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Heart, MessageCircle, Sparkles, LogOut, User } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [profileCompletion] = useState(65);
   const [dailyQuote] = useState("Love is not about finding the perfect person, but learning to see an imperfect person perfectly.");
 
@@ -49,14 +51,14 @@ const Dashboard = () => {
                   <Heart className="h-6 w-6 text-white" fill="currentColor" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl">Your Dashboard</CardTitle>
+                  <CardTitle className="text-2xl">{t.dashboard.title}</CardTitle>
                   <CardDescription>Find your perfect match</CardDescription>
                 </div>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => navigate("/chat")}>
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  Chat with Diana
+                  {t.chat.title}
                 </Button>
                 <Button variant="outline" onClick={handleSignOut}>
                   <LogOut className="h-4 w-4" />
@@ -119,7 +121,7 @@ const Dashboard = () => {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Heart className="h-5 w-5 text-primary" />
-                Your Matches
+                {t.dashboard.matches}
               </CardTitle>
               <CardDescription>Based on compatibility score</CardDescription>
             </CardHeader>
