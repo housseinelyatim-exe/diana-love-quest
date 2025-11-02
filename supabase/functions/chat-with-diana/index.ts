@@ -394,7 +394,7 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
     );
     if (wasAlreadyAsked) {
       console.log('♻️ Avoiding repeated question. Falling back to open-ended follow-up.');
-      replyText = getNonRepeatingFollowUp();
+      replyText = getNonRepeatingFollowUp(conversationHistory);
     }
 
     // Store message in database
@@ -513,13 +513,39 @@ function getNextQuestion(p: any, askedTopics: Set<string> = new Set()): string {
   return "Is there anything else you'd like to share about yourself or what you're looking for?";
 }
 
-function getNonRepeatingFollowUp(): string {
+function getNonRepeatingFollowUp(conversationHistory: any[]): string {
   const options = [
     "Thanks! Tell me anything else that's important to you—values, hobbies, or what makes you happy.",
     "Got it. Share more about yourself—interests, routines, or what a perfect weekend looks like.",
-    "Noted. Ask me anything about how I match people, or share more about what you value in relationships."
+    "Noted. Ask me anything about how I match people, or share more about what you value in relationships.",
+    "I'm all ears! What else would you like to share? Could be about your daily life, dreams, or anything that defines you.",
+    "Perfect! Feel free to tell me more about what matters to you, or ask me anything about finding your match.",
+    "Interesting! What else should I know about you? Your passions, lifestyle, or what you're looking for in a partner?"
   ];
-  return options[Math.floor(Math.random() * options.length)];
+  
+  // Filter out options that were already used in recent conversation
+  const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+  const recentMessages = conversationHistory.slice(-10); // Check last 10 messages
+  const usedOptions = new Set(
+    recentMessages
+      .filter((m: any) => m.role === 'assistant')
+      .map((m: any) => normalize(m.content))
+  );
+  
+  const availableOptions = options.filter(opt => !usedOptions.has(normalize(opt)));
+  
+  // If all options were used, return a completely different dynamic response
+  if (availableOptions.length === 0) {
+    const dynamicOptions = [
+      "What's on your mind? Feel free to share anything you'd like me to know.",
+      "I'm here to listen! What would you like to talk about?",
+      "Tell me more about what makes you, you!",
+      "What else is important for me to know about your story?"
+    ];
+    return dynamicOptions[Math.floor(Math.random() * dynamicOptions.length)];
+  }
+  
+  return availableOptions[Math.floor(Math.random() * availableOptions.length)];
 }
 
 function looksLikeAppQuestion(msg: string): boolean {
