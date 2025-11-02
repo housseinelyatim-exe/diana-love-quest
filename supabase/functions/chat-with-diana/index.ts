@@ -387,14 +387,45 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
       replyText = getNextQuestion(newProfileState, askedTopics);
     }
 
-    // Deduplicate: never repeat a question already asked in the conversation
-    const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
-    const wasAlreadyAsked = conversationHistory.some(
-      (m: any) => m.role === 'assistant' && normalize(m.content) === normalize(replyText)
+    // Fetch all Diana's previous messages from database to check for duplicates
+    const { data: dianaMessages } = await supabase
+      .from('messages')
+      .select('content')
+      .eq('receiver_id', userId)
+      .eq('is_from_diana', true)
+      .order('created_at', { ascending: false })
+      .limit(50); // Check last 50 messages
+
+    // Deduplicate: never repeat a question already asked
+    const normalize = (s: string) => s.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim();
+    const normalizedReply = normalize(replyText);
+    
+    const wasAlreadyAsked = dianaMessages?.some(
+      (msg: any) => {
+        const similarity = normalize(msg.content);
+        // Check for exact match or very similar messages (first 50 chars)
+        return similarity === normalizedReply || 
+               (similarity.length > 50 && normalizedReply.length > 50 && 
+                similarity.substring(0, 50) === normalizedReply.substring(0, 50));
+      }
     );
+    
     if (wasAlreadyAsked) {
-      console.log('♻️ Avoiding repeated question. Falling back to open-ended follow-up.');
-      replyText = getNonRepeatingFollowUp(conversationHistory);
+      console.log('♻️ Question already asked before. Using unique follow-up.');
+      
+      // Get a truly unique follow-up by checking against all previous messages
+      let attempts = 0;
+      let uniqueFollowUp = getNonRepeatingFollowUp(conversationHistory);
+      
+      while (attempts < 10 && dianaMessages?.some((msg: any) => 
+        normalize(msg.content).includes(normalize(uniqueFollowUp).substring(0, 30))
+      )) {
+        uniqueFollowUp = getNonRepeatingFollowUp(conversationHistory);
+        attempts++;
+      }
+      
+      replyText = uniqueFollowUp;
+      console.log(`✅ Using unique follow-up after ${attempts} attempts`);
     }
 
     // Store message in database
