@@ -390,7 +390,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent className="space-y-2">
                 <div 
-                  onClick={() => toast.info("Account settings coming soon")}
+                  onClick={() => navigate("/settings/account")}
                   className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
@@ -406,7 +406,7 @@ const Dashboard = () => {
                 </div>
 
                 <div 
-                  onClick={() => toast.info("Preferences settings coming soon")}
+                  onClick={() => navigate("/settings/preferences")}
                   className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
@@ -422,7 +422,7 @@ const Dashboard = () => {
                 </div>
 
                 <div 
-                  onClick={() => toast.info("Notification settings coming soon")}
+                  onClick={() => navigate("/settings/notifications")}
                   className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
@@ -454,7 +454,7 @@ const Dashboard = () => {
                 </div>
 
                 <div 
-                  onClick={() => toast.info("Help & Support coming soon")}
+                  onClick={() => navigate("/settings/help")}
                   className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
