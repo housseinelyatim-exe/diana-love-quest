@@ -256,7 +256,7 @@ const Chat = () => {
   return (
     <div className="min-h-screen bg-[#e5ddd5] flex flex-col max-w-full">
       {/* WhatsApp-style Header */}
-      <div className="bg-[hsl(var(--primary))] text-white px-4 py-3 shadow-md flex items-center gap-3">
+      <div className="fixed top-0 left-0 right-0 z-10 bg-[hsl(var(--primary))] text-white px-4 py-3 shadow-md flex items-center gap-3">
         <Button
           variant="ghost"
           size="icon"
@@ -289,7 +289,7 @@ const Chat = () => {
       </div>
 
       {/* Progress Bar */}
-      <div className="bg-white px-4 py-2 border-b">
+      <div className="fixed top-[57px] left-0 right-0 z-10 bg-white px-4 py-2 border-b">
         <div className="flex items-center justify-between text-xs mb-1">
           <span className="text-muted-foreground">Profile completion</span>
           <span className="font-semibold text-primary">{profileCompletion}%</span>
@@ -298,7 +298,7 @@ const Chat = () => {
       </div>
 
       {/* Chat Messages */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4 mt-[114px]">
         <div className="space-y-3 max-w-full">
           {messages.map((message, index) => {
             const options = message.role === 'assistant' && index === messages.length - 1 
