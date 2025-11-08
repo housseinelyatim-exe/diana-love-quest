@@ -62,46 +62,51 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 340 20% 10%;
-    --foreground: 25 20% 95%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 95%;
 
-    --card: 340 20% 12%;
-    --card-foreground: 25 20% 95%;
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 340 20% 12%;
-    --popover-foreground: 25 20% 95%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 345 75% 65%;
+    --primary: 142 70% 49%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 340 15% 20%;
-    --secondary-foreground: 25 20% 95%;
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 340 15% 20%;
-    --muted-foreground: 25 15% 60%;
+    --muted: 0 0% 17%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 200 60% 50%;
+    --accent: 142 70% 49%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 340 15% 25%;
-    --input: 340 15% 25%;
-    --ring: 345 75% 65%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 142 70% 49%;
+    
+    --whatsapp-bg: 0 0% 7%;
+    --whatsapp-chat-bg: 0 0% 11%;
+    --whatsapp-bubble-sent: 142 70% 49%;
+    --whatsapp-bubble-received: 0 0% 17%;
     
     --gradient-romantic: linear-gradient(135deg, hsl(345 75% 55%) 0%, hsl(25 75% 65%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(340 20% 10%) 0%, hsl(340 15% 15%) 100%);
-    --shadow-soft: 0 10px 30px -10px hsl(345 75% 45% / 0.3);
-    --shadow-glow: 0 0 40px hsl(345 75% 45% / 0.2);
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --gradient-soft: linear-gradient(180deg, hsl(0 0% 7%) 0%, hsl(0 0% 11%) 100%);
+    --shadow-soft: 0 10px 30px -10px hsl(0 0% 0% / 0.3);
+    --shadow-glow: 0 0 40px hsl(142 70% 49% / 0.2);
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 142 70% 49%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 0 0% 17%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 142 70% 49%;
   }
 }
 
