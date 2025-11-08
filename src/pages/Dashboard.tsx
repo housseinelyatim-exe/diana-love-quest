@@ -482,18 +482,18 @@ const Dashboard = () => {
             <span className="text-xs">Matches</span>
           </TabsTrigger>
           <TabsTrigger
-            value="profile"
-            className="flex-col gap-1 h-full data-[state=active]:bg-transparent data-[state=active]:text-primary"
-          >
-            <UserCircle className="h-5 w-5" />
-            <span className="text-xs">Profile</span>
-          </TabsTrigger>
-          <TabsTrigger
             value="discover"
             className="flex-col gap-1 h-full data-[state=active]:bg-transparent data-[state=active]:text-primary"
           >
             <Newspaper className="h-5 w-5" />
             <span className="text-xs">Discover</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="profile"
+            className="flex-col gap-1 h-full data-[state=active]:bg-transparent data-[state=active]:text-primary"
+          >
+            <UserCircle className="h-5 w-5" />
+            <span className="text-xs">Profile</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>
