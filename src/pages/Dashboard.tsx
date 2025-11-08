@@ -389,7 +389,10 @@ const Dashboard = () => {
                 <CardDescription>Manage your account preferences</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between">
+                <div 
+                  onClick={() => toast.info("Account settings coming soon")}
+                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
                     <div className="bg-primary/10 p-2 rounded-lg">
                       <User className="h-4 w-4 text-primary" />
@@ -402,7 +405,10 @@ const Dashboard = () => {
                   <span className="text-muted-foreground">›</span>
                 </div>
 
-                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between">
+                <div 
+                  onClick={() => toast.info("Preferences settings coming soon")}
+                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
                     <div className="bg-accent/10 p-2 rounded-lg">
                       <Heart className="h-4 w-4 text-accent" />
@@ -415,7 +421,10 @@ const Dashboard = () => {
                   <span className="text-muted-foreground">›</span>
                 </div>
 
-                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between">
+                <div 
+                  onClick={() => toast.info("Notification settings coming soon")}
+                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
                     <div className="bg-secondary/10 p-2 rounded-lg">
                       <MessageSquare className="h-4 w-4 text-secondary" />
@@ -428,7 +437,10 @@ const Dashboard = () => {
                   <span className="text-muted-foreground">›</span>
                 </div>
 
-                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between">
+                <div 
+                  onClick={() => navigate("/language-selection")}
+                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
                     <div className="bg-muted p-2 rounded-lg">
                       <Sparkles className="h-4 w-4 text-foreground" />
@@ -441,7 +453,10 @@ const Dashboard = () => {
                   <span className="text-muted-foreground">›</span>
                 </div>
 
-                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between">
+                <div 
+                  onClick={() => toast.info("Help & Support coming soon")}
+                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
                     <div className="bg-muted p-2 rounded-lg">
                       <Newspaper className="h-4 w-4 text-foreground" />
