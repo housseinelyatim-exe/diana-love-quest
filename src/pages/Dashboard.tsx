@@ -382,6 +382,95 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
+
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-lg">Settings</CardTitle>
+                <CardDescription>Manage your account preferences</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                      <User className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm">Account</h4>
+                      <p className="text-xs text-muted-foreground">Privacy, security, email</p>
+                    </div>
+                  </div>
+                  <span className="text-muted-foreground">›</span>
+                </div>
+
+                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-accent/10 p-2 rounded-lg">
+                      <Heart className="h-4 w-4 text-accent" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm">Preferences</h4>
+                      <p className="text-xs text-muted-foreground">Match settings, filters</p>
+                    </div>
+                  </div>
+                  <span className="text-muted-foreground">›</span>
+                </div>
+
+                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-secondary/10 p-2 rounded-lg">
+                      <MessageSquare className="h-4 w-4 text-secondary" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm">Notifications</h4>
+                      <p className="text-xs text-muted-foreground">Messages, matches, alerts</p>
+                    </div>
+                  </div>
+                  <span className="text-muted-foreground">›</span>
+                </div>
+
+                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-muted p-2 rounded-lg">
+                      <Sparkles className="h-4 w-4 text-foreground" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm">Language</h4>
+                      <p className="text-xs text-muted-foreground">App language</p>
+                    </div>
+                  </div>
+                  <span className="text-muted-foreground">›</span>
+                </div>
+
+                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-muted p-2 rounded-lg">
+                      <Newspaper className="h-4 w-4 text-foreground" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm">Help & Support</h4>
+                      <p className="text-xs text-muted-foreground">FAQ, contact us</p>
+                    </div>
+                  </div>
+                  <span className="text-muted-foreground">›</span>
+                </div>
+
+                <div 
+                  onClick={handleSignOut}
+                  className="p-3 bg-destructive/10 rounded-lg hover:bg-destructive/20 transition-colors cursor-pointer flex items-center justify-between mt-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="bg-destructive/20 p-2 rounded-lg">
+                      <LogOut className="h-4 w-4 text-destructive" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm text-destructive">Log Out</h4>
+                      <p className="text-xs text-muted-foreground">Sign out of your account</p>
+                    </div>
+                  </div>
+                  <span className="text-destructive">›</span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
