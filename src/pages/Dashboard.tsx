@@ -103,7 +103,7 @@ const Dashboard = () => {
             const profile = matchedProfiles.find(p => p.id === otherUserId);
             
             return {
-              id: match.id,
+              id: otherUserId, // Use the user ID, not the match ID
               name: profile?.name || 'Anonymous',
               age: profile?.age || 0,
               compatibility: match.compatibility_score || 0,
@@ -284,6 +284,7 @@ const Dashboard = () => {
                     {matches.map((match) => (
                       <div
                         key={match.id}
+                        onClick={() => navigate(`/match/${match.id}`)}
                         className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
                       >
                         <Avatar className="h-12 w-12 border border-border">
@@ -302,7 +303,7 @@ const Dashboard = () => {
                           </div>
                           <p className="text-sm text-muted-foreground">{match.location}</p>
                         </div>
-                        <Heart className="h-5 w-5 text-primary" />
+                        <MessageSquare className="h-5 w-5 text-primary" />
                       </div>
                     ))}
                   </div>

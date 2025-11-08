@@ -8,6 +8,7 @@ import LanguageSelection from "./pages/LanguageSelection";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
 import Dashboard from "./pages/Dashboard";
+import MatchChat from "./pages/MatchChat";
 import AccountSettings from "./pages/AccountSettings";
 import PreferencesSettings from "./pages/PreferencesSettings";
 import NotificationsSettings from "./pages/NotificationsSettings";
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/match/:matchId" element={<MatchChat />} />
           <Route path="/settings/account" element={<AccountSettings />} />
           <Route path="/settings/preferences" element={<PreferencesSettings />} />
           <Route path="/settings/notifications" element={<NotificationsSettings />} />
