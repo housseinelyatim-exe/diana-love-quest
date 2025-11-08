@@ -248,144 +248,139 @@ const Chat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <Card className="mb-4 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">{t.chat.title}</h1>
-                <p className="text-sm text-muted-foreground">{t.chat.subtitle}</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToDashboard}
-                disabled={profileCompletion < 50}
-              >
-                <LayoutDashboard className="h-4 w-4 mr-2" />
-                {t.chat.dashboard}
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{t.chat.profileCompletion}</span>
-              <span className="font-semibold">{profileCompletion}%</span>
-            </div>
-            <Progress value={profileCompletion} className="h-2" />
-            {profileCompletion >= 50 && profileCompletion < 100 && (
-              <p className="text-xs text-muted-foreground">
-                {t.chat.greatProgress}
-              </p>
-            )}
-          </div>
-        </Card>
+    <div className="min-h-screen bg-[#e5ddd5] flex flex-col max-w-full">
+      {/* WhatsApp-style Header */}
+      <div className="bg-[hsl(var(--primary))] text-white px-4 py-3 shadow-md flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/dashboard")}
+          className="text-white hover:bg-white/10 -ml-2"
+        >
+          <LayoutDashboard className="h-5 w-5" />
+        </Button>
+        <Avatar className="h-10 w-10">
+          <AvatarFallback className="bg-white/20 text-white font-semibold">
+            D
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <h1 className="font-semibold">Diana</h1>
+          <p className="text-xs text-white/90">Your matchmaking assistant</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleSignOut}
+          className="text-white hover:bg-white/10"
+        >
+          <LogOut className="h-5 w-5" />
+        </Button>
+      </div>
 
-        {/* Chat Messages */}
-        <Card className="h-[calc(100vh-280px)] flex flex-col">
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {messages.map((message, index) => {
-                const options = message.role === 'assistant' && index === messages.length - 1 
-                  ? extractOptions(message.content) 
-                  : [];
+      {/* Progress Bar */}
+      <div className="bg-white px-4 py-2 border-b">
+        <div className="flex items-center justify-between text-xs mb-1">
+          <span className="text-muted-foreground">Profile completion</span>
+          <span className="font-semibold text-primary">{profileCompletion}%</span>
+        </div>
+        <Progress value={profileCompletion} className="h-1.5" />
+      </div>
 
-                return (
-                  <div key={index} className="space-y-2">
-                    <div
-                      className={`flex gap-3 ${
-                        message.role === "user" ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      {message.role === "assistant" && (
-                        <Avatar className="h-8 w-8 border-2 border-primary/20">
-                          <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xs">
-                            D
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                      <div
-                        className={`rounded-2xl px-4 py-3 max-w-[80%] ${
-                          message.role === "user"
-                            ? "bg-gradient-to-br from-primary to-secondary text-white"
-                            : "bg-muted"
-                        }`}
-                      >
-                        <p className="text-sm">{message.content}</p>
-                      </div>
-                    </div>
+      {/* Chat Messages */}
+      <ScrollArea className="flex-1 p-4">
+        <div className="space-y-3 max-w-full">
+          {messages.map((message, index) => {
+            const options = message.role === 'assistant' && index === messages.length - 1 
+              ? extractOptions(message.content) 
+              : [];
 
-                    {/* Quick reply buttons */}
-                    {options.length > 0 && !loading && (
-                      <div className="flex flex-wrap gap-2 pl-11">
-                        {options.map((option, optIndex) => (
-                          <Button
-                            key={optIndex}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleQuickReply(option)}
-                            className="rounded-full hover:bg-primary hover:text-white transition-colors"
-                          >
-                            {option}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              {loading && (
-                <div className="flex gap-3">
-                  <Avatar className="h-8 w-8 border-2 border-primary/20">
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xs">
-                      D
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="rounded-2xl px-4 py-3 bg-muted">
-                    <div className="flex gap-1">
-                      <div className="h-2 w-2 rounded-full bg-primary/60 animate-bounce" />
-                      <div className="h-2 w-2 rounded-full bg-primary/60 animate-bounce delay-100" />
-                      <div className="h-2 w-2 rounded-full bg-primary/60 animate-bounce delay-200" />
-                    </div>
+            return (
+              <div key={index} className="space-y-2">
+                <div
+                  className={`flex gap-2 ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  {message.role === "assistant" && (
+                    <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xs">
+                        D
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div
+                    className={`rounded-lg px-3 py-2 max-w-[75%] shadow-sm ${
+                      message.role === "user"
+                        ? "bg-[#dcf8c6] text-gray-900"
+                        : "bg-white text-gray-900"
+                    }`}
+                  >
+                    <p className="text-sm leading-relaxed">{message.content}</p>
+                    <span className="text-[10px] text-gray-500 float-right mt-1">
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
                   </div>
                 </div>
-              )}
-              <div ref={scrollRef} />
-            </div>
-          </ScrollArea>
 
-          {/* Input */}
-          <div className="p-4 border-t">
-            <form onSubmit={handleSendMessage} className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={t.chat.typePlaceholder}
-                disabled={loading}
-                className="flex-1"
-              />
-              <Button
-                type="submit"
-                disabled={loading || !input.trim()}
-                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
-          </div>
-        </Card>
+                {/* Quick reply buttons */}
+                {options.length > 0 && !loading && (
+                  <div className="flex flex-wrap gap-2 ml-10">
+                    {options.map((option, optIndex) => (
+                      <Button
+                        key={optIndex}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleQuickReply(option)}
+                        className="rounded-full text-xs bg-white hover:bg-primary/10 border-primary/30"
+                      >
+                        {option}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {loading && (
+            <div className="flex gap-2">
+              <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xs">
+                  D
+                </AvatarFallback>
+              </Avatar>
+              <div className="rounded-lg px-3 py-2 bg-white shadow-sm">
+                <div className="flex gap-1">
+                  <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" />
+                  <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.1s' }} />
+                  <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.2s' }} />
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={scrollRef} />
+        </div>
+      </ScrollArea>
+
+      {/* Input */}
+      <div className="bg-[#f0f0f0] px-3 py-2 border-t">
+        <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type a message"
+            disabled={loading}
+            className="flex-1 bg-white border-0 rounded-full shadow-sm"
+          />
+          <Button
+            type="submit"
+            disabled={loading || !input.trim()}
+            size="icon"
+            className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90 rounded-full h-10 w-10 flex-shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </form>
       </div>
     </div>
   );
