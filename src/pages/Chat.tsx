@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { Send, LogOut, LayoutDashboard, Sparkles } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { ImageViewer } from "@/components/ImageViewer";
 
 interface Message {
   role: "user" | "assistant";
@@ -24,6 +25,8 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [profileCompletion, setProfileCompletion] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasShown50Toast = useRef(false);
   const hasShown100Toast = useRef(false);
@@ -49,20 +52,23 @@ const Chat = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return; // checkAuth will redirect
 
-      // Sync language from localStorage to profile
+      // Sync language from localStorage to profile and load avatar
       const savedLanguage = localStorage.getItem('preferredLanguage') || localStorage.getItem('language');
       if (savedLanguage && ['en', 'fr', 'ar', 'tn'].includes(savedLanguage)) {
         const { data: currentProfile } = await supabase
           .from('profiles')
-          .select('language')
+          .select('language, avatar_url')
           .eq('id', session.user.id)
           .single();
 
-        if (currentProfile && currentProfile.language !== savedLanguage) {
-          await supabase
-            .from('profiles')
-            .update({ language: savedLanguage as 'en' | 'fr' | 'ar' | 'tn' })
-            .eq('id', session.user.id);
+        if (currentProfile) {
+          if (currentProfile.language !== savedLanguage) {
+            await supabase
+              .from('profiles')
+              .update({ language: savedLanguage as 'en' | 'fr' | 'ar' | 'tn' })
+              .eq('id', session.user.id);
+          }
+          setAvatarUrl(currentProfile.avatar_url || '');
         }
       }
 
@@ -259,9 +265,13 @@ const Chat = () => {
         >
           <LayoutDashboard className="h-5 w-5" />
         </Button>
-        <Avatar className="h-10 w-10">
+        <Avatar 
+          className="h-10 w-10 cursor-pointer"
+          onClick={() => avatarUrl && setViewingImage(avatarUrl)}
+        >
+          {avatarUrl && <AvatarImage src={avatarUrl} alt="Your profile" />}
           <AvatarFallback className="bg-white/20 text-white font-semibold">
-            D
+            {avatarUrl ? '' : 'D'}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
@@ -382,6 +392,13 @@ const Chat = () => {
           </Button>
         </form>
       </div>
+
+      {viewingImage && (
+        <ImageViewer 
+          imageUrl={viewingImage} 
+          onClose={() => setViewingImage(null)} 
+        />
+      )}
     </div>
   );
 };

@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Heart, MessageCircle, Sparkles, LogOut, User, RefreshCw, X, Newspaper } from "lucide-react";
+import { Heart, MessageCircle, Sparkles, LogOut, User, RefreshCw, X, Newspaper, Camera } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { ImageViewer } from "@/components/ImageViewer";
 
 interface Match {
   id: string;
@@ -27,6 +28,9 @@ const Dashboard = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [showQuote, setShowQuote] = useState(true);
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     checkAuth();
@@ -70,6 +74,7 @@ const Dashboard = () => {
           ? profile.is_profile_complete
           : calculateProfileCompletion(profile);
         setProfileCompletion(Math.max(0, Math.min(100, completion)));
+        setAvatarUrl(profile.avatar_url || '');
       }
 
       // Fetch real matches
@@ -147,6 +152,42 @@ const Dashboard = () => {
     toast.info('Quote hidden');
   };
 
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      toast.success('Profile picture updated!');
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast.error('Failed to upload profile picture');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 flex items-center justify-center">
@@ -181,11 +222,13 @@ const Dashboard = () => {
           onClick={() => navigate("/chat")}
           className="flex items-center gap-3 p-4 border-b hover:bg-muted/30 active:bg-muted/50 cursor-pointer transition-colors"
         >
-          <Avatar className="h-14 w-14">
-            <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-lg font-semibold">
-              D
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-14 w-14">
+              <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-lg font-semibold">
+                D
+              </AvatarFallback>
+            </Avatar>
+          </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-1">
               <h2 className="font-semibold text-base">Diana</h2>
@@ -203,9 +246,39 @@ const Dashboard = () => {
 
         {/* Profile Status Card */}
         <div className="p-4 bg-[hsl(var(--accent))]/5 border-b">
-          <div className="flex items-center gap-3 mb-3">
-            <User className="h-5 w-5 text-primary" />
-            <span className="font-medium">Profile Status: {profileCompletion}%</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Avatar 
+                  className="h-16 w-16 cursor-pointer"
+                  onClick={() => avatarUrl && setViewingImage(avatarUrl)}
+                >
+                  {avatarUrl && <AvatarImage src={avatarUrl} alt={userName} />}
+                  <AvatarFallback className="bg-muted">
+                    {userName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full shadow-md"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Camera className="h-4 w-4" />
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                />
+              </div>
+              <div>
+                <div className="font-medium">{userName}</div>
+                <div className="text-sm text-muted-foreground">Profile: {profileCompletion}%</div>
+              </div>
+            </div>
           </div>
           <Progress value={profileCompletion} className="h-2 mb-2" />
           {profileCompletion < 100 && (
@@ -282,6 +355,13 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {viewingImage && (
+        <ImageViewer 
+          imageUrl={viewingImage} 
+          onClose={() => setViewingImage(null)} 
+        />
+      )}
     </div>
   );
 };
