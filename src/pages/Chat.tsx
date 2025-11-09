@@ -260,14 +260,10 @@ const Chat = () => {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <Avatar 
-          className="h-10 w-10 cursor-pointer"
-          onClick={() => avatarUrl && setViewingImage(avatarUrl)}
-        >
-          {avatarUrl && <AvatarImage src={avatarUrl} alt="Your profile" />}
-          <AvatarFallback className="bg-white/20 text-white font-semibold">
-            {avatarUrl ? '' : 'D'}
-          </AvatarFallback>
+        <Avatar className="h-10 w-10">
+          <div className="bg-gradient-to-br from-pink-400 to-purple-500 w-full h-full flex items-center justify-center">
+            <Sparkles className="h-5 w-5 text-white" />
+          </div>
         </Avatar>
         <div className="flex-1">
           <h1 className="font-semibold">Diana</h1>
