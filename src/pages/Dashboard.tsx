@@ -12,6 +12,7 @@ import { MessageSquare, Heart, User, Newspaper, LogOut, Camera, RefreshCw, X, Sp
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
 import { formatDistanceToNow } from "date-fns";
+import { BlurredMatchCard } from "@/components/BlurredMatchCard";
 
 interface Match {
   id: string;
@@ -272,43 +273,50 @@ const Dashboard = () => {
                 <CardDescription>People who might be perfect for you</CardDescription>
               </CardHeader>
               <CardContent>
-                {matches.length > 0 ? (
-                  <div className="space-y-3">
-                    {matches.map((match) => (
-                      <div
-                        key={match.id}
-                        onClick={() => navigate(`/match/${match.id}`)}
-                        className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                      >
-                        <Avatar className="h-12 w-12 border border-border">
-                          <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
-                            {match.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-medium text-card-foreground">
-                              {match.name}, {match.age}
-                            </h4>
-                            <Badge variant="secondary" className="text-xs">
-                              {match.compatibility}%
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{match.location}</p>
+                <div className="space-y-3">
+                  {/* Real matches */}
+                  {matches.map((match) => (
+                    <div
+                      key={match.id}
+                      onClick={() => navigate(`/match/${match.id}`)}
+                      className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                    >
+                      <Avatar className="h-12 w-12 border border-border">
+                        <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
+                          {match.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-medium text-card-foreground">
+                            {match.name}, {match.age}
+                          </h4>
+                          <Badge variant="secondary" className="text-xs">
+                            {match.compatibility}%
+                          </Badge>
                         </div>
-                        <MessageSquare className="h-5 w-5 text-primary" />
+                        <p className="text-sm text-muted-foreground">{match.location}</p>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
-                    <p className="text-muted-foreground">No matches yet</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Complete your profile to find matches
-                    </p>
-                  </div>
-                )}
+                      <MessageSquare className="h-5 w-5 text-primary" />
+                    </div>
+                  ))}
+                  
+                  {/* Blurred placeholder matches */}
+                  {profileCompletion < 100 && (
+                    <>
+                      <div className="flex items-center gap-2 py-2">
+                        <div className="h-px flex-1 bg-border"></div>
+                        <span className="text-xs text-muted-foreground px-2">
+                          {matches.length === 0 ? '5' : '3'} more potential matches nearby
+                        </span>
+                        <div className="h-px flex-1 bg-border"></div>
+                      </div>
+                      {Array.from({ length: matches.length === 0 ? 5 : 3 }).map((_, i) => (
+                        <BlurredMatchCard key={`blurred-${i}`} index={i} />
+                      ))}
+                    </>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
