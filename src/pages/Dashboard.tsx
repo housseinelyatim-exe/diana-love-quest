@@ -13,6 +13,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
 import { formatDistanceToNow } from "date-fns";
 import { BlurredMatchCard } from "@/components/BlurredMatchCard";
+import { AnimatedCounter } from "@/components/AnimatedCounter";
 
 interface Match {
   id: string;
@@ -625,24 +626,24 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-background/50 rounded-lg">
-                    <Users className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <div className="text-center p-3 bg-background/50 rounded-lg transition-all duration-300 hover:bg-background/70 hover:scale-105">
+                    <Users className="h-5 w-5 text-primary mx-auto mb-2 animate-pulse" />
                     <div className="text-2xl font-bold text-card-foreground">
-                      {platformStats.totalUsers.toLocaleString()}
+                      <AnimatedCounter value={platformStats.totalUsers} duration={1500} />
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">Total Users</div>
                   </div>
-                  <div className="text-center p-3 bg-background/50 rounded-lg">
-                    <Heart className="h-5 w-5 text-pink-500 mx-auto mb-2 fill-current" />
+                  <div className="text-center p-3 bg-background/50 rounded-lg transition-all duration-300 hover:bg-background/70 hover:scale-105">
+                    <Heart className="h-5 w-5 text-pink-500 mx-auto mb-2 fill-current animate-pulse" />
                     <div className="text-2xl font-bold text-card-foreground">
-                      {platformStats.activeMatches.toLocaleString()}
+                      <AnimatedCounter value={platformStats.activeMatches} duration={1500} />
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">Active Matches</div>
                   </div>
-                  <div className="text-center p-3 bg-background/50 rounded-lg">
-                    <Target className="h-5 w-5 text-green-500 mx-auto mb-2" />
+                  <div className="text-center p-3 bg-background/50 rounded-lg transition-all duration-300 hover:bg-background/70 hover:scale-105">
+                    <Target className="h-5 w-5 text-green-500 mx-auto mb-2 animate-pulse" />
                     <div className="text-2xl font-bold text-card-foreground">
-                      {platformStats.successRate}%
+                      <AnimatedCounter value={platformStats.successRate} duration={1500} suffix="%" />
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">Success Rate</div>
                   </div>
