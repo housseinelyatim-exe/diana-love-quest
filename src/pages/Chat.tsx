@@ -44,17 +44,29 @@ const Chat = () => {
   }, [messages]);
 
   useEffect(() => {
-    const viewport = viewportRef.current;
-    if (!viewport) return;
-
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = viewport;
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
-      setShowScrollButton(!isAtBottom && messages.length > 3);
+    const updateVisibility = () => {
+      const viewport = viewportRef.current;
+      let isAtBottom = true;
+      if (viewport) {
+        isAtBottom = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 100;
+      } else {
+        isAtBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 100;
+      }
+      setShowScrollButton(!isAtBottom && messages.length > 1);
     };
 
-    viewport.addEventListener('scroll', handleScroll);
-    return () => viewport.removeEventListener('scroll', handleScroll);
+    // Attach listeners
+    const viewport = viewportRef.current;
+    viewport?.addEventListener('scroll', updateVisibility);
+    window.addEventListener('scroll', updateVisibility);
+
+    // Initial computation
+    updateVisibility();
+
+    return () => {
+      viewport?.removeEventListener('scroll', updateVisibility);
+      window.removeEventListener('scroll', updateVisibility);
+    };
   }, [messages.length]);
 
   const checkAuth = async () => {
