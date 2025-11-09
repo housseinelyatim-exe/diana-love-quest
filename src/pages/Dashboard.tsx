@@ -201,21 +201,13 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* WhatsApp-style Header */}
-      <div className="bg-primary text-primary-foreground px-4 py-3 shadow-md flex items-center justify-between">
+      <div className="bg-primary text-primary-foreground px-4 py-3 shadow-md">
         <h1 className="text-2xl font-bold">
           {activeTab === "chats" && "Chats"}
           {activeTab === "matches" && "Matches"}
           {activeTab === "profile" && "Profile"}
           {activeTab === "discover" && "Discover"}
         </h1>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleSignOut}
-          className="text-primary-foreground hover:bg-primary-foreground/10"
-        >
-          <LogOut className="h-5 w-5" />
-        </Button>
       </div>
 
       {/* Tabs Container */}
@@ -229,9 +221,9 @@ const Dashboard = () => {
             >
               <div className="flex items-center gap-3">
                 <Avatar className="h-14 w-14 border-2 border-primary">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
-                    D
-                  </AvatarFallback>
+                  <div className="bg-gradient-to-br from-pink-400 to-purple-500 w-full h-full flex items-center justify-center">
+                    <Sparkles className="h-7 w-7 text-white" />
+                  </div>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-1">
@@ -243,13 +235,6 @@ const Dashboard = () => {
                       ? "Let's complete your profile together 💕"
                       : "Ready to find your perfect match! ✨"}
                   </p>
-                  <div className="mt-2">
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">Profile completion</span>
-                      <span className="font-semibold text-primary">{profileCompletion}%</span>
-                    </div>
-                    <Progress value={profileCompletion} className="h-1" />
-                  </div>
                 </div>
               </div>
             </div>
