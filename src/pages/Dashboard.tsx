@@ -801,7 +801,7 @@ const Dashboard = () => {
         </TabsContent>
 
         {/* Bottom Navigation (WhatsApp-style) */}
-        <TabsList className="fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border rounded-none grid grid-cols-4 p-0">
+        <TabsList className="fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border rounded-none grid grid-cols-4 p-0 z-50">
           <TabsTrigger
             value="chats"
             className="flex-col gap-1 h-full data-[state=active]:bg-transparent data-[state=active]:text-primary"
