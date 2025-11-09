@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Send, LogOut, LayoutDashboard, Sparkles } from "lucide-react";
+import { Send, LayoutDashboard, Sparkles } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
 
@@ -240,11 +240,6 @@ const Chat = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
-
   const goToDashboard = () => {
     if (profileCompletion >= 50) {
       navigate("/dashboard");
@@ -278,14 +273,6 @@ const Chat = () => {
           <h1 className="font-semibold">Diana</h1>
           <p className="text-xs text-white/90">Your matchmaking assistant</p>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleSignOut}
-          className="text-white hover:bg-white/10"
-        >
-          <LogOut className="h-5 w-5" />
-        </Button>
       </div>
 
       {/* Progress Bar */}

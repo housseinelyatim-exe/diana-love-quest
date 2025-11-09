@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Shield, Mail, Eye, Lock } from "lucide-react";
+import { ArrowLeft, Shield, Mail, Eye, Lock, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -34,6 +34,11 @@ const AccountSettings = () => {
   const handleChangePassword = () => {
     toast.info("Password reset email will be sent");
     // You can implement password reset flow here
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
   };
 
   return (
@@ -162,6 +167,23 @@ const AccountSettings = () => {
             <p>• Your profile is visible to users who match your preferences</p>
             <p>• You can hide your profile at any time using the toggle above</p>
             <p>• Your matches will still be able to see your profile even if you're offline</p>
+          </CardContent>
+        </Card>
+
+        {/* Log Out */}
+        <Card className="border-destructive/20">
+          <CardContent className="pt-6">
+            <Button 
+              variant="destructive" 
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Log Out
+            </Button>
+            <p className="text-xs text-center text-muted-foreground mt-2">
+              Sign out of your account
+            </p>
           </CardContent>
         </Card>
       </div>
