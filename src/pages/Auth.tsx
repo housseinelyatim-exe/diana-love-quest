@@ -31,7 +31,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success(t.common.welcomeBack);
-      navigate("/dashboard");
+      navigate("/dashboard", { state: { tab: "chats" } });
     }
     setLoading(false);
   };
