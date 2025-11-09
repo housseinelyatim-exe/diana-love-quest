@@ -575,7 +575,10 @@ const Dashboard = () => {
               </h3>
               
               {/* Success Stories Card */}
-              <Card className="group relative overflow-hidden bg-gradient-to-br from-pink-500/10 to-purple-500/10 border-pink-500/20 hover:border-pink-500/40 transition-all duration-300 cursor-pointer animate-fade-in">
+              <Card 
+                onClick={() => window.open('https://www.theknot.com/content/love-stories', '_blank')}
+                className="group relative overflow-hidden bg-gradient-to-br from-pink-500/10 to-purple-500/10 border-pink-500/20 hover:border-pink-500/40 transition-all duration-300 cursor-pointer animate-fade-in"
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <CardContent className="p-4 relative z-10">
                   <div className="flex items-start gap-3">
@@ -596,7 +599,10 @@ const Dashboard = () => {
               </Card>
 
               {/* Relationship Tips */}
-              <Card className="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20 hover:border-blue-500/40 transition-all duration-300 cursor-pointer animate-fade-in">
+              <Card 
+                onClick={() => window.open('https://www.gottman.com/blog/', '_blank')}
+                className="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20 hover:border-blue-500/40 transition-all duration-300 cursor-pointer animate-fade-in"
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <CardContent className="p-4 relative z-10">
                   <div className="flex items-start gap-3">
