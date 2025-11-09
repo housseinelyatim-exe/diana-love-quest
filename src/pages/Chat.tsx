@@ -33,6 +33,8 @@ const Chat = () => {
   const viewportRef = useRef<HTMLDivElement>(null);
   const hasShown50Toast = useRef(false);
   const hasShown100Toast = useRef(false);
+  const lastMessageTime = useRef<number>(0);
+  const [isThrottled, setIsThrottled] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -209,6 +211,21 @@ const Chat = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
+
+    // Throttle: enforce 2 second delay between messages
+    const now = Date.now();
+    const timeSinceLastMessage = now - lastMessageTime.current;
+    const THROTTLE_MS = 2000;
+
+    if (timeSinceLastMessage < THROTTLE_MS) {
+      const remainingTime = Math.ceil((THROTTLE_MS - timeSinceLastMessage) / 1000);
+      toast.error(`Please wait ${remainingTime} second${remainingTime > 1 ? 's' : ''} before sending another message.`);
+      setIsThrottled(true);
+      setTimeout(() => setIsThrottled(false), THROTTLE_MS - timeSinceLastMessage);
+      return;
+    }
+
+    lastMessageTime.current = now;
 
     const userMessage: Message = {
       role: "user",
@@ -414,7 +431,7 @@ const Chat = () => {
           />
           <Button
             type="submit"
-            disabled={loading || !input.trim()}
+            disabled={loading || !input.trim() || isThrottled}
             size="icon"
             className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90 rounded-full h-10 w-10 flex-shrink-0"
           >

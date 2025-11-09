@@ -265,121 +265,197 @@ These topics are FORBIDDEN - skip them completely even if data is missing.
 
 Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally.`;
 
-    // Call Lovable AI
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...conversationHistory,
-          { role: 'user', content: message }
-        ],
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'extract_profile_data',
-              description: 'CRITICAL: Call this function EVERY TIME the user provides ANY answer to your question. Extract and store the relevant profile field(s) from their response. This is mandatory - do not skip this step.',
-              parameters: {
-                type: 'object',
-                properties: {
-                  name: { type: 'string' },
-                  age: { type: 'integer' },
-                  gender: { type: 'string', enum: ['male', 'female', 'other'] },
-                  height: { type: 'integer', description: 'Height in cm' },
-                  where_he_live: { type: 'string' },
-                  where_want_to_live: { type: 'string' },
-                  education_lvl: { type: 'string', enum: ['high_school', 'bachelor', 'master', 'phd', 'vocational', 'other'] },
-                  employment_status: { type: 'string', enum: ['employed', 'self_employed', 'student', 'unemployed', 'retired'] },
-                  job: { type: 'string' },
-                  religion: { type: 'string', enum: ['muslim', 'christian', 'jewish', 'buddhist', 'hindu', 'other', 'none'] },
-                  practice_lvl: { type: 'string', enum: ['very_religious', 'religious', 'moderate', 'not_religious'] },
-                  smoking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  drinking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  life_goal: { type: 'string' },
-                  marital_status: { type: 'string', enum: ['single', 'divorced', 'widowed'] },
-                  have_children: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  want_children: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  physical_activities: { type: 'array', items: { type: 'string' } },
-                  cultural_activities: { type: 'array', items: { type: 'string' } },
-                  creative_hobbies: { type: 'array', items: { type: 'string' } },
-                  gaming_hobbies: { type: 'array', items: { type: 'string' } },
-                  travel_frequency: { type: 'string', enum: ['never', 'rarely', 'sometimes', 'often', 'very_often'] },
-                  type_of_trips: { type: 'string' },
-                  travel_style: { type: 'string' },
-                  dietary_habits: { type: 'string' },
-                  have_pet: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  pet: { type: 'string' },
-                  relocation_same_country: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  relocation_across_countries: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  red_flags: { type: 'array', items: { type: 'string' } },
-                  role_in_relationship: { type: 'string' },
-                  language: { type: 'string', enum: ['en', 'fr', 'ar', 'tn'], description: 'User language preference' },
-                  where_was_born: { type: 'string' },
-                  health: { type: 'string' },
-                  disabilities_and_special_need: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  disabilities_and_special_need_type: { type: 'string' },
-                  health_disability_preference: { type: 'string' },
-                  travel_planning: { type: 'string' },
-                  volunteer_community_work: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  work_life_balance: { type: 'string' },
-                  sleep_habits: { type: 'string' },
-                  age_range_preference: { type: 'string', description: 'Age range like "25-35"' },
-                  height_preference: { type: 'string' },
-                },
-              }
-            }
-          }
-        ],
-        tool_choice: 'auto' // Let AI decide when to extract data while maintaining conversation
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI Gateway error:', aiResponse.status, errorText);
-      throw new Error(`AI Gateway error: ${aiResponse.status}`);
-    }
-
-    const aiData = await aiResponse.json();
-    console.log('AI Response:', JSON.stringify(aiData, null, 2));
-    const assistantMessage = aiData.choices[0].message;
-    
-    // Extract profile data if tool was called
+    // ===== RESPONSE CACHING LOGIC =====
+    let replyText = '';
     let profileUpdates: Record<string, any> = {};
-    if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-      const toolCall = assistantMessage.tool_calls[0];
-      if (toolCall.function.name === 'extract_profile_data') {
-        profileUpdates = JSON.parse(toolCall.function.arguments);
-        console.log('✅ Profile updates extracted:', profileUpdates);
-        console.log('📝 Updating profile for user:', userId);
-        
-        // Update profile in database
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({
-            ...profileUpdates,
-            is_profile_complete: calculateProfileCompletion({ ...profile, ...profileUpdates }),
-          })
-          .eq('id', userId);
+    
+    // Only cache if user sent a message (not initial greeting)
+    if (message && message.trim().length > 0) {
+      // Normalize and hash the message for cache lookup
+      const normalizedMessage = message.toLowerCase().trim();
+      const msgHash = await crypto.subtle.digest(
+        'SHA-256',
+        new TextEncoder().encode(normalizedMessage)
+      );
+      const questionHash = Array.from(new Uint8Array(msgHash))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
 
-        if (updateError) {
-          console.error('❌ Error updating profile:', updateError);
-        } else {
-          console.log('✅ Profile updated successfully with:', profileUpdates);
-        }
+      console.log('🔍 Checking cache for message hash:', questionHash);
+
+      // Check cache
+      const { data: cached } = await supabase
+        .from('ai_response_cache')
+        .select('*')
+        .eq('question_hash', questionHash)
+        .single();
+
+      if (cached) {
+        console.log('✅ Cache hit! Using cached response');
+        replyText = cached.response;
+        
+        // Update cache hit count and last used timestamp
+        await supabase
+          .from('ai_response_cache')
+          .update({ 
+            hit_count: cached.hit_count + 1,
+            last_used_at: new Date().toISOString()
+          })
+          .eq('id', cached.id);
       }
     }
 
-    const modelText = (assistantMessage?.content || '').trim();
-    
-    // Use the AI's natural response - it knows how to handle conversation flow
-    let replyText = modelText;
+    // Call Lovable AI only if not cached
+    if (!replyText) {
+      console.log('❌ Cache miss or initial greeting. Calling AI...');
+      
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-pro',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...conversationHistory,
+            { role: 'user', content: message }
+          ],
+          tools: [
+            {
+              type: 'function',
+              function: {
+                name: 'extract_profile_data',
+                description: 'CRITICAL: Call this function EVERY TIME the user provides ANY answer to your question. Extract and store the relevant profile field(s) from their response. This is mandatory - do not skip this step.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    age: { type: 'integer' },
+                    gender: { type: 'string', enum: ['male', 'female', 'other'] },
+                    height: { type: 'integer', description: 'Height in cm' },
+                    where_he_live: { type: 'string' },
+                    where_want_to_live: { type: 'string' },
+                    education_lvl: { type: 'string', enum: ['high_school', 'bachelor', 'master', 'phd', 'vocational', 'other'] },
+                    employment_status: { type: 'string', enum: ['employed', 'self_employed', 'student', 'unemployed', 'retired'] },
+                    job: { type: 'string' },
+                    religion: { type: 'string', enum: ['muslim', 'christian', 'jewish', 'buddhist', 'hindu', 'other', 'none'] },
+                    practice_lvl: { type: 'string', enum: ['very_religious', 'religious', 'moderate', 'not_religious'] },
+                    smoking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                    drinking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                    life_goal: { type: 'string' },
+                    marital_status: { type: 'string', enum: ['single', 'divorced', 'widowed'] },
+                    have_children: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                    want_children: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                    physical_activities: { type: 'array', items: { type: 'string' } },
+                    cultural_activities: { type: 'array', items: { type: 'string' } },
+                    creative_hobbies: { type: 'array', items: { type: 'string' } },
+                    gaming_hobbies: { type: 'array', items: { type: 'string' } },
+                    travel_frequency: { type: 'string', enum: ['never', 'rarely', 'sometimes', 'often', 'very_often'] },
+                    type_of_trips: { type: 'string' },
+                    travel_style: { type: 'string' },
+                    dietary_habits: { type: 'string' },
+                    have_pet: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                    pet: { type: 'string' },
+                    relocation_same_country: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                    relocation_across_countries: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                    red_flags: { type: 'array', items: { type: 'string' } },
+                    role_in_relationship: { type: 'string' },
+                    language: { type: 'string', enum: ['en', 'fr', 'ar', 'tn'], description: 'User language preference' },
+                    where_was_born: { type: 'string' },
+                    health: { type: 'string' },
+                    disabilities_and_special_need: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                    disabilities_and_special_need_type: { type: 'string' },
+                    health_disability_preference: { type: 'string' },
+                    travel_planning: { type: 'string' },
+                    volunteer_community_work: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                    work_life_balance: { type: 'string' },
+                    sleep_habits: { type: 'string' },
+                    age_range_preference: { type: 'string', description: 'Age range like "25-35"' },
+                    height_preference: { type: 'string' },
+                  },
+                }
+              }
+            }
+          ],
+          tool_choice: 'auto' // Let AI decide when to extract data while maintaining conversation
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        const errorText = await aiResponse.text();
+        console.error('AI Gateway error:', aiResponse.status, errorText);
+        throw new Error(`AI Gateway error: ${aiResponse.status}`);
+      }
+
+      const aiData = await aiResponse.json();
+      console.log('AI Response:', JSON.stringify(aiData, null, 2));
+      const assistantMessage = aiData.choices[0].message;
+      
+      // Extract profile data if tool was called
+      if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+        const toolCall = assistantMessage.tool_calls[0];
+        if (toolCall.function.name === 'extract_profile_data') {
+          profileUpdates = JSON.parse(toolCall.function.arguments);
+          console.log('✅ Profile updates extracted:', profileUpdates);
+          console.log('📝 Updating profile for user:', userId);
+          
+          // Update profile in database
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              ...profileUpdates,
+              is_profile_complete: calculateProfileCompletion({ ...profile, ...profileUpdates }),
+            })
+            .eq('id', userId);
+
+          if (updateError) {
+            console.error('❌ Error updating profile:', updateError);
+          } else {
+            console.log('✅ Profile updated successfully with:', profileUpdates);
+          }
+        }
+      }
+
+      const modelText = (assistantMessage?.content || '').trim();
+      
+      // Use the AI's natural response - it knows how to handle conversation flow
+      replyText = modelText;
+      
+      // Only use fallback if AI didn't provide a response
+      if (!replyText) {
+        const newProfileState = { ...profile, ...profileUpdates };
+        replyText = getNextQuestion(newProfileState, askedTopics, userLanguage);
+      }
+
+      // Store in cache for future use (only for user messages, not initial greeting)
+      if (message && message.trim().length > 0 && replyText) {
+        const normalizedMessage = message.toLowerCase().trim();
+        const msgHash = await crypto.subtle.digest(
+          'SHA-256',
+          new TextEncoder().encode(normalizedMessage)
+        );
+        const questionHash = Array.from(new Uint8Array(msgHash))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join('');
+
+        await supabase
+          .from('ai_response_cache')
+          .insert({
+            question_hash: questionHash,
+            question: message,
+            response: replyText
+          })
+          .then(result => {
+            if (result.error) {
+              console.log('Cache storage error (might be duplicate):', result.error.message);
+            } else {
+              console.log('💾 Response cached for future use');
+            }
+          });
+      }
+    }
     
     // Only use fallback if AI didn't provide a response
     if (!replyText) {

@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_response_cache: {
+        Row: {
+          created_at: string
+          hit_count: number | null
+          id: string
+          last_used_at: string
+          question: string
+          question_hash: string
+          response: string
+        }
+        Insert: {
+          created_at?: string
+          hit_count?: number | null
+          id?: string
+          last_used_at?: string
+          question: string
+          question_hash: string
+          response: string
+        }
+        Update: {
+          created_at?: string
+          hit_count?: number | null
+          id?: string
+          last_used_at?: string
+          question?: string
+          question_hash?: string
+          response?: string
+        }
+        Relationships: []
+      }
       matches: {
         Row: {
           compatibility_score: number | null
@@ -299,7 +329,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      clean_ai_cache: { Args: never; Returns: undefined }
     }
     Enums: {
       education_level:
