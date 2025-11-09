@@ -20,6 +20,7 @@ interface Match {
   age: number;
   compatibility: number;
   location: string;
+  avatar_url?: string;
 }
 
 const Dashboard = () => {
@@ -112,7 +113,7 @@ const Dashboard = () => {
 
         const { data: matchedProfiles } = await supabase
           .from('profiles')
-          .select('id, name, age, where_he_live')
+          .select('id, name, age, where_he_live, avatar_url')
           .in('id', matchedUserIds);
 
         if (matchedProfiles) {
@@ -125,7 +126,8 @@ const Dashboard = () => {
               name: profile?.name || 'Anonymous',
               age: profile?.age || 0,
               compatibility: match.compatibility_score || 0,
-              location: profile?.where_he_live || 'Unknown'
+              location: profile?.where_he_live || 'Unknown',
+              avatar_url: profile?.avatar_url || undefined
             };
           });
         }
@@ -285,31 +287,62 @@ const Dashboard = () => {
               <CardContent>
                 {matches.length > 0 ? (
                   <div className="space-y-3">
-                    {matches.map((match) => (
-                      <div
-                        key={match.id}
-                        onClick={() => navigate(`/match/${match.id}`)}
-                        className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                      >
-                        <Avatar className="h-12 w-12 border border-border">
-                          <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
-                            {match.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-medium text-card-foreground">
-                              {match.name}, {match.age}
-                            </h4>
-                            <Badge variant="secondary" className="text-xs">
-                              {match.compatibility}%
-                            </Badge>
+                    {matches.map((match) => {
+                      const isHighCompatibility = match.compatibility >= 85;
+                      return (
+                        <div
+                          key={match.id}
+                          onClick={() => navigate(`/match/${match.id}`)}
+                          className={`group relative flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-all duration-300 cursor-pointer ${
+                            isHighCompatibility 
+                              ? 'bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 border-2 border-transparent hover:border-primary/30 animate-fade-in' 
+                              : 'bg-muted/30'
+                          }`}
+                        >
+                          {isHighCompatibility && (
+                            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          )}
+                          <div className="relative">
+                            <Avatar className={`h-14 w-14 border-2 transition-transform duration-300 group-hover:scale-110 ${
+                              isHighCompatibility ? 'border-primary shadow-lg shadow-primary/20' : 'border-border'
+                            }`}>
+                              {match.avatar_url && <AvatarImage src={match.avatar_url} alt={match.name} />}
+                              <AvatarFallback className={`text-xl font-bold ${
+                                isHighCompatibility ? 'bg-gradient-to-br from-primary/20 to-accent/20 text-primary' : 'bg-primary/10 text-primary'
+                              }`}>
+                                {match.name.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            {isHighCompatibility && (
+                              <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center animate-scale-in">
+                                <Heart className="h-3 w-3 text-primary-foreground fill-current" />
+                              </div>
+                            )}
                           </div>
-                          <p className="text-sm text-muted-foreground">{match.location}</p>
+                          <div className="flex-1 relative z-10">
+                            <div className="flex items-center justify-between mb-1">
+                              <h4 className="font-semibold text-card-foreground">
+                                {match.name}, {match.age}
+                              </h4>
+                              <Badge 
+                                variant={isHighCompatibility ? "default" : "secondary"} 
+                                className={`text-xs font-bold transition-all duration-300 ${
+                                  isHighCompatibility 
+                                    ? 'bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md group-hover:shadow-lg' 
+                                    : ''
+                                }`}
+                              >
+                                {match.compatibility}%
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{match.location}</p>
+                          </div>
+                          <MessageSquare className={`h-5 w-5 transition-colors duration-300 ${
+                            isHighCompatibility ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
+                          }`} />
                         </div>
-                        <MessageSquare className="h-5 w-5 text-primary" />
-                      </div>
-                    ))}
+                      );
+                    })}
                     {profileCompletion < 100 && (
                       <div className="mt-4">
                         <BlurredMatchCard count={8} />
