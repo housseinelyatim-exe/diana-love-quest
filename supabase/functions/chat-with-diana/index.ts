@@ -384,7 +384,7 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
     // Only use fallback if AI didn't provide a response
     if (!replyText) {
       const newProfileState = { ...profile, ...profileUpdates };
-      replyText = getNextQuestion(newProfileState, askedTopics);
+      replyText = getNextQuestion(newProfileState, askedTopics, userLanguage);
     }
 
     // Fetch all Diana's previous messages from database to check for duplicates
@@ -469,79 +469,148 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
   }
 });
 
-function getNextQuestion(p: any, askedTopics: Set<string> = new Set()): string {
+function getNextQuestion(p: any, askedTopics: Set<string> = new Set(), lang: string = 'en'): string {
+  const q: Record<string, Record<string, string>> = {
+    en: {
+      name: "What's your name?",
+      age: "How old are you?",
+      gender: "What's your gender?",
+      where_was_born: "Where were you born?",
+      where_he_live: "Where do you currently live?",
+      where_want_to_live: "Where would you like to live in the future?",
+      marital_status: "What's your marital status?",
+      have_children: "Do you have children?",
+      want_children: "Do you want children in the future?",
+      education_lvl: "What's your education level?",
+      employment_status: "What's your employment status?",
+      job: "What do you do for work?",
+      height: "What's your height in centimeters?",
+      fallback: "Is there anything else you'd like to share about yourself or what you're looking for?"
+    },
+    fr: {
+      name: "Comment puis-je vous appeler ?",
+      age: "Quel âge avez-vous ?",
+      gender: "Quel est votre genre ?",
+      where_was_born: "Où êtes-vous né(e) ?",
+      where_he_live: "Où habitez-vous actuellement ?",
+      where_want_to_live: "Où aimeriez-vous vivre à l’avenir ?",
+      marital_status: "Quel est votre statut marital ?",
+      have_children: "Avez-vous des enfants ?",
+      want_children: "Souhaitez-vous avoir des enfants à l’avenir ?",
+      education_lvl: "Quel est votre niveau d’études ?",
+      employment_status: "Quel est votre statut professionnel ?",
+      job: "Quel travail faites-vous ?",
+      height: "Quelle est votre taille en centimètres ?",
+      fallback: "Y a-t-il autre chose que vous aimeriez partager sur vous ou ce que vous recherchez ?"
+    },
+    ar: {
+      name: "بماذا أناديك؟",
+      age: "كم عمرك؟",
+      gender: "ما هو جنسك؟",
+      where_was_born: "أين وُلدت؟",
+      where_he_live: "أين تعيش حالياً؟",
+      where_want_to_live: "أين تود أن تعيش مستقبلاً؟",
+      marital_status: "ما هي حالتك الاجتماعية؟",
+      have_children: "هل لديك أطفال؟",
+      want_children: "هل ترغب بإنجاب أطفال مستقبلاً؟",
+      education_lvl: "ما هو مستواك الدراسي؟",
+      employment_status: "ما هو وضعك المهني؟",
+      job: "ما طبيعة عملك؟",
+      height: "ما طولك بالسنتيمتر؟",
+      fallback: "هل هناك أي شيء آخر تود مشاركته عن نفسك أو عمّا تبحث عنه؟"
+    },
+    tn: {
+      name: "شنوّا نجم نناديك؟",
+      age: "قدّاش في عمرك؟",
+      gender: "شنوّا جنسك؟",
+      where_was_born: "وين تولدت؟",
+      where_he_live: "وين ساكن توّا؟",
+      where_want_to_live: "وين تحب تسكن في المستقبل؟",
+      marital_status: "شنوّا حالتك العائلية؟",
+      have_children: "عندك صغار؟",
+      want_children: "تحبّ يكون عندك صغار قدّام؟",
+      education_lvl: "شنوّا مستواك القرايي؟",
+      employment_status: "شنوّا وضعك المهني؟",
+      job: "شنوّا تخدم؟",
+      height: "قدّاش طولك بالسّنتيمتر؟",
+      fallback: "فمّا شي آخر تحب تحكيه علي روحك ولا على اللي قاعد تدوّر عليه؟"
+    }
+  };
+
+  const t = (key: keyof typeof q['en']) => (q[lang]?.[key] || q.en[key]);
+
   // Basic info
-  if (!p || (!p.name && !askedTopics.has('name'))) return "What's your name?";
-  if (!p.age && !askedTopics.has('age')) return "How old are you?";
-  if (!p.gender && !askedTopics.has('gender')) return "What's your gender?";
-  if (!p.where_was_born && !askedTopics.has('where_was_born')) return "Where were you born?";
-  if (!p.where_he_live && !askedTopics.has('where_he_live')) return "Where do you currently live?";
-  if (!p.where_want_to_live && !askedTopics.has('where_want_to_live')) return "Where would you like to live in the future?";
+  if (!p || (!p.name && !askedTopics.has('name'))) return t('name');
+  if (!p.age && !askedTopics.has('age')) return t('age');
+  if (!p.gender && !askedTopics.has('gender')) return t('gender');
+  if (!p.where_was_born && !askedTopics.has('where_was_born')) return t('where_was_born');
+  if (!p.where_he_live && !askedTopics.has('where_he_live')) return t('where_he_live');
+  if (!p.where_want_to_live && !askedTopics.has('where_want_to_live')) return t('where_want_to_live');
   
-  // Health & Disabilities
-  if (!p.health && !askedTopics.has('health')) return "How would you describe your overall health?";
-  if (!p.disabilities_and_special_need && !askedTopics.has('disabilities_and_special_need')) return "Do you have any disabilities or special needs?";
+  // Health & Disabilities (fallback to EN if not translated)
+  if (!p.health && !askedTopics.has('health')) return q[lang]?.health || "How would you describe your overall health?";
+  if (!p.disabilities_and_special_need && !askedTopics.has('disabilities_and_special_need')) return q[lang]?.disabilities_and_special_need || "Do you have any disabilities or special needs?";
   if (p.disabilities_and_special_need === 'yes' && !p.disabilities_and_special_need_type && !askedTopics.has('disabilities_and_special_need_type')) {
-    return "Could you share more about your disability or special need?";
+    return q[lang]?.disabilities_and_special_need_type || "Could you share more about your disability or special need?";
   }
   if (!p.health_disability_preference && !askedTopics.has('health_disability_preference')) {
-    return "Do you have any preferences regarding health or disabilities in a partner?";
+    return q[lang]?.health_disability_preference || "Do you have any preferences regarding health or disabilities in a partner?";
   }
   
   // Family & Relationships
-  if (!p.marital_status && !askedTopics.has('marital_status')) return "What's your marital status?";
-  if (!p.have_children && !askedTopics.has('have_children')) return "Do you have children?";
-  if (!p.want_children && !askedTopics.has('want_children')) return "Do you want children in the future?";
+  if (!p.marital_status && !askedTopics.has('marital_status')) return t('marital_status');
+  if (!p.have_children && !askedTopics.has('have_children')) return t('have_children');
+  if (!p.want_children && !askedTopics.has('want_children')) return t('want_children');
   
   // Education & Work
-  if (!p.education_lvl && !askedTopics.has('education_lvl')) return "What's your education level?";
-  if (!p.employment_status && !askedTopics.has('employment_status')) return "What's your employment status?";
+  if (!p.education_lvl && !askedTopics.has('education_lvl')) return t('education_lvl');
+  if (!p.employment_status && !askedTopics.has('employment_status')) return t('employment_status');
   if (!p.job && !askedTopics.has('job') && p.employment_status && ['employed', 'self_employed', 'student'].includes(p.employment_status)) {
-    return "What do you do for work?";
+    return t('job');
   }
-  if (!p.work_life_balance && !askedTopics.has('work_life_balance')) return "How would you describe your work-life balance?";
+  if (!p.work_life_balance && !askedTopics.has('work_life_balance')) return q[lang]?.work_life_balance || "How would you describe your work-life balance?";
   
   // Religion & Lifestyle
-  if (!p.religion && !askedTopics.has('religion')) return "What's your religion?";
-  if (!p.practice_lvl && !askedTopics.has('practice_lvl')) return "How would you describe your religious practice level?";
-  if (!p.smoking && !askedTopics.has('smoking')) return "Do you smoke?";
-  if (!p.drinking && !askedTopics.has('drinking')) return "Do you drink alcohol?";
-  if (!p.dietary_habits && !askedTopics.has('dietary_habits')) return "What are your dietary habits?";
-  if (!p.sleep_habits && !askedTopics.has('sleep_habits')) return "What are your sleep habits?";
+  if (!p.religion && !askedTopics.has('religion')) return q[lang]?.religion || "What's your religion?";
+  if (!p.practice_lvl && !askedTopics.has('practice_lvl')) return q[lang]?.practice_lvl || "How would you describe your religious practice level?";
+  if (!p.smoking && !askedTopics.has('smoking')) return q[lang]?.smoking || "Do you smoke?";
+  if (!p.drinking && !askedTopics.has('drinking')) return q[lang]?.drinking || "Do you drink alcohol?";
+  if (!p.dietary_habits && !askedTopics.has('dietary_habits')) return q[lang]?.dietary_habits || "What are your dietary habits?";
+  if (!p.sleep_habits && !askedTopics.has('sleep_habits')) return q[lang]?.sleep_habits || "What are your sleep habits?";
   
   // Hobbies & Interests
-  if (!p.life_goal && !askedTopics.has('life_goal')) return "What's your main life goal or aspiration?";
-  if ((!p.physical_activities || p.physical_activities.length === 0) && !askedTopics.has('physical_activities')) return "What physical activities do you enjoy?";
-  if ((!p.cultural_activities || p.cultural_activities.length === 0) && !askedTopics.has('cultural_activities')) return "What cultural activities interest you?";
-  if ((!p.creative_hobbies || p.creative_hobbies.length === 0) && !askedTopics.has('creative_hobbies')) return "Do you have any creative hobbies?";
-  if ((!p.gaming_hobbies || p.gaming_hobbies.length === 0) && !askedTopics.has('gaming_hobbies')) return "What gaming hobbies do you have, if any?";
+  if (!p.life_goal && !askedTopics.has('life_goal')) return q[lang]?.life_goal || "What's your main life goal or aspiration?";
+  if ((!p.physical_activities || p.physical_activities.length === 0) && !askedTopics.has('physical_activities')) return q[lang]?.physical_activities || "What physical activities do you enjoy?";
+  if ((!p.cultural_activities || p.cultural_activities.length === 0) && !askedTopics.has('cultural_activities')) return q[lang]?.cultural_activities || "What cultural activities interest you?";
+  if ((!p.creative_hobbies || p.creative_hobbies.length === 0) && !askedTopics.has('creative_hobbies')) return q[lang]?.creative_hobbies || "Do you have any creative hobbies?";
+  if ((!p.gaming_hobbies || p.gaming_hobbies.length === 0) && !askedTopics.has('gaming_hobbies')) return q[lang]?.gaming_hobbies || "What gaming hobbies do you have, if any?";
   
   // Travel
-  if (!p.travel_frequency && !askedTopics.has('travel_frequency')) return "How often do you travel?";
-  if (!p.type_of_trips && !askedTopics.has('type_of_trips')) return "What type of trips do you prefer?";
-  if (!p.travel_style && !askedTopics.has('travel_style')) return "How would you describe your travel style?";
-  if (!p.travel_planning && !askedTopics.has('travel_planning')) return "How do you prefer to plan trips?";
+  if (!p.travel_frequency && !askedTopics.has('travel_frequency')) return q[lang]?.travel_frequency || "How often do you travel?";
+  if (!p.type_of_trips && !askedTopics.has('type_of_trips')) return q[lang]?.type_of_trips || "What type of trips do you prefer?";
+  if (!p.travel_style && !askedTopics.has('travel_style')) return q[lang]?.travel_style || "How would you describe your travel style?";
+  if (!p.travel_planning && !askedTopics.has('travel_planning')) return q[lang]?.travel_planning || "How do you prefer to plan trips?";
   
   // Pets & Community
-  if (!p.have_pet && !askedTopics.has('have_pet')) return "Do you have any pets?";
-  if (p.have_pet === 'yes' && !p.pet && !askedTopics.has('pet')) return "What kind of pet(s) do you have?";
-  if (!p.volunteer_community_work && !askedTopics.has('volunteer_community_work')) return "Do you participate in volunteer or community work?";
+  if (!p.have_pet && !askedTopics.has('have_pet')) return t('have_children');
+  if (p.have_pet === 'yes' && !p.pet && !askedTopics.has('pet')) return q[lang]?.pet || "What kind of pet(s) do you have?";
+  if (!p.volunteer_community_work && !askedTopics.has('volunteer_community_work')) return q[lang]?.volunteer_community_work || "Do you participate in volunteer or community work?";
   
   // Location & Relocation
-  if (!p.relocation_same_country && !askedTopics.has('relocation_same_country')) return "Would you be open to relocating within the same country?";
-  if (!p.relocation_across_countries && !askedTopics.has('relocation_across_countries')) return "Would you be open to relocating to another country?";
+  if (!p.relocation_same_country && !askedTopics.has('relocation_same_country')) return q[lang]?.relocation_same_country || "Would you be open to relocating within the same country?";
+  if (!p.relocation_across_countries && !askedTopics.has('relocation_across_countries')) return q[lang]?.relocation_across_countries || "Would you be open to relocating to another country?";
   
   // Physical Attributes
-  if (!p.height && !askedTopics.has('height')) return "What's your height in centimeters?";
+  if (!p.height && !askedTopics.has('height')) return t('height');
   
-  // Relationship Preferences - Now decomposed into specific questions
-  if (!p.age_range_preference && !askedTopics.has('age_range_preference')) return "What age range are you looking for in a partner?";
-  if (!p.height_preference && !askedTopics.has('height_preference')) return "Do you have any height preferences for a partner?";
-  if ((!p.red_flags || p.red_flags.length === 0) && !askedTopics.has('red_flags')) return "What are your relationship red flags or deal-breakers?";
-  if (!p.role_in_relationship && !askedTopics.has('role_in_relationship')) return "What role do you see yourself playing in a relationship?";
+  // Relationship Preferences
+  if (!p.age_range_preference && !askedTopics.has('age_range_preference')) return q[lang]?.age_range_preference || "What age range are you looking for in a partner?";
+  if (!p.height_preference && !askedTopics.has('height_preference')) return q[lang]?.height_preference || "Do you have any height preferences for a partner?";
+  if ((!p.red_flags || p.red_flags.length === 0) && !askedTopics.has('red_flags')) return q[lang]?.red_flags || "What are your relationship red flags or deal-breakers?";
+  if (!p.role_in_relationship && !askedTopics.has('role_in_relationship')) return q[lang]?.role_in_relationship || "What role do you see yourself playing in a relationship?";
   
   // Fallback - All major fields covered
-  return "Is there anything else you'd like to share about yourself or what you're looking for?";
+  return t('fallback');
 }
 
 function getNonRepeatingFollowUp(conversationHistory: any[]): string {
