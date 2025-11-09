@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Send, ArrowLeft, Sparkles } from "lucide-react";
+import { Send, ArrowLeft, Sparkles, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
 
@@ -27,7 +27,9 @@ const Chat = () => {
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const hasShown50Toast = useRef(false);
   const hasShown100Toast = useRef(false);
 
@@ -143,10 +145,18 @@ const Chat = () => {
       }]);
     }
   };
+  
   const scrollToBottom = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
+      setShowScrollButton(false);
     }
+  };
+
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLDivElement;
+    const isAtBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 100;
+    setShowScrollButton(!isAtBottom);
   };
 
   const extractOptions = (text: string): string[] => {
@@ -281,7 +291,7 @@ const Chat = () => {
       </div>
 
       {/* Chat Messages */}
-      <ScrollArea className="flex-1 p-4 mt-[114px]">
+      <ScrollArea className="flex-1 p-4 mt-[114px]" onScrollCapture={handleScroll}>
         <div className="space-y-3 max-w-full">
           {messages.map((message, index) => {
             const options = message.role === 'assistant' && index === messages.length - 1 
@@ -354,6 +364,17 @@ const Chat = () => {
           <div ref={scrollRef} />
         </div>
       </ScrollArea>
+
+      {/* Scroll to Bottom Button */}
+      {showScrollButton && (
+        <Button
+          onClick={scrollToBottom}
+          size="icon"
+          className="fixed bottom-20 right-6 rounded-full shadow-lg z-20 animate-scale-in"
+        >
+          <ChevronDown className="h-5 w-5" />
+        </Button>
+      )}
 
       {/* Input */}
       <div className="bg-[#f0f0f0] px-3 py-2 border-t">
