@@ -30,6 +30,7 @@ const Chat = () => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const hasShown50Toast = useRef(false);
   const hasShown100Toast = useRef(false);
 
@@ -41,6 +42,20 @@ const Chat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = viewport;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShowScrollButton(!isAtBottom && messages.length > 3);
+    };
+
+    viewport.addEventListener('scroll', handleScroll);
+    return () => viewport.removeEventListener('scroll', handleScroll);
+  }, [messages.length]);
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -151,12 +166,6 @@ const Chat = () => {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
       setShowScrollButton(false);
     }
-  };
-
-  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLDivElement;
-    const isAtBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 100;
-    setShowScrollButton(!isAtBottom);
   };
 
   const extractOptions = (text: string): string[] => {
@@ -291,8 +300,12 @@ const Chat = () => {
       </div>
 
       {/* Chat Messages */}
-      <ScrollArea className="flex-1 p-4 mt-[114px]" onScrollCapture={handleScroll}>
-        <div className="space-y-3 max-w-full">
+      <div className="flex-1 overflow-hidden">
+        <div 
+          ref={viewportRef}
+          className="h-full overflow-y-auto px-3 pt-4 mt-[114px]"
+        >
+          <div className="space-y-3 max-w-full">
           {messages.map((message, index) => {
             const options = message.role === 'assistant' && index === messages.length - 1 
               ? extractOptions(message.content) 
@@ -361,9 +374,10 @@ const Chat = () => {
               </div>
             </div>
           )}
-          <div ref={scrollRef} />
+            <div ref={scrollRef} />
+          </div>
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Scroll to Bottom Button */}
       {showScrollButton && (
