@@ -226,10 +226,7 @@ const Dashboard = () => {
                   </div>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-semibold text-card-foreground">Diana (AI Matchmaker)</h3>
-                    <span className="text-xs text-muted-foreground">now</span>
-                  </div>
+                  <h3 className="font-semibold text-card-foreground mb-1">Diana (AI Matchmaker)</h3>
                   <p className="text-sm text-muted-foreground truncate">
                     {profileCompletion < 100
                       ? "Let's complete your profile together 💕"
