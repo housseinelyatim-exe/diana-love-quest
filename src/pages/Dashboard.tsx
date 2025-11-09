@@ -222,17 +222,6 @@ const Dashboard = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
         {/* Chats Tab */}
         <TabsContent value="chats" className="flex-1 m-0 pb-20">
-          <div className="bg-muted/30 px-4 py-3 border-b border-border">
-            <div className="bg-card rounded-lg px-4 py-2 flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Ask Meta AI or Search"
-                className="bg-transparent border-none outline-none flex-1 text-foreground placeholder:text-muted-foreground"
-              />
-            </div>
-          </div>
-
           <div className="p-4 space-y-3">
             <div
               onClick={() => navigate("/chat")}
