@@ -204,35 +204,64 @@ const Dashboard = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Show loading toast
+    const loadingToast = toast.loading('Uploading profile picture...');
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast.error('Not authenticated', { id: loadingToast });
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please upload an image file', { id: loadingToast });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size must be less than 5MB', { id: loadingToast });
+        return;
+      }
 
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}/avatar.${fileExt}`;
+
+      console.log('Uploading to:', filePath);
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
+
+      console.log('Public URL:', publicUrl);
 
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Profile update error:', updateError);
+        throw updateError;
+      }
 
       setAvatarUrl(publicUrl);
-      toast.success('Profile picture updated!');
-    } catch (error) {
+      toast.success('Profile picture updated!', { id: loadingToast });
+    } catch (error: any) {
       console.error('Error uploading avatar:', error);
-      toast.error('Failed to upload profile picture');
+      const errorMessage = error?.message || 'Failed to upload profile picture';
+      toast.error(errorMessage, { id: loadingToast });
     }
   };
 
