@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { MessageSquare, Heart, User, Newspaper, LogOut, Camera, RefreshCw, X, Sparkles, Users, UserCircle } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
+import { formatDistanceToNow } from "date-fns";
 
 interface Match {
   id: string;
@@ -32,6 +33,7 @@ const Dashboard = () => {
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("chats");
+  const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -77,6 +79,19 @@ const Dashboard = () => {
           : calculateProfileCompletion(profile);
         setProfileCompletion(Math.max(0, Math.min(100, completion)));
         setAvatarUrl(profile.avatar_url || '');
+      }
+
+      // Fetch last message from Diana
+      const { data: lastMessage } = await supabase
+        .from('messages')
+        .select('created_at')
+        .eq('is_from_diana', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (lastMessage) {
+        setLastMessageTime(new Date(lastMessage.created_at));
       }
 
       // Fetch real matches
@@ -226,7 +241,14 @@ const Dashboard = () => {
                   </div>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-card-foreground mb-1">Diana (AI Matchmaker)</h3>
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className="font-semibold text-card-foreground">Diana (AI Matchmaker)</h3>
+                    {lastMessageTime && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(lastMessageTime, { addSuffix: true })}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground truncate">
                     {profileCompletion < 100
                       ? "Let's complete your profile together 💕"
