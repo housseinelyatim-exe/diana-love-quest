@@ -415,12 +415,12 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
       
       // Get a truly unique follow-up by checking against all previous messages
       let attempts = 0;
-      let uniqueFollowUp = getNonRepeatingFollowUp(conversationHistory);
+      let uniqueFollowUp = getNonRepeatingFollowUp(conversationHistory, userLanguage);
       
       while (attempts < 10 && dianaMessages?.some((msg: any) => 
         normalize(msg.content).includes(normalize(uniqueFollowUp).substring(0, 30))
       )) {
-        uniqueFollowUp = getNonRepeatingFollowUp(conversationHistory);
+        uniqueFollowUp = getNonRepeatingFollowUp(conversationHistory, userLanguage);
         attempts++;
       }
       
@@ -613,19 +613,47 @@ function getNextQuestion(p: any, askedTopics: Set<string> = new Set(), lang: str
   return t('fallback');
 }
 
-function getNonRepeatingFollowUp(conversationHistory: any[]): string {
-  const options = [
-    "Thanks! Tell me anything else that's important to you—values, hobbies, or what makes you happy.",
-    "Got it. Share more about yourself—interests, routines, or what a perfect weekend looks like.",
-    "Noted. Ask me anything about how I match people, or share more about what you value in relationships.",
-    "I'm all ears! What else would you like to share? Could be about your daily life, dreams, or anything that defines you.",
-    "Perfect! Feel free to tell me more about what matters to you, or ask me anything about finding your match.",
-    "Interesting! What else should I know about you? Your passions, lifestyle, or what you're looking for in a partner?"
-  ];
+function getNonRepeatingFollowUp(conversationHistory: any[], lang: string = 'en'): string {
+  const optionsByLang: Record<string, string[]> = {
+    en: [
+      "Thanks! Tell me anything else that's important to you—values, hobbies, or what makes you happy.",
+      "Got it. Share more about yourself—interests, routines, or what a perfect weekend looks like.",
+      "Noted. Ask me anything about how I match people, or share more about what you value in relationships.",
+      "I'm all ears! What else would you like to share? Could be about your daily life, dreams, or anything that defines you.",
+      "Perfect! Feel free to tell me more about what matters to you, or ask me anything about finding your match.",
+      "Interesting! What else should I know about you? Your passions, lifestyle, or what you're looking for in a partner?"
+    ],
+    fr: [
+      "Merci ! N'hésitez pas à me parler de ce qui compte pour vous—vos valeurs, vos loisirs, ou ce qui vous rend heureux.",
+      "Compris. Parlez-moi de vous—vos intérêts, vos habitudes, ou comment se passe un week-end parfait pour vous.",
+      "Noté. Posez-moi vos questions sur le matching, ou parlez-moi de ce qui est important pour vous dans une relation.",
+      "Je vous écoute ! Que souhaitez-vous partager d'autre ? Votre quotidien, vos rêves, ou tout ce qui vous définit.",
+      "Parfait ! N'hésitez pas à me parler de ce qui compte pour vous, ou posez-moi vos questions sur la recherche de votre match.",
+      "Intéressant ! Que devrais-je savoir d'autre sur vous ? Vos passions, votre style de vie, ou ce que vous recherchez chez un partenaire ?"
+    ],
+    ar: [
+      "شكراً! أخبرني بأي شيء آخر مهم بالنسبة لك—القيم، الهوايات، أو ما يجعلك سعيداً.",
+      "فهمت. شاركني المزيد عن نفسك—اهتماماتك، روتينك، أو كيف يبدو عطلة نهاية أسبوع مثالية.",
+      "حسناً. اسألني أي شيء عن كيفية المطابقة، أو شاركني ما تقدره في العلاقات.",
+      "أنا أستمع! ماذا تود أن تشارك أيضاً؟ حياتك اليومية، أحلامك، أو أي شيء يعرّفك.",
+      "ممتاز! لا تتردد في إخباري بما يهمك، أو اسألني أي شيء عن إيجاد شريكك.",
+      "مثير للاهتمام! ماذا يجب أن أعرف عنك أيضاً؟ شغفك، نمط حياتك، أو ما تبحث عنه في الشريك؟"
+    ],
+    tn: [
+      "ياسر! حكيلي على أي حاجة أخرى مهمّة ليك—قيمك، هواياتك، ولا شنوّا يفرحك.",
+      "فهمت. حكيلي على روحك أكثر—اهتماماتك، روتينك، ولا كيفاش يكون weekend مثالي ليك.",
+      "ماشي. استفسر منّي على كيفاش نلقى matches، ولا حكيلي على شنوّا مهم ليك في العلاقة.",
+      "أنا نسمع! شنوّا تحب تحكيلي كمان؟ حياتك اليومية، أحلامك، ولا أي حاجة تعرّفك.",
+      "مليح برشا! ما تتردّدش باش تحكيلي على شنوّا يهمّك، ولا استفسر منّي على كيفاش نلقاو match ليك.",
+      "Intéressant! شنوّا لازم نعرف عليك كمان؟ شغفك، نمط حياتك، ولا شنوّا قاعد تدوّر عليه؟"
+    ]
+  };
+  
+  const options = optionsByLang[lang] || optionsByLang.en;
   
   // Filter out options that were already used in recent conversation
   const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
-  const recentMessages = conversationHistory.slice(-10); // Check last 10 messages
+  const recentMessages = conversationHistory.slice(-10);
   const usedOptions = new Set(
     recentMessages
       .filter((m: any) => m.role === 'assistant')
@@ -636,12 +664,33 @@ function getNonRepeatingFollowUp(conversationHistory: any[]): string {
   
   // If all options were used, return a completely different dynamic response
   if (availableOptions.length === 0) {
-    const dynamicOptions = [
-      "What's on your mind? Feel free to share anything you'd like me to know.",
-      "I'm here to listen! What would you like to talk about?",
-      "Tell me more about what makes you, you!",
-      "What else is important for me to know about your story?"
-    ];
+    const dynamicOptionsByLang: Record<string, string[]> = {
+      en: [
+        "What's on your mind? Feel free to share anything you'd like me to know.",
+        "I'm here to listen! What would you like to talk about?",
+        "Tell me more about what makes you, you!",
+        "What else is important for me to know about your story?"
+      ],
+      fr: [
+        "À quoi pensez-vous ? N'hésitez pas à partager ce que vous voulez que je sache.",
+        "Je suis là pour écouter ! De quoi aimeriez-vous parler ?",
+        "Parlez-moi plus de ce qui fait de vous ce que vous êtes !",
+        "Qu'est-ce qui est important que je sache sur votre histoire ?"
+      ],
+      ar: [
+        "ما الذي يدور في ذهنك؟ لا تتردد في مشاركة أي شيء تريد أن أعرفه.",
+        "أنا هنا للاستماع! عن ماذا تود أن تتحدث؟",
+        "أخبرني المزيد عما يجعلك أنت!",
+        "ما الذي من المهم أن أعرفه عن قصتك؟"
+      ],
+      tn: [
+        "شنوّا في بالك? ما تتردّدش تحكيلي على أي حاجة تحب نعرفها.",
+        "أنا هوني باش نسمع! على شنوّا تحب تحكي?",
+        "حكيلي أكثر على شنوّا يخلّيك أنت!",
+        "شنوّا المهم نعرفو على قصّتك?"
+      ]
+    };
+    const dynamicOptions = dynamicOptionsByLang[lang] || dynamicOptionsByLang.en;
     return dynamicOptions[Math.floor(Math.random() * dynamicOptions.length)];
   }
   
