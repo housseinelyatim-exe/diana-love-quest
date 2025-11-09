@@ -298,14 +298,14 @@ const Chat = () => {
         </Avatar>
         <div className="flex-1">
           <h1 className="font-semibold">Diana</h1>
-          <p className="text-xs text-white/90">Your matchmaking assistant</p>
+          <p className="text-xs text-white/90">{t.chat.subtitle}</p>
         </div>
       </div>
 
       {/* Progress Bar */}
       <div className="fixed top-[57px] left-0 right-0 z-10 bg-white px-4 py-2 border-b">
         <div className="flex items-center justify-between text-xs mb-1">
-          <span className="text-muted-foreground">Profile completion</span>
+          <span className="text-muted-foreground">{t.chat.profileCompletion}</span>
           <span className="font-semibold text-primary">{profileCompletion}%</span>
         </div>
         <Progress value={profileCompletion} className="h-1.5" />
@@ -408,7 +408,7 @@ const Chat = () => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message"
+            placeholder={t.chat.typePlaceholder}
             disabled={loading}
             className="flex-1 bg-white border-0 rounded-full shadow-sm"
           />

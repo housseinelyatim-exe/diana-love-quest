@@ -25,11 +25,11 @@ export const translations = {
     // Chat Page
     chat: {
       title: "Chat with Diana",
-      subtitle: "Your AI matchmaking assistant",
+      subtitle: "Your matchmaking assistant",
       dashboard: "Dashboard",
-      profileCompletion: "Profile Completion",
+      profileCompletion: "Profile completion",
       greatProgress: "Great progress! You can now access your dashboard, but completing 100% gives you better matches.",
-      typePlaceholder: "Type your message...",
+      typePlaceholder: "Type a message",
       dashboardError: "Please complete at least 50% of your profile first"
     },
     // Dashboard Page
@@ -72,11 +72,11 @@ export const translations = {
     // Chat Page
     chat: {
       title: "Discuter avec Diana",
-      subtitle: "Votre assistante de rencontre IA",
+      subtitle: "Votre assistante personnelle pour Soulmate",
       dashboard: "Tableau de Bord",
-      profileCompletion: "Complétude du Profil",
+      profileCompletion: "Complétion du profil",
       greatProgress: "Excellent progrès ! Vous pouvez maintenant accéder à votre tableau de bord, mais compléter 100% vous donne de meilleurs matchs.",
-      typePlaceholder: "Tapez votre message...",
+      typePlaceholder: "Tapez un message",
       dashboardError: "Veuillez compléter au moins 50% de votre profil d'abord"
     },
     // Dashboard Page
@@ -119,11 +119,11 @@ export const translations = {
     // Chat Page
     chat: {
       title: "الدردشة مع ديانا",
-      subtitle: "مساعدتك الذكية للمواعدة",
+      subtitle: "مساعدتك الشخصية لتوأم الروح",
       dashboard: "لوحة التحكم",
       profileCompletion: "اكتمال الملف الشخصي",
       greatProgress: "تقدم رائع! يمكنك الآن الوصول إلى لوحة التحكم، لكن إكمال 100٪ يمنحك تطابقات أفضل.",
-      typePlaceholder: "اكتب رسالتك...",
+      typePlaceholder: "اكتب رسالة",
       dashboardError: "يرجى إكمال 50٪ على الأقل من ملفك الشخصي أولاً"
     },
     // Dashboard Page
@@ -166,11 +166,11 @@ export const translations = {
     // Chat Page
     chat: {
       title: "شات مع ديانا",
-      subtitle: "مساعدتك الذكية متع المواعدة",
+      subtitle: "مساعدتك الشخصية لتوأم الروح",
       dashboard: "لوحة التحكم",
       profileCompletion: "إكمال البروفايل",
       greatProgress: "تقدم مليح! تنجم دلوكة تدخل للوحة التحكم، أما 100٪ يعطيك ماتشات أحسن.",
-      typePlaceholder: "اكتب رسالتك...",
+      typePlaceholder: "اكتب رسالة",
       dashboardError: "أكمل 50٪ على الأقل من البروفايل متاعك أولاً"
     },
     // Dashboard Page
