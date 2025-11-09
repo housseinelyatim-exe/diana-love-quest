@@ -45,6 +45,11 @@ const Dashboard = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // Ensure we always start on the matches tab
+    setActiveTab("matches");
+  }, []);
+
+  useEffect(() => {
     checkAuth();
     loadDashboardData();
     loadPlatformStats();
