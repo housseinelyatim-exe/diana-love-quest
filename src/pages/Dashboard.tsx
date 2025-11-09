@@ -35,7 +35,7 @@ const Dashboard = () => {
   const [showQuote, setShowQuote] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [viewingImage, setViewingImage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("chats");
+  const [activeTab, setActiveTab] = useState("matches");
   const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
   const [platformStats, setPlatformStats] = useState({
     totalUsers: 0,

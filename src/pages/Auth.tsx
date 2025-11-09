@@ -31,7 +31,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success(t.common.welcomeBack);
-      navigate("/chat");
+      navigate("/dashboard");
     }
     setLoading(false);
   };
@@ -44,7 +44,7 @@ const Auth = () => {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/chat`,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
       },
     });
 
