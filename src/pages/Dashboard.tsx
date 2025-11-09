@@ -625,10 +625,13 @@ const Dashboard = () => {
               
               <div className="grid grid-cols-2 gap-3">
                 {/* Books */}
-                <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-primary/30 animate-scale-in">
+                <Card 
+                  onClick={() => window.open('https://www.goodreads.com/shelf/show/relationship', '_blank')}
+                  className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-orange-500/50 animate-scale-in"
+                >
                   <CardContent className="p-4 text-center">
                     <div className="mb-3 flex justify-center">
-                      <div className="p-3 bg-orange-500/10 rounded-xl group-hover:bg-orange-500/20 transition-colors">
+                      <div className="p-3 bg-orange-500/10 rounded-xl group-hover:bg-orange-500/20 transition-all group-hover:scale-110 duration-300">
                         <BookOpen className="h-6 w-6 text-orange-500" />
                       </div>
                     </div>
@@ -638,10 +641,13 @@ const Dashboard = () => {
                 </Card>
 
                 {/* Podcasts */}
-                <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-primary/30 animate-scale-in">
+                <Card 
+                  onClick={() => window.open('https://open.spotify.com/search/relationship%20podcast', '_blank')}
+                  className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-purple-500/50 animate-scale-in"
+                >
                   <CardContent className="p-4 text-center">
                     <div className="mb-3 flex justify-center">
-                      <div className="p-3 bg-purple-500/10 rounded-xl group-hover:bg-purple-500/20 transition-colors">
+                      <div className="p-3 bg-purple-500/10 rounded-xl group-hover:bg-purple-500/20 transition-all group-hover:scale-110 duration-300">
                         <Headphones className="h-6 w-6 text-purple-500" />
                       </div>
                     </div>
@@ -651,10 +657,13 @@ const Dashboard = () => {
                 </Card>
 
                 {/* Videos */}
-                <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-primary/30 animate-scale-in">
+                <Card 
+                  onClick={() => window.open('https://www.youtube.com/results?search_query=dating+advice', '_blank')}
+                  className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-red-500/50 animate-scale-in"
+                >
                   <CardContent className="p-4 text-center">
                     <div className="mb-3 flex justify-center">
-                      <div className="p-3 bg-red-500/10 rounded-xl group-hover:bg-red-500/20 transition-colors">
+                      <div className="p-3 bg-red-500/10 rounded-xl group-hover:bg-red-500/20 transition-all group-hover:scale-110 duration-300">
                         <Video className="h-6 w-6 text-red-500" />
                       </div>
                     </div>
@@ -664,10 +673,13 @@ const Dashboard = () => {
                 </Card>
 
                 {/* Trends */}
-                <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-primary/30 animate-scale-in">
+                <Card 
+                  onClick={() => window.open('https://www.psychologytoday.com/us/blog/the-attraction-doctor', '_blank')}
+                  className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-green-500/50 animate-scale-in"
+                >
                   <CardContent className="p-4 text-center">
                     <div className="mb-3 flex justify-center">
-                      <div className="p-3 bg-green-500/10 rounded-xl group-hover:bg-green-500/20 transition-colors">
+                      <div className="p-3 bg-green-500/10 rounded-xl group-hover:bg-green-500/20 transition-all group-hover:scale-110 duration-300">
                         <TrendingUp className="h-6 w-6 text-green-500" />
                       </div>
                     </div>
