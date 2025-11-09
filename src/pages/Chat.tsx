@@ -286,7 +286,7 @@ const Chat = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate("/dashboard", { state: { tab: "chats" } })}
           className="text-white hover:bg-white/10 -ml-2"
         >
           <ArrowLeft className="h-5 w-5" />

@@ -45,10 +45,15 @@ const Dashboard = () => {
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset to matches tab whenever we navigate to dashboard
+  // Set tab based on navigation state, otherwise default to matches
   useEffect(() => {
-    setActiveTab("matches");
-  }, [location.pathname]);
+    const tab = (location.state as any)?.tab;
+    if (tab) {
+      setActiveTab(tab);
+    } else {
+      setActiveTab("matches");
+    }
+  }, [location.pathname, location.state]);
 
   useEffect(() => {
     checkAuth();
