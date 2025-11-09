@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { MessageSquare, Heart, User, Newspaper, LogOut, Camera, RefreshCw, X, Sparkles, Users, UserCircle } from "lucide-react";
+import { MessageSquare, Heart, User, Newspaper, LogOut, Camera, RefreshCw, X, Sparkles, Users, UserCircle, BookOpen, Headphones, TrendingUp, Lightbulb, Video, Award } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
 import { formatDistanceToNow } from "date-fns";
@@ -528,13 +528,18 @@ const Dashboard = () => {
 
         {/* Discover/Info Tab */}
         <TabsContent value="discover" className="flex-1 m-0 pb-20">
-          <div className="p-4 space-y-3">
+          <div className="p-4 space-y-4">
+            {/* Daily Quote */}
             {showQuote && dailyQuote && (
-              <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
-                <CardHeader className="pb-3">
+              <Card className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border-primary/20 animate-fade-in">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/10 rounded-full blur-3xl" />
+                <CardHeader className="pb-3 relative z-10">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-gradient-to-br from-primary to-accent rounded-lg">
+                        <Sparkles className="h-5 w-5 text-primary-foreground" />
+                      </div>
                       <CardTitle className="text-lg">Daily Inspiration</CardTitle>
                     </div>
                     <div className="flex gap-1">
@@ -542,7 +547,7 @@ const Dashboard = () => {
                         variant="ghost"
                         size="icon"
                         onClick={handleRefreshQuote}
-                        className="h-8 w-8 hover:bg-primary/10"
+                        className="h-8 w-8 hover:bg-primary/10 transition-all hover:rotate-180"
                       >
                         <RefreshCw className="h-4 w-4" />
                       </Button>
@@ -557,49 +562,137 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-card-foreground italic text-sm">{dailyQuote}</p>
+                <CardContent className="relative z-10">
+                  <p className="text-card-foreground italic text-base leading-relaxed">{dailyQuote}</p>
                 </CardContent>
               </Card>
             )}
 
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-lg">Recommended For You</CardTitle>
-                <CardDescription>Personalized content to inspire your journey</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
-                  <h4 className="font-medium mb-1 flex items-center gap-2">
-                    📚 <span>Book Recommendation</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    "The Five Love Languages" - Learn how to better express and receive love
-                  </p>
-                </div>
-                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
-                  <h4 className="font-medium mb-1 flex items-center gap-2">
-                    🎙️ <span>Podcast</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    "Relationship Matters" - Expert advice on building lasting connections
-                  </p>
-                </div>
-                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
-                  <h4 className="font-medium mb-1 flex items-center gap-2">
-                    📰 <span>Article</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    "10 Signs You've Found Your Perfect Match" - Discover what makes a great partnership
-                  </p>
-                </div>
-                <div className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
-                  <h4 className="font-medium mb-1 flex items-center gap-2">
-                    💡 <span>Dating Tip</span>
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    "Be authentic in your conversations - genuine connection starts with being yourself"
-                  </p>
+            {/* Featured Content */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+                Featured For You
+              </h3>
+              
+              {/* Success Stories Card */}
+              <Card className="group relative overflow-hidden bg-gradient-to-br from-pink-500/10 to-purple-500/10 border-pink-500/20 hover:border-pink-500/40 transition-all duration-300 cursor-pointer animate-fade-in">
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardContent className="p-4 relative z-10">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                      <Heart className="h-6 w-6 text-pink-500" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold mb-1 text-card-foreground">Success Stories</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Read how couples found their perfect match and built lasting relationships
+                      </p>
+                      <Badge className="mt-2 bg-pink-500/20 text-pink-700 dark:text-pink-300 hover:bg-pink-500/30">
+                        Inspiring
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Relationship Tips */}
+              <Card className="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20 hover:border-blue-500/40 transition-all duration-300 cursor-pointer animate-fade-in">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardContent className="p-4 relative z-10">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                      <Lightbulb className="h-6 w-6 text-blue-500" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold mb-1 text-card-foreground">Dating Tips & Advice</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Expert guidance on first dates, conversations, and building chemistry
+                      </p>
+                      <Badge className="mt-2 bg-blue-500/20 text-blue-700 dark:text-blue-300 hover:bg-blue-500/30">
+                        Helpful
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Resources */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+                Resources
+              </h3>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {/* Books */}
+                <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-primary/30 animate-scale-in">
+                  <CardContent className="p-4 text-center">
+                    <div className="mb-3 flex justify-center">
+                      <div className="p-3 bg-orange-500/10 rounded-xl group-hover:bg-orange-500/20 transition-colors">
+                        <BookOpen className="h-6 w-6 text-orange-500" />
+                      </div>
+                    </div>
+                    <h4 className="font-semibold text-sm mb-1">Books</h4>
+                    <p className="text-xs text-muted-foreground">Recommended reads</p>
+                  </CardContent>
+                </Card>
+
+                {/* Podcasts */}
+                <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-primary/30 animate-scale-in">
+                  <CardContent className="p-4 text-center">
+                    <div className="mb-3 flex justify-center">
+                      <div className="p-3 bg-purple-500/10 rounded-xl group-hover:bg-purple-500/20 transition-colors">
+                        <Headphones className="h-6 w-6 text-purple-500" />
+                      </div>
+                    </div>
+                    <h4 className="font-semibold text-sm mb-1">Podcasts</h4>
+                    <p className="text-xs text-muted-foreground">Expert talks</p>
+                  </CardContent>
+                </Card>
+
+                {/* Videos */}
+                <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-primary/30 animate-scale-in">
+                  <CardContent className="p-4 text-center">
+                    <div className="mb-3 flex justify-center">
+                      <div className="p-3 bg-red-500/10 rounded-xl group-hover:bg-red-500/20 transition-colors">
+                        <Video className="h-6 w-6 text-red-500" />
+                      </div>
+                    </div>
+                    <h4 className="font-semibold text-sm mb-1">Videos</h4>
+                    <p className="text-xs text-muted-foreground">Watch & learn</p>
+                  </CardContent>
+                </Card>
+
+                {/* Trends */}
+                <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-card border-border hover:border-primary/30 animate-scale-in">
+                  <CardContent className="p-4 text-center">
+                    <div className="mb-3 flex justify-center">
+                      <div className="p-3 bg-green-500/10 rounded-xl group-hover:bg-green-500/20 transition-colors">
+                        <TrendingUp className="h-6 w-6 text-green-500" />
+                      </div>
+                    </div>
+                    <h4 className="font-semibold text-sm mb-1">Trends</h4>
+                    <p className="text-xs text-muted-foreground">What's popular</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Pro Tip */}
+            <Card className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-amber-500/30 animate-fade-in">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-amber-500/20 rounded-lg">
+                    <Award className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1 text-amber-900 dark:text-amber-100">
+                      Pro Tip of the Day
+                    </h4>
+                    <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
+                      Be authentic in your conversations - genuine connection starts with being yourself
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
