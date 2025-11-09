@@ -102,6 +102,8 @@ const Dashboard = () => {
         .or(`user_id_1.eq.${user.id},user_id_2.eq.${user.id}`)
         .order('compatibility_score', { ascending: false });
 
+      let formattedMatches: Match[] = [];
+
       if (matchesData && matchesData.length > 0) {
         // Fetch profiles for matched users
         const matchedUserIds = matchesData.map(match => 
@@ -114,21 +116,29 @@ const Dashboard = () => {
           .in('id', matchedUserIds);
 
         if (matchedProfiles) {
-          const formattedMatches: Match[] = matchesData.map(match => {
+          formattedMatches = matchesData.map(match => {
             const otherUserId = match.user_id_1 === user.id ? match.user_id_2 : match.user_id_1;
             const profile = matchedProfiles.find(p => p.id === otherUserId);
             
             return {
-              id: otherUserId, // Use the user ID, not the match ID
+              id: otherUserId,
               name: profile?.name || 'Anonymous',
               age: profile?.age || 0,
               compatibility: match.compatibility_score || 0,
               location: profile?.where_he_live || 'Unknown'
             };
           });
-          setMatches(formattedMatches);
         }
       }
+
+      // Add demo matches for preview
+      const demoMatches: Match[] = [
+        { id: 'demo-1', name: 'Sarah', age: 26, compatibility: 92, location: 'Tunis' },
+        { id: 'demo-2', name: 'Amira', age: 24, compatibility: 88, location: 'Sousse' },
+        { id: 'demo-3', name: 'Leila', age: 28, compatibility: 85, location: 'Sfax' },
+      ];
+
+      setMatches([...formattedMatches, ...demoMatches]);
 
       // Fetch random quote
       await loadRandomQuote();
