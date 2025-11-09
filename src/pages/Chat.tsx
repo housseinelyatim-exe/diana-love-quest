@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Send, LayoutDashboard, Sparkles } from "lucide-react";
+import { Send, ArrowLeft, Sparkles } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
 
@@ -255,10 +255,10 @@ const Chat = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate(-1)}
           className="text-white hover:bg-white/10 -ml-2"
         >
-          <LayoutDashboard className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5" />
         </Button>
         <Avatar 
           className="h-10 w-10 cursor-pointer"
