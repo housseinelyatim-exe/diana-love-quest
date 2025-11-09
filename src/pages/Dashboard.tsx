@@ -273,50 +273,42 @@ const Dashboard = () => {
                 <CardDescription>People who might be perfect for you</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {/* Real matches */}
-                  {matches.map((match) => (
-                    <div
-                      key={match.id}
-                      onClick={() => navigate(`/match/${match.id}`)}
-                      className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                    >
-                      <Avatar className="h-12 w-12 border border-border">
-                        <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
-                          {match.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-medium text-card-foreground">
-                            {match.name}, {match.age}
-                          </h4>
-                          <Badge variant="secondary" className="text-xs">
-                            {match.compatibility}%
-                          </Badge>
+                {matches.length > 0 ? (
+                  <div className="space-y-3">
+                    {matches.map((match) => (
+                      <div
+                        key={match.id}
+                        onClick={() => navigate(`/match/${match.id}`)}
+                        className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                      >
+                        <Avatar className="h-12 w-12 border border-border">
+                          <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
+                            {match.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-medium text-card-foreground">
+                              {match.name}, {match.age}
+                            </h4>
+                            <Badge variant="secondary" className="text-xs">
+                              {match.compatibility}%
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{match.location}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">{match.location}</p>
+                        <MessageSquare className="h-5 w-5 text-primary" />
                       </div>
-                      <MessageSquare className="h-5 w-5 text-primary" />
-                    </div>
-                  ))}
-                  
-                  {/* Blurred placeholder matches */}
-                  {profileCompletion < 100 && (
-                    <>
-                      <div className="flex items-center gap-2 py-2">
-                        <div className="h-px flex-1 bg-border"></div>
-                        <span className="text-xs text-muted-foreground px-2">
-                          {matches.length === 0 ? '5' : '3'} more potential matches nearby
-                        </span>
-                        <div className="h-px flex-1 bg-border"></div>
+                    ))}
+                    {profileCompletion < 100 && (
+                      <div className="mt-4">
+                        <BlurredMatchCard count={8} />
                       </div>
-                      {Array.from({ length: matches.length === 0 ? 5 : 3 }).map((_, i) => (
-                        <BlurredMatchCard key={`blurred-${i}`} index={i} />
-                      ))}
-                    </>
-                  )}
-                </div>
+                    )}
+                  </div>
+                ) : (
+                  <BlurredMatchCard count={12} />
+                )}
               </CardContent>
             </Card>
           </div>

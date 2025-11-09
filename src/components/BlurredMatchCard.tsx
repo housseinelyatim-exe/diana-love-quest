@@ -1,41 +1,30 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Heart, Lock } from "lucide-react";
+import { Users, Heart } from "lucide-react";
 
 interface BlurredMatchCardProps {
-  index: number;
+  count: number;
 }
 
-export const BlurredMatchCard = ({ index }: BlurredMatchCardProps) => {
+export const BlurredMatchCard = ({ count }: BlurredMatchCardProps) => {
   return (
-    <div className="relative overflow-hidden p-3 bg-muted/30 rounded-lg">
-      {/* Blur overlay */}
-      <div className="absolute inset-0 backdrop-blur-sm bg-background/40 z-10 flex items-center justify-center">
-        <div className="text-center">
-          <Lock className="h-5 w-5 text-muted-foreground mx-auto mb-1" />
-          <p className="text-xs text-muted-foreground font-medium">Complete Profile to Unlock</p>
+    <div className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border border-primary/20 text-center">
+      <div className="flex justify-center mb-3">
+        <div className="relative">
+          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <Users className="h-8 w-8 text-primary" />
+          </div>
+          <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+            <Heart className="h-3 w-3 text-primary-foreground fill-current" />
+          </div>
         </div>
       </div>
-      
-      {/* Blurred content */}
-      <div className="flex items-center gap-3 opacity-50">
-        <Avatar className="h-12 w-12 border border-border">
-          <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
-            ?
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-1">
-            <h4 className="font-medium text-card-foreground">
-              ████████, {20 + (index % 15)}
-            </h4>
-            <Badge variant="secondary" className="text-xs">
-              {75 + (index % 20)}%
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">██████████</p>
-        </div>
-        <Heart className="h-5 w-5 text-primary" />
+      <h3 className="font-semibold text-lg text-card-foreground mb-1">
+        {count} Potential Matches
+      </h3>
+      <p className="text-sm text-muted-foreground mb-4">
+        Waiting nearby to connect with you
+      </p>
+      <div className="text-xs text-primary font-medium">
+        Complete your profile to see them
       </div>
     </div>
   );
