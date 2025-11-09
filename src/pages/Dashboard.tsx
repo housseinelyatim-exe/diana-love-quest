@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +26,7 @@ interface Match {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [userName, setUserName] = useState("");
@@ -44,10 +45,10 @@ const Dashboard = () => {
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Reset to matches tab whenever we navigate to dashboard
   useEffect(() => {
-    // Ensure we always start on the matches tab
     setActiveTab("matches");
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     checkAuth();
@@ -289,7 +290,7 @@ const Dashboard = () => {
       </div>
 
       {/* Tabs Container */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+      <Tabs key="dashboard-tabs" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col" defaultValue="matches">
         {/* Chats Tab */}
         <TabsContent value="chats" className="flex-1 m-0 pb-20">
           <div className="p-4 space-y-3">
