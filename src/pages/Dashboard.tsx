@@ -585,6 +585,47 @@ const Dashboard = () => {
         {/* Discover/Info Tab */}
         <TabsContent value="discover" className="flex-1 m-0 pb-20">
           <div className="p-4 space-y-4">
+            {profileCompletion < 50 ? (
+              <Card className="bg-card border-border">
+                <CardContent className="py-12">
+                  <div className="relative">
+                    <div className="absolute inset-0 backdrop-blur-md bg-background/30 rounded-lg flex items-center justify-center z-10">
+                      <div className="text-center space-y-3 p-6">
+                        <div className="text-4xl mb-2">🔒</div>
+                        <h3 className="text-lg font-semibold text-card-foreground">Complete Your Profile</h3>
+                        <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                          Unlock the Discover section by completing at least 50% of your profile
+                        </p>
+                        <div className="pt-2">
+                          <Progress value={profileCompletion} className="h-2" />
+                          <p className="text-xs text-muted-foreground mt-2">{profileCompletion}% Complete</p>
+                        </div>
+                        <Button
+                          onClick={() => navigate("/chat")}
+                          className="mt-4"
+                        >
+                          Complete Profile
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="blur-sm pointer-events-none select-none opacity-40">
+                      <Card className="mb-4">
+                        <CardContent className="p-6">
+                          <div className="h-24 bg-muted rounded animate-pulse" />
+                        </CardContent>
+                      </Card>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Card><CardContent className="p-4"><div className="h-20 bg-muted rounded animate-pulse" /></CardContent></Card>
+                        <Card><CardContent className="p-4"><div className="h-20 bg-muted rounded animate-pulse" /></CardContent></Card>
+                        <Card><CardContent className="p-4"><div className="h-20 bg-muted rounded animate-pulse" /></CardContent></Card>
+                        <Card><CardContent className="p-4"><div className="h-20 bg-muted rounded animate-pulse" /></CardContent></Card>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
             {/* Daily Quote */}
             {showQuote && dailyQuote && (
               <Card className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border-primary/20 animate-fade-in">
@@ -808,6 +849,8 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
+              </>
+            )}
           </div>
         </TabsContent>
 
