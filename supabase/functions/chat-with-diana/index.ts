@@ -355,6 +355,23 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
     if (!replyText) {
       console.log('❌ Cache miss or initial greeting. Calling AI...');
       
+      // Smart model selection based on context
+      const isInitialGreeting = !message || message.trim().length === 0;
+      const isEmotionalContext = message?.toLowerCase().includes('died') || 
+                                  message?.toLowerCase().includes('death') ||
+                                  message?.toLowerCase().includes('loss') ||
+                                  message?.toLowerCase().includes('abuse') ||
+                                  message?.toLowerCase().includes('trauma');
+      const isComplexQuestion = message?.length > 200 || 
+                                 message?.split('?').length > 2;
+      const isLowProfileCompletion = calculateProfileCompletion(profile) < 20;
+      
+      // Use Pro model for: initial greeting, emotional topics, complex questions, early stage
+      const usePowerfulModel = isInitialGreeting || isEmotionalContext || isComplexQuestion || isLowProfileCompletion;
+      const selectedModel = usePowerfulModel ? 'google/gemini-2.5-pro' : 'google/gemini-2.5-flash';
+      
+      console.log(`🤖 Selected model: ${selectedModel} (initial: ${isInitialGreeting}, emotional: ${isEmotionalContext}, complex: ${isComplexQuestion}, low completion: ${isLowProfileCompletion})`);
+      
       const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -362,7 +379,7 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
+          model: selectedModel,
           messages: [
             { role: 'system', content: systemPrompt },
             ...conversationHistory,
