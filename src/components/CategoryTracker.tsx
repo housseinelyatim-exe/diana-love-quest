@@ -33,6 +33,7 @@ export const CategoryTracker = ({ currentCategory, completedCategories }: Catego
                 className={`
                   relative flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold 
                   transition-all duration-300 ease-out transform
+                  animate-slide-in
                   ${
                     isCompleted
                       ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md scale-100"
@@ -43,7 +44,7 @@ export const CategoryTracker = ({ currentCategory, completedCategories }: Catego
                   hover:scale-105 hover:shadow-md
                 `}
                 style={{
-                  animationDelay: `${index * 50}ms`,
+                  animationDelay: `${index * 80}ms`,
                 }}
               >
                 {/* Icon */}
