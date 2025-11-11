@@ -335,20 +335,13 @@ const Chat = () => {
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="fixed top-[57px] left-0 right-0 z-10 bg-white px-4 py-2 border-b">
-        <div className="flex items-center justify-between text-xs mb-1">
-          <span className="text-muted-foreground">{t.chat.profileCompletion}</span>
-          <span className="font-semibold text-primary">{profileCompletion}%</span>
-        </div>
-        <Progress value={profileCompletion} className="h-1.5" />
-      </div>
-
-      {/* Category Tracker */}
-      <div className="fixed top-[114px] left-0 right-0 z-10">
+      {/* Merged Progress & Category Tracker */}
+      <div className="fixed top-[57px] left-0 right-0 z-10">
         <CategoryTracker 
           currentCategory={currentCategory}
           completedCategories={completedCategories}
+          profileCompletion={profileCompletion}
+          completionLabel={t.chat.profileCompletion}
         />
       </div>
 
@@ -356,7 +349,7 @@ const Chat = () => {
       <div className="flex-1 overflow-hidden">
         <div 
           ref={viewportRef}
-          className="h-full overflow-y-auto px-3 pt-4 mt-[165px]"
+          className="h-full overflow-y-auto px-3 pt-4 mt-[140px]"
         >
           <div className="space-y-3 max-w-full">
           {messages.map((message, index) => {

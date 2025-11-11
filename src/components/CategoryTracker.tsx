@@ -1,8 +1,11 @@
 import { Check, User, Heart, Briefcase, Sparkles, Target, Palette, Plane, Home, Shield } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface CategoryTrackerProps {
   currentCategory: string;
   completedCategories: string[];
+  profileCompletion: number;
+  completionLabel: string;
 }
 
 const categories = [
@@ -17,53 +20,70 @@ const categories = [
   { id: "values", label: "Values", icon: Shield },
 ];
 
-export const CategoryTracker = ({ currentCategory, completedCategories }: CategoryTrackerProps) => {
+export const CategoryTracker = ({ 
+  currentCategory, 
+  completedCategories, 
+  profileCompletion,
+  completionLabel 
+}: CategoryTrackerProps) => {
   return (
-    <div className="bg-gradient-to-r from-background via-background/98 to-background backdrop-blur-sm px-4 py-3 border-b shadow-sm">
-      <div className="overflow-x-auto scrollbar-hide">
-        <div className="flex gap-2.5 min-w-max">
-          {categories.map((category, index) => {
-            const isCompleted = completedCategories.includes(category.id);
-            const isCurrent = currentCategory === category.id;
-            const Icon = category.icon;
-            
-            return (
-              <div
-                key={category.id}
-                className={`
-                  relative flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold 
-                  transition-all duration-300 ease-out transform
-                  animate-slide-in
-                  ${
-                    isCompleted
-                      ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md scale-100"
-                      : isCurrent
-                      ? "bg-gradient-to-r from-accent to-accent/90 text-accent-foreground border-2 border-primary shadow-lg scale-105"
-                      : "bg-muted/50 text-muted-foreground scale-95 opacity-70"
-                  }
-                  hover:scale-105 hover:shadow-md
-                `}
-                style={{
-                  animationDelay: `${index * 80}ms`,
-                }}
-              >
-                {/* Icon */}
-                <div className={`
-                  flex items-center justify-center w-5 h-5 rounded-full transition-all
-                  ${isCompleted ? "bg-white/20" : isCurrent ? "bg-primary/20" : ""}
-                `}>
-                  {isCompleted ? (
-                    <Check className="h-3.5 w-3.5 animate-scale-in" />
-                  ) : (
-                    <Icon className="h-3.5 w-3.5" />
-                  )}
+    <div className="bg-gradient-to-r from-background via-background/98 to-background backdrop-blur-sm border-b shadow-sm">
+      {/* Progress Bar Section */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex items-center justify-between text-xs mb-2">
+          <span className="text-muted-foreground font-medium">{completionLabel}</span>
+          <span className="font-bold text-primary text-sm">{profileCompletion}%</span>
+        </div>
+        <Progress value={profileCompletion} className="h-2 shadow-sm" />
+      </div>
+      
+      {/* Category Pills Section */}
+      <div className="px-4 pb-3 pt-2">
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2.5 min-w-max">
+            {categories.map((category, index) => {
+              const isCompleted = completedCategories.includes(category.id);
+              const isCurrent = currentCategory === category.id;
+              const Icon = category.icon;
+              
+              return (
+                <div
+                  key={category.id}
+                  className={`
+                    relative flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold 
+                    transition-all duration-300 ease-out transform
+                    animate-slide-in
+                    ${
+                      isCompleted
+                        ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md scale-100"
+                        : isCurrent
+                        ? "bg-gradient-to-r from-accent to-accent/90 text-accent-foreground border-2 border-primary shadow-lg scale-105"
+                        : "bg-muted/50 text-muted-foreground scale-95 opacity-70"
+                    }
+                    hover:scale-105 hover:shadow-md
+                  `}
+                  style={{
+                    animationDelay: `${index * 80}ms`,
+                  }}
+                >
+                  {/* Icon */}
+                  <div className={`
+                    flex items-center justify-center w-5 h-5 rounded-full transition-all
+                    ${isCompleted ? "bg-white/20" : isCurrent ? "bg-primary/20" : ""}
+                  `}>
+                    {isCompleted ? (
+                      <Check className="h-3.5 w-3.5 animate-scale-in" />
+                    ) : (
+                      <Icon className="h-3.5 w-3.5" />
+                    )}
+                  </div>
+                  
+                  {/* Label */}
+                  <span className="whitespace-nowrap tracking-wide">{category.label}</span>
                 </div>
-                
-                {/* Label */}
-                <span className="whitespace-nowrap tracking-wide">{category.label}</span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
