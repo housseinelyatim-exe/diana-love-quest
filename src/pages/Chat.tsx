@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Send, ArrowLeft, Sparkles, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
+import { CategoryTracker } from "@/components/CategoryTracker";
 
 interface Message {
   role: "user" | "assistant";
@@ -28,6 +29,8 @@ const Chat = () => {
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState("basics");
+  const [completedCategories, setCompletedCategories] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -164,6 +167,12 @@ const Chat = () => {
         if (typeof data.completionPercentage === 'number') {
           setProfileCompletion(data.completionPercentage);
         }
+        if (data.currentCategory) {
+          setCurrentCategory(data.currentCategory);
+        }
+        if (data.completedCategories) {
+          setCompletedCategories(data.completedCategories);
+        }
       }
     } catch (e) {
       console.error('Init error:', e);
@@ -272,6 +281,13 @@ const Chat = () => {
       
       setMessages((prev) => [...prev, aiResponse]);
       setProfileCompletion(data.completionPercentage);
+      
+      if (data.currentCategory) {
+        setCurrentCategory(data.currentCategory);
+      }
+      if (data.completedCategories) {
+        setCompletedCategories(data.completedCategories);
+      }
 
       if (data.completionPercentage >= 50 && data.completionPercentage < 100 && !hasShown50Toast.current) {
         toast.success(t.chat.greatProgress);
@@ -328,11 +344,19 @@ const Chat = () => {
         <Progress value={profileCompletion} className="h-1.5" />
       </div>
 
+      {/* Category Tracker */}
+      <div className="fixed top-[114px] left-0 right-0 z-10">
+        <CategoryTracker 
+          currentCategory={currentCategory}
+          completedCategories={completedCategories}
+        />
+      </div>
+
       {/* Chat Messages */}
       <div className="flex-1 overflow-hidden">
         <div 
           ref={viewportRef}
-          className="h-full overflow-y-auto px-3 pt-4 mt-[114px]"
+          className="h-full overflow-y-auto px-3 pt-4 mt-[165px]"
         >
           <div className="space-y-3 max-w-full">
           {messages.map((message, index) => {

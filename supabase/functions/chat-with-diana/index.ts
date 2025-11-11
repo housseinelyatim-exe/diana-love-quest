@@ -561,12 +561,17 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
     // Calculate new completion percentage
     const newProfile = { ...profile, ...profileUpdates };
     const completionPercentage = calculateProfileCompletion(newProfile);
+    
+    // Determine current category and completed categories
+    const categoryStatus = determineCurrentCategory(newProfile);
 
     return new Response(
       JSON.stringify({
         reply: replyText,
         profileUpdates,
         completionPercentage,
+        currentCategory: categoryStatus.current,
+        completedCategories: categoryStatus.completed,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -879,6 +884,48 @@ function calculateProfileCompletion(profile: any): number {
   }).length;
   
   return Math.round((filledFields / allRequiredFields.length) * 100);
+}
+
+function determineCurrentCategory(profile: any): { current: string; completed: string[] } {
+  const categories = {
+    basics: ['name', 'age', 'gender', 'where_he_live'],
+    relationship: ['marital_status', 'have_children', 'want_children'],
+    career: ['education_lvl', 'employment_status', 'job'],
+    beliefs: ['religion', 'practice_lvl', 'smoking', 'drinking'],
+    goals: ['life_goal'],
+    activities: ['height', 'physical_activities', 'cultural_activities', 'creative_hobbies', 'gaming_hobbies'],
+    travel: ['travel_frequency', 'type_of_trips', 'travel_style', 'dietary_habits'],
+    living: ['have_pet', 'relocation_same_country', 'relocation_across_countries', 'work_life_balance'],
+    values: ['red_flags', 'role_in_relationship']
+  };
+
+  const completed: string[] = [];
+  let current = 'basics';
+
+  for (const [categoryId, fields] of Object.entries(categories)) {
+    const allFilled = fields.every(field => {
+      const value = profile?.[field];
+      if (value === null || value === undefined || value === '') return false;
+      if (Array.isArray(value)) return value.length > 0;
+      return true;
+    });
+
+    if (allFilled) {
+      completed.push(categoryId);
+    } else {
+      // First incomplete category is the current one
+      if (current === 'basics' || completed.includes(current)) {
+        current = categoryId;
+      }
+    }
+  }
+
+  // If all categories are complete, current should be the last one
+  if (completed.length === Object.keys(categories).length) {
+    current = 'values';
+  }
+
+  return { current, completed };
 }
 
 function extractNameFromMessage(msg: string): string | null {
