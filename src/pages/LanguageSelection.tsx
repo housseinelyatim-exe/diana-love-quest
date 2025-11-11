@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import heroImage from "@/assets/hero-romantic.jpg";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { Globe, Check } from "lucide-react";
+import { Globe, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
+import { FAQ } from "@/components/FAQ";
 
 const languages = [
   { 
@@ -41,6 +42,7 @@ const LanguageSelection = () => {
   const navigate = useNavigate();
   const { setLanguage, t, language } = useLanguage();
   const [hoveredLang, setHoveredLang] = useState<string | null>(null);
+  const [showFAQ, setShowFAQ] = useState(false);
 
   const handleLanguageSelect = (code: string) => {
     setLanguage(code as 'en' | 'fr' | 'ar' | 'tn');
@@ -143,6 +145,28 @@ const LanguageSelection = () => {
                   {language === 'tn' && "تنجم تبدل اللغة وقتلي تحب من الإعدادات"}
                 </p>
               </div>
+            </Card>
+
+            {/* FAQ Section */}
+            <Card className="mt-6 p-6 bg-card/90 backdrop-blur-sm border-border/50 shadow-lg">
+              <Button
+                variant="ghost"
+                onClick={() => setShowFAQ(!showFAQ)}
+                className="w-full flex items-center justify-between hover:bg-muted/50 p-4"
+              >
+                <span className="text-lg font-semibold">{t.faq.title}</span>
+                {showFAQ ? (
+                  <ChevronUp className="h-5 w-5 text-primary" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-primary" />
+                )}
+              </Button>
+              
+              {showFAQ && (
+                <div className="mt-4 animate-fade-in">
+                  <FAQ showHeader={false} variant="compact" />
+                </div>
+              )}
             </Card>
           </div>
         </div>

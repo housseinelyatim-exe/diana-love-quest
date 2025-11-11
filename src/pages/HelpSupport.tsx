@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, HelpCircle, MessageSquare, Mail, Shield, Heart } from "lucide-react";
+import { ArrowLeft, MessageSquare, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { FAQ } from "@/components/FAQ";
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, { message: "Name is required" }).max(100),
@@ -82,78 +82,7 @@ const HelpSupport = () => {
         </div>
 
         {/* FAQ Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <HelpCircle className="h-5 w-5 text-primary" />
-              Frequently Asked Questions
-            </CardTitle>
-            <CardDescription>Find answers to common questions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="text-left">
-                  <span className="flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-primary" />
-                    How does the matching algorithm work?
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Our AI-powered matching algorithm analyzes your profile, preferences, and values to find compatible matches. Diana learns from your interactions to suggest better matches over time.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-2">
-                <AccordionTrigger className="text-left">
-                  <span className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-primary" />
-                    Is my data safe and secure?
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Yes! We use industry-standard encryption and security measures to protect your data. Your profile is only visible to matches, and you have full control over your privacy settings.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3">
-                <AccordionTrigger className="text-left">
-                  How do I complete my profile?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Chat with Diana on the Chats tab! She'll guide you through completing your profile by asking relevant questions about your preferences, lifestyle, and what you're looking for in a partner.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4">
-                <AccordionTrigger className="text-left">
-                  What should I do if I encounter a problem?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  You can report issues through the contact form below, use the chat support, or email us directly. We typically respond within 24 hours.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-5">
-                <AccordionTrigger className="text-left">
-                  Can I pause or delete my account?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Yes! You can hide your profile in Privacy Settings to temporarily pause your account. To permanently delete your account, contact our support team through the form below.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-6">
-                <AccordionTrigger className="text-left">
-                  How do I report inappropriate behavior?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  If you encounter inappropriate behavior, please use the contact form below to report it immediately. Include as many details as possible, and we'll investigate promptly.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
+        <FAQ />
 
         {/* Contact Form */}
         <Card id="contact-form">
