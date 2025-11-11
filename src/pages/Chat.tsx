@@ -349,7 +349,7 @@ const Chat = () => {
       <div className="flex-1 overflow-hidden">
         <div 
           ref={viewportRef}
-          className="h-full overflow-y-auto px-3 pt-4 mt-[140px]"
+          className="h-full overflow-y-auto px-3 pt-4 mt-[180px]"
         >
           <div className="space-y-3 max-w-full">
           {messages.map((message, index) => {
