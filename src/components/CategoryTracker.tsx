@@ -37,7 +37,7 @@ export const CategoryTracker = ({ currentCategory, completedCategories }: Catego
                     isCompleted
                       ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md scale-100"
                       : isCurrent
-                      ? "bg-gradient-to-r from-accent to-accent/90 text-accent-foreground border-2 border-primary shadow-lg scale-105 animate-pulse"
+                      ? "bg-gradient-to-r from-accent to-accent/90 text-accent-foreground border-2 border-primary shadow-lg scale-105"
                       : "bg-muted/50 text-muted-foreground scale-95 opacity-70"
                   }
                   hover:scale-105 hover:shadow-md
@@ -54,17 +54,12 @@ export const CategoryTracker = ({ currentCategory, completedCategories }: Catego
                   {isCompleted ? (
                     <Check className="h-3.5 w-3.5 animate-scale-in" />
                   ) : (
-                    <Icon className={`h-3.5 w-3.5 ${isCurrent ? "animate-bounce" : ""}`} />
+                    <Icon className="h-3.5 w-3.5" />
                   )}
                 </div>
                 
                 {/* Label */}
                 <span className="whitespace-nowrap tracking-wide">{category.label}</span>
-                
-                {/* Glow effect for current category */}
-                {isCurrent && (
-                  <div className="absolute inset-0 rounded-full bg-primary/20 blur-md -z-10 animate-pulse" />
-                )}
               </div>
             );
           })}
