@@ -358,7 +358,7 @@ const Chat = () => {
               : [];
 
             return (
-              <div key={index} className="space-y-2">
+              <div key={index} className="space-y-2 animate-fade-in">
                 <div
                   className={`flex gap-2 ${
                     message.role === "user" ? "justify-end" : "justify-start"
