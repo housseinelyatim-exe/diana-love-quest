@@ -130,10 +130,10 @@ When you find someone interesting, start chatting with them directly in the app 
 
 Good to Know
 
-✓ Answer in your own words - there are no wrong answers
-✓ Skip any question you're not ready to answer
-✓ Come back anytime to continue our chat
-✓ The more you share, the better matches I can find
+• Answer in your own words - there are no wrong answers
+• Skip any question you're not ready to answer
+• Come back anytime to continue our chat
+• The more you share, the better matches I can find
 
 ━━━━━━━━━━━━━━━━
 
