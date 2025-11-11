@@ -259,7 +259,9 @@ ${JSON.stringify(profile, null, 2)}
 - smoking/drinking/have_children/want_children: Yes, No, Prefer not to say
 - travel_frequency: Never, Rarely, Sometimes, Often, Very Often
 
-**PRIORITY QUESTIONS** (ask missing fields in this order, but be chill about it):
+**STRICT QUESTION ORDER - CRITICAL:**
+You MUST ask questions in this EXACT order. Find the FIRST missing field in this list that you haven't asked about yet, and ask ONLY that question:
+
 1. name
 2. age
 3. gender
@@ -290,6 +292,13 @@ ${JSON.stringify(profile, null, 2)}
 28. work_life_balance
 29. red_flags
 30. role_in_relationship
+
+**HOW TO DETERMINE NEXT QUESTION:**
+1. Look at the profile data above - see which fields are null or missing
+2. Check the "already asked topics" list - skip any topics you've asked before
+3. Go through the numbered list above from top to bottom
+4. Ask about the FIRST field that is: (a) missing/null AND (b) not in the already asked list
+5. NEVER skip ahead or jump around - follow the exact sequence
 
 **CONDITIONAL LOGIC - VERY IMPORTANT:**
 - NEVER ask about "job" if employment_status is "unemployed" or "retired"
