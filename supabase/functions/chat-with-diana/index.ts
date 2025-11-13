@@ -80,6 +80,136 @@ serve(async (req) => {
 
     console.log('📋 Already asked topics:', Array.from(askedTopics));
 
+    // ECONOMY OPTIMIZATION: Cache initial greetings to avoid AI calls
+    const isInitialGreeting = conversationHistory.length === 0;
+    
+    if (isInitialGreeting) {
+      console.log('💰 Using cached greeting - no AI call needed');
+      
+      const greetings: Record<string, string> = {
+        en: `Hello! I'm Diana, your personal AI matchmaking assistant. 👋
+
+Welcome to Soulmate! I'm here to help you find meaningful connections through a personalized profile-building experience.
+
+What We'll Do Together
+
+I'll help you build your profile through a relaxed, friendly conversation. No forms to fill out - just answer my questions naturally, like we're having a chat over coffee. You can see your progress at the top of the screen as we go.
+
+How It Works
+
+Profile Building (0-50%)
+Share about yourself: your interests, lifestyle, values, and what you're looking for in a partner. Take your time - you can skip any question you're not comfortable with.
+
+Smart Matching (50%+)
+Once you reach 50% completion, you'll unlock the Discover section where you can see potential matches based on compatibility.
+
+Connect and Chat (100%)
+When you find someone interesting, start chatting with them directly in the app to get to know each other better.
+
+Good to Know
+
+- Answer in your own words - there are no wrong answers
+- Skip any question you're not ready to answer
+- Come back anytime to continue our chat
+- The more you share, the better matches I can find
+
+Ready to begin? Let's start with something simple - what's your name?`,
+        fr: `Bonjour ! Je suis Diana, votre assistante IA personnelle de matchmaking. 👋
+
+Bienvenue sur Soulmate ! Je suis là pour vous aider à trouver des connexions significatives grâce à une expérience de création de profil personnalisée.
+
+Ce que nous ferons ensemble
+
+Je vais vous aider à créer votre profil à travers une conversation détendue et amicale. Pas de formulaires à remplir - répondez simplement à mes questions naturellement, comme si nous prenions un café ensemble. Vous pouvez suivre votre progression en haut de l'écran.
+
+Comment ça marche
+
+Création du profil (0-50%)
+Partagez qui vous êtes : vos intérêts, votre style de vie, vos valeurs et ce que vous recherchez chez un partenaire. Prenez votre temps - vous pouvez passer toute question qui vous met mal à l'aise.
+
+Matching intelligent (50%+)
+Une fois que vous atteignez 50% de complétion, vous déverrouillez la section Découvrir où vous pouvez voir des profils compatibles.
+
+Connecter et discuter (100%)
+Quand vous trouvez quelqu'un d'intéressant, commencez à discuter directement dans l'application pour mieux vous connaître.
+
+Bon à savoir
+
+- Répondez avec vos propres mots - il n'y a pas de mauvaises réponses
+- Passez toute question que vous n'êtes pas prêt à répondre
+- Revenez quand vous voulez pour continuer notre conversation
+- Plus vous partagez, meilleurs seront les profils que je peux trouver
+
+Prêt à commencer ? Commençons par quelque chose de simple - quel est votre nom ?`,
+        ar: `مرحباً! أنا ديانا، مساعدتك الشخصية في التوفيق بين الشركاء. 👋
+
+أهلاً بك في Soulmate! أنا هنا لمساعدتك في إيجاد علاقات ذات معنى من خلال تجربة بناء ملف شخصي مخصص.
+
+ما سنفعله معاً
+
+سأساعدك في بناء ملفك الشخصي من خلال محادثة ودية ومريحة. لا حاجة لملء النماذج - فقط أجب على أسئلتي بشكل طبيعي، كما لو كنا نتحدث أمام فنجان قهوة. يمكنك رؤية تقدمك في أعلى الشاشة.
+
+كيف يعمل
+
+بناء الملف الشخصي (0-50%)
+شارك عن نفسك: اهتماماتك، نمط حياتك، قيمك، وما تبحث عنه في شريك. خذ وقتك - يمكنك تخطي أي سؤال لا تشعر بالراحة للإجابة عليه.
+
+التوفيق الذكي (50%+)
+بمجرد وصولك إلى 50% من الاكتمال، ستفتح قسم الاكتشاف حيث يمكنك رؤية الملفات المتوافقة.
+
+الاتصال والدردشة (100%)
+عندما تجد شخصاً مثيراً للاهتمام، ابدأ في الدردشة معه مباشرة في التطبيق لتتعرف عليه بشكل أفضل.
+
+من الجيد أن تعرف
+
+- أجب بكلماتك الخاصة - لا توجد إجابات خاطئة
+- تخطى أي سؤال لست مستعداً للإجابة عليه
+- عد في أي وقت لمواصلة محادثتنا
+- كلما شاركت أكثر، كانت التوافقات أفضل
+
+هل أنت مستعد للبدء؟ لنبدأ بشيء بسيط - ما اسمك؟`,
+        tn: `مرحبا! أنا ديانا، مساعدتك الشخصية في التعارف. 👋
+
+أهلا بيك في Soulmate! أنا هنا باش نعاونك تلقى علاقات حقيقية من خلال بناء بروفايل شخصي.
+
+شنوا باش نعملو مع بعضنا
+
+باش نعاونك تبني البروفايل متاعك من خلال محادثة مريحة وطبيعية. ما فماش فورميلار تعمرها - جاوب على أسئلتي بطريقة طبيعية، كيما لو احنا نحكيو قدام قهوة. تنجم تشوف التقدم متاعك فوق في الشاشة.
+
+كيفاش يخدم
+
+بناء البروفايل (0-50%)
+حكيلي على روحك: اهتماماتك، نمط حياتك، قيمك، وشنوا تحب تلقى في شريك حياتك. خذ وقتك - تنجم تفوت أي سؤال ما تحبش تجاوب عليه.
+
+التوفيق الذكي (50%+)
+كي توصل لـ50%، باش تفتح قسم الاكتشاف وين تنجم تشوف بروفايلات متوافقة معاك.
+
+الاتصال والشات (100%)
+كي تلقى شخص يعجبك، ابدأ في الشات معاه مباشرة في الأبليكاسيون باش تتعرف عليه أكثر.
+
+حاجات لازم تعرفها
+
+- جاوب بكلماتك - ما فماش أجوبة غالطة
+- فوت أي سؤال ما تحبش تجاوب عليه
+- ارجع وقتلي تحب باش نكملو الحديث
+- كل ما تحكي أكثر، كل ما نلقالك توافقات أحسن
+
+مستعد نبداو؟ خلينا نبداو بحاجة بسيطة - شنوا اسمك؟`
+      };
+      
+      const userLanguage = profile?.language || 'en';
+      const greeting = greetings[userLanguage] || greetings.en;
+      
+      return new Response(
+        JSON.stringify({
+          reply: greeting,
+          profileUpdates: {},
+          isComplete: false
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Language mapping
     const languageNames: Record<string, string> = {
       en: 'English',
@@ -367,24 +497,46 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
 
     // Call Lovable AI only if not cached
     if (!replyText) {
-      console.log('❌ Cache miss or initial greeting. Calling AI...');
+      console.log('❌ Cache miss. Calling AI...');
       
       // Smart model selection based on context
-      const isInitialGreeting = !message || message.trim().length === 0;
       const isEmotionalContext = message?.toLowerCase().includes('died') || 
                                   message?.toLowerCase().includes('death') ||
                                   message?.toLowerCase().includes('loss') ||
                                   message?.toLowerCase().includes('abuse') ||
                                   message?.toLowerCase().includes('trauma');
-      const isComplexQuestion = message?.length > 200 || 
-                                 message?.split('?').length > 2;
-      const isLowProfileCompletion = calculateProfileCompletion(profile) < 20;
+      // ECONOMY MODE: Use cheapest models possible
+      // Only use Pro for truly critical emotional moments
+      // Use Flash for moderate complexity
+      // Use Flash Lite (cheapest) for everything else
       
-      // Use Pro model for: initial greeting, emotional topics, complex questions, early stage
-      const usePowerfulModel = isInitialGreeting || isEmotionalContext || isComplexQuestion || isLowProfileCompletion;
-      const selectedModel = usePowerfulModel ? 'google/gemini-2.5-pro' : 'google/gemini-2.5-flash';
+      // Pro only for deep emotional topics that need empathy
+      const needsProModel = isEmotionalContext && (
+        message?.toLowerCase().includes('died') ||
+        message?.toLowerCase().includes('death') ||
+        message?.toLowerCase().includes('abuse') ||
+        message?.toLowerCase().includes('lost my')
+      );
       
-      console.log(`🤖 Selected model: ${selectedModel} (initial: ${isInitialGreeting}, emotional: ${isEmotionalContext}, complex: ${isComplexQuestion}, low completion: ${isLowProfileCompletion})`);
+      // Flash for moderate complexity (longer messages)
+      const needsFlashModel = message?.length > 150;
+      
+      // Default to Flash Lite (cheapest)
+      let selectedModel = 'google/gemini-2.5-flash-lite';
+      if (needsProModel) {
+        selectedModel = 'google/gemini-2.5-pro';
+      } else if (needsFlashModel) {
+        selectedModel = 'google/gemini-2.5-flash';
+      }
+      
+      console.log(`🤖 Economy model: ${selectedModel} (pro: ${needsProModel}, flash: ${needsFlashModel}, msg length: ${message?.length})`);
+      
+      // ECONOMY OPTIMIZATION: Limit conversation history to reduce token usage
+      // Keep only the last 12 messages for context (6 exchanges)
+      // This is enough for the AI to understand context while minimizing costs
+      const recentHistory = conversationHistory.slice(-12);
+      
+      console.log(`📊 Token optimization: Using ${recentHistory.length} of ${conversationHistory.length} messages`);
       
       const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -396,7 +548,7 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
           model: selectedModel,
           messages: [
             { role: 'system', content: systemPrompt },
-            ...conversationHistory,
+            ...recentHistory,
             { role: 'user', content: message }
           ],
           tools: [
