@@ -6,6 +6,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Calculate similarity between two strings (0 to 1) for fuzzy caching
+function calculateSimilarity(str1: string, str2: string): number {
+  if (str1 === str2) return 1;
+  if (!str1 || !str2) return 0;
+  
+  const s1 = str1.toLowerCase().trim();
+  const s2 = str2.toLowerCase().trim();
+  
+  const bigrams1 = new Set<string>();
+  const bigrams2 = new Set<string>();
+  
+  for (let i = 0; i < s1.length - 1; i++) {
+    bigrams1.add(s1.substring(i, i + 2));
+  }
+  for (let i = 0; i < s2.length - 1; i++) {
+    bigrams2.add(s2.substring(i, i + 2));
+  }
+  
+  const intersection = new Set([...bigrams1].filter(x => bigrams2.has(x)));
+  const union = new Set([...bigrams1, ...bigrams2]);
+  
+  const jaccardSim = union.size > 0 ? intersection.size / union.size : 0;
+  
+  const lenDiff = Math.abs(s1.length - s2.length);
+  const maxLen = Math.max(s1.length, s2.length);
+  const lenSim = maxLen > 0 ? 1 - (lenDiff / maxLen) : 1;
+  
+  return (jaccardSim * 0.7) + (lenSim * 0.3);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -455,14 +485,58 @@ These topics are FORBIDDEN - skip them completely even if data is missing.
 
 Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally.`;
 
-    // ===== RESPONSE CACHING LOGIC =====
+    // ===== ENHANCED RESPONSE CACHING LOGIC =====
     let replyText = '';
     let profileUpdates: Record<string, any> = {};
     
-    // Only cache if user sent a message (not initial greeting)
-    if (message && message.trim().length > 0) {
-      // Normalize and hash the message for cache lookup
+    // Pattern-based quick responses for common answers (NO AI CALL)
+    const quickResponsePatterns: Record<string, (lang: string, profile: any) => { reply: string, shouldAskNext: boolean }> = {
+      // Simple yes/no patterns
+      'yes|yeah|yep|sure|of course|definitely|absolutely|yup': (lang, p) => ({
+        reply: lang === 'fr' ? 'Merci !' : lang === 'ar' ? 'شكراً!' : lang === 'tn' ? 'بارك الله فيك!' : 'Thanks!',
+        shouldAskNext: true
+      }),
+      'no|nope|nah|not really|i dont|i don\'t': (lang, p) => ({
+        reply: lang === 'fr' ? 'D\'accord, merci.' : lang === 'ar' ? 'حسناً، شكراً.' : lang === 'tn' ? 'ماشي، بارك الله فيك.' : 'Got it, thanks.',
+        shouldAskNext: true
+      }),
+      'maybe|perhaps|i guess|not sure|dunno|don\'t know': (lang, p) => ({
+        reply: lang === 'fr' ? 'Pas de problème.' : lang === 'ar' ? 'لا مشكلة.' : lang === 'tn' ? 'ماشي.' : 'No worries.',
+        shouldAskNext: true
+      }),
+      // Skip/pass patterns
+      'skip|pass|next|later|prefer not to say': (lang, p) => ({
+        reply: lang === 'fr' ? 'Aucun problème !' : lang === 'ar' ? 'لا مشكلة!' : lang === 'tn' ? 'ماشي!' : 'No problem!',
+        shouldAskNext: true
+      }),
+    };
+
+    // Check for pattern-based quick responses (ZERO AI COST)
+    if (message && message.trim().length > 0 && message.trim().length < 50) {
+      const normalizedMsg = message.toLowerCase().trim();
+      
+      for (const [pattern, responseFn] of Object.entries(quickResponsePatterns)) {
+        const regex = new RegExp(`^(${pattern})$`, 'i');
+        if (regex.test(normalizedMsg)) {
+          console.log('⚡ Quick pattern match - no AI call needed!');
+          const { reply, shouldAskNext } = responseFn(userLanguage, profile);
+          
+          if (shouldAskNext) {
+            const nextQ = getNextQuestion(profile, askedTopics, userLanguage);
+            replyText = `${reply} ${nextQ}`;
+          } else {
+            replyText = reply;
+          }
+          break;
+        }
+      }
+    }
+    
+    // Semantic similarity caching - check for similar questions (REDUCED AI COST)
+    if (!replyText && message && message.trim().length > 0) {
       const normalizedMessage = message.toLowerCase().trim();
+      
+      // Create multiple hash variants for fuzzy matching
       const msgHash = await crypto.subtle.digest(
         'SHA-256',
         new TextEncoder().encode(normalizedMessage)
@@ -471,27 +545,56 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
 
-      console.log('🔍 Checking cache for message hash:', questionHash);
+      console.log('🔍 Checking exact cache match for hash:', questionHash);
 
-      // Check cache
-      const { data: cached } = await supabase
+      // First try exact match
+      const { data: exactCache } = await supabase
         .from('ai_response_cache')
         .select('*')
         .eq('question_hash', questionHash)
         .single();
 
-      if (cached) {
-        console.log('✅ Cache hit! Using cached response');
-        replyText = cached.response;
+      if (exactCache) {
+        console.log('✅ Exact cache hit!');
+        replyText = exactCache.response;
         
-        // Update cache hit count and last used timestamp
         await supabase
           .from('ai_response_cache')
           .update({ 
-            hit_count: cached.hit_count + 1,
+            hit_count: exactCache.hit_count + 1,
             last_used_at: new Date().toISOString()
           })
-          .eq('id', cached.id);
+          .eq('id', exactCache.id);
+      } else {
+        // Try fuzzy match for very similar questions (85%+ similarity)
+        console.log('🔍 Trying fuzzy semantic match...');
+        const { data: similarCache } = await supabase
+          .from('ai_response_cache')
+          .select('*')
+          .limit(100)
+          .order('last_used_at', { ascending: false });
+
+        if (similarCache && similarCache.length > 0) {
+          // Simple similarity check: character overlap
+          for (const cached of similarCache) {
+            const cachedNorm = cached.question.toLowerCase().trim();
+            const similarity = calculateSimilarity(normalizedMessage, cachedNorm);
+            
+            if (similarity > 0.85) {
+              console.log(`✅ Fuzzy cache hit! Similarity: ${(similarity * 100).toFixed(1)}%`);
+              replyText = cached.response;
+              
+              await supabase
+                .from('ai_response_cache')
+                .update({ 
+                  hit_count: cached.hit_count + 1,
+                  last_used_at: new Date().toISOString()
+                })
+                .eq('id', cached.id);
+              break;
+            }
+          }
+        }
       }
     }
 
