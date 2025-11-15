@@ -140,9 +140,11 @@ RULES:
 3. Extract profile data when provided
 4. Do NOT ask for confirmation when answers are clear and straightforward
 5. Only ask for clarification when answers are ambiguous, unclear, or mysterious
-6. When data is successfully extracted, move directly to the next question
-7. Language: ${lang}
-8. Next question: ${getNextQuestion(profile, lang)}`;
+6. When user says they don't have a job (e.g., "no job", "I don't work", "unemployed"), set employment_status="unemployed" and set work_life_balance="not_applicable".
+7. If a field is not applicable (like work_life_balance for unemployed/student/retired), skip it and move to the next relevant question.
+8. Never repeat the same question consecutively.
+9. Language: ${lang}
+10. Next question: ${getNextQuestion(profile, lang)}`;
 
     // Call AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -500,16 +502,25 @@ function getNextQuestion(p: any, lang: string): string {
   const askedQuestions = p?.asked_questions || [];
   
   // Find next unanswered from predefined list
+  const shouldAsk = (field: string) => {
+    if (field === 'work_life_balance') {
+      const status = p?.employment_status as string | undefined;
+      // Skip if not working
+      if (!status || ['unemployed', 'student', 'retired'].includes(status)) return false;
+    }
+    return true;
+  };
+
   for (let i = currentIndex; i < QUESTION_LIST.length; i++) {
     const { field } = QUESTION_LIST[i];
-    if (!p?.[field] && !askedQuestions.includes(field)) {
+    if (!p?.[field] && !askedQuestions.includes(field) && shouldAsk(field)) {
       return t(field);
     }
   }
   
   // Check for any missed
   for (const { field } of QUESTION_LIST) {
-    if (!p?.[field] && !askedQuestions.includes(field)) {
+    if (!p?.[field] && !askedQuestions.includes(field) && shouldAsk(field)) {
       return t(field);
     }
   }
