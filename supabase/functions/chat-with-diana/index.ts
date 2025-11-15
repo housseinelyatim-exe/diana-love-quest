@@ -205,8 +205,7 @@ RULES:
 
     const aiData = await aiResponse.json();
     const aiMessage = aiData.choices?.[0]?.message;
-    let responseText = aiMessage?.content || 'Could you rephrase that?';
-
+    
     // Extract and update profile
     let extractedData: any = null;
     if (aiMessage?.tool_calls?.length > 0) {
@@ -246,18 +245,43 @@ RULES:
       console.log('✅ Profile updated with progress');
     }
 
-    // Store messages
-    await supabase.from('messages').insert([
-      { sender_id: userId, content: message, is_from_diana: false },
-      { sender_id: userId, content: responseText, is_from_diana: true }
-    ]);
-
-    // Get updated profile
+    // Get updated profile for next question
     const { data: updatedProfile } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
+
+    // Generate response text
+    let responseText = aiMessage?.content;
+    
+    // If extraction succeeded but no text response, generate next question
+    if (!responseText && extractedData && Object.keys(extractedData).length > 0) {
+      const nextQuestion = getNextQuestion(updatedProfile, lang);
+      if (nextQuestion) {
+        responseText = nextQuestion;
+      } else {
+        // Profile complete
+        const completionMessages: Record<string, string> = {
+          en: "Perfect! Feel free to tell me more about what matters to you, or ask me anything about finding your match.",
+          fr: "Parfait ! N'hésitez pas à me dire plus sur ce qui compte pour vous, ou posez-moi des questions sur la recherche de votre match.",
+          ar: "ممتاز! لا تتردد في إخباري المزيد عما يهمك، أو اسألني أي شيء عن إيجاد الشريك المناسب.",
+          tn: "برشا مليح! ما تترددش تقولي أكثر على شنوا يهمك، ولا اسألني على أي حاجة على لقاء الماتش متاعك."
+        };
+        responseText = completionMessages[lang] || completionMessages.en;
+      }
+    }
+    
+    // Final fallback
+    if (!responseText) {
+      responseText = 'Could you rephrase that?';
+    }
+
+    // Store messages
+    await supabase.from('messages').insert([
+      { sender_id: userId, content: message, is_from_diana: false },
+      { receiver_id: userId, content: responseText, is_from_diana: true }
+    ]);
 
     const categoryStatus = getCategoryProgress(updatedProfile);
     
