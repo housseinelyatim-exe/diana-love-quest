@@ -230,14 +230,18 @@ RULES:
     // Normalize extracted data for typos and synonyms
     extractedData = normalizeExtractedData(extractedData, message);
 
+    // Track the current question being asked to prevent repetition
+    const currentIndex = profile?.current_question_index || 0;
+    const currentQuestionField = QUESTION_LIST[currentIndex]?.field;
+    const askedQuestions = profile?.asked_questions || [];
+
     // Update with progress tracking
     if (extractedData && Object.keys(extractedData).length > 0) {
       const answeredFields = Object.keys(extractedData);
-      const askedQuestions = profile?.asked_questions || [];
       const updatedAsked = [...new Set([...askedQuestions, ...answeredFields])];
       
       const nextIdx = QUESTION_LIST.findIndex((q, idx) => 
-        idx >= (profile?.current_question_index || 0) &&
+        idx > currentIndex &&
         !profile?.[q.field] &&
         !updatedAsked.includes(q.field)
       );
@@ -252,6 +256,25 @@ RULES:
         .eq('id', userId);
       
       console.log('✅ Profile updated with progress');
+    } else if (currentQuestionField && !askedQuestions.includes(currentQuestionField)) {
+      // No data extracted but mark current question as asked to avoid repetition
+      const updatedAsked = [...new Set([...askedQuestions, currentQuestionField])];
+      
+      const nextIdx = QUESTION_LIST.findIndex((q, idx) => 
+        idx > currentIndex &&
+        !profile?.[q.field] &&
+        !updatedAsked.includes(q.field)
+      );
+      
+      await supabase
+        .from('profiles')
+        .update({
+          asked_questions: updatedAsked,
+          current_question_index: nextIdx >= 0 ? nextIdx : currentIndex + 1
+        })
+        .eq('id', userId);
+      
+      console.log('⏭️ Marked question as asked, moving to next');
     }
 
     // Get updated profile for next question
