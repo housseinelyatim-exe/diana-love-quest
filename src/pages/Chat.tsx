@@ -11,7 +11,6 @@ import { toast } from "sonner";
 import { Send, ArrowLeft, Sparkles, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
-import { CategoryTracker } from "@/components/CategoryTracker";
 
 interface Message {
   role: "user" | "assistant";
@@ -342,22 +341,11 @@ const Chat = () => {
         </div>
       </div>
 
-      {/* Merged Progress & Category Tracker */}
-      <div className="fixed top-[57px] left-0 right-0 z-10">
-        <CategoryTracker 
-          currentCategory={currentCategory}
-          completedCategories={completedCategories}
-          profileCompletion={profileCompletion}
-          completionLabel={t.chat.profileCompletion}
-          categoryProgress={categoryProgress}
-        />
-      </div>
-
       {/* Chat Messages */}
       <div className="flex-1 overflow-hidden">
         <div 
           ref={viewportRef}
-          className="h-full overflow-y-auto px-3 pt-4 mt-[180px]"
+          className="h-full overflow-y-auto px-3 pt-4 mt-[57px]"
         >
           <div className="space-y-3 max-w-full">
           {messages.map((message, index) => {
