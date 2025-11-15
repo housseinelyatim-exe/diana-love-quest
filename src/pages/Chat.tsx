@@ -31,6 +31,7 @@ const Chat = () => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [currentCategory, setCurrentCategory] = useState("basics");
   const [completedCategories, setCompletedCategories] = useState<string[]>([]);
+  const [categoryProgress, setCategoryProgress] = useState<Record<string, { completed: number; total: number; percentage: number }>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -160,18 +161,21 @@ const Chat = () => {
 
         setMessages([{
           role: 'assistant',
-          content: data.reply,
+          content: data.response,
           timestamp: new Date(),
         }]);
         
-        if (typeof data.completionPercentage === 'number') {
-          setProfileCompletion(data.completionPercentage);
+        if (typeof data.profileCompletion === 'number') {
+          setProfileCompletion(data.profileCompletion);
         }
         if (data.currentCategory) {
           setCurrentCategory(data.currentCategory);
         }
         if (data.completedCategories) {
           setCompletedCategories(data.completedCategories);
+        }
+        if (data.categoryProgress) {
+          setCategoryProgress(data.categoryProgress);
         }
       }
     } catch (e) {
@@ -275,12 +279,12 @@ const Chat = () => {
 
       const aiResponse: Message = {
         role: "assistant",
-        content: data.reply,
+        content: data.response,
         timestamp: new Date(),
       };
       
       setMessages((prev) => [...prev, aiResponse]);
-      setProfileCompletion(data.completionPercentage);
+      setProfileCompletion(data.profileCompletion);
       
       if (data.currentCategory) {
         setCurrentCategory(data.currentCategory);
@@ -288,11 +292,14 @@ const Chat = () => {
       if (data.completedCategories) {
         setCompletedCategories(data.completedCategories);
       }
+      if (data.categoryProgress) {
+        setCategoryProgress(data.categoryProgress);
+      }
 
-      if (data.completionPercentage >= 50 && data.completionPercentage < 100 && !hasShown50Toast.current) {
+      if (data.profileCompletion >= 50 && data.profileCompletion < 100 && !hasShown50Toast.current) {
         toast.success(t.chat.greatProgress);
         hasShown50Toast.current = true;
-      } else if (data.completionPercentage === 100 && !hasShown100Toast.current) {
+      } else if (data.profileCompletion === 100 && !hasShown100Toast.current) {
         toast.success("Profile complete! You'll get the best possible matches now.");
         hasShown100Toast.current = true;
       }
@@ -342,6 +349,7 @@ const Chat = () => {
           completedCategories={completedCategories}
           profileCompletion={profileCompletion}
           completionLabel={t.chat.profileCompletion}
+          categoryProgress={categoryProgress}
         />
       </div>
 
