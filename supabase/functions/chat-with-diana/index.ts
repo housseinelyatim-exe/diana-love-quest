@@ -6,36 +6,75 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Predefined question list - sequential order prevents re-asking
+// Predefined question list - comprehensive coverage of all profile fields
 const QUESTION_LIST = [
+  // Basic Info (3 questions)
   { field: 'name', category: 'basic' },
   { field: 'age', category: 'basic' },
   { field: 'gender', category: 'basic' },
+  
+  // Location (3 questions)
   { field: 'where_was_born', category: 'location' },
   { field: 'where_he_live', category: 'location' },
   { field: 'where_want_to_live', category: 'location' },
+  
+  // Physical (2 questions)
+  { field: 'height', category: 'physical' },
+  { field: 'height_preference', category: 'physical' },
+  
+  // Family (3 questions)
   { field: 'marital_status', category: 'family' },
   { field: 'have_children', category: 'family' },
   { field: 'want_children', category: 'family' },
+  
+  // Career (4 questions)
   { field: 'education_lvl', category: 'career' },
   { field: 'employment_status', category: 'career' },
   { field: 'job', category: 'career' },
-  { field: 'height', category: 'physical' },
+  { field: 'work_life_balance', category: 'career' },
+  
+  // Values & Religion (3 questions)
   { field: 'religion', category: 'values' },
   { field: 'practice_lvl', category: 'values' },
+  { field: 'life_goal', category: 'values' },
+  
+  // Health & Wellness (4 questions)
+  { field: 'health', category: 'health' },
+  { field: 'disabilities_and_special_need', category: 'health' },
+  { field: 'disabilities_and_special_need_type', category: 'health' },
+  { field: 'health_disability_preference', category: 'health' },
+  
+  // Lifestyle Habits (5 questions)
   { field: 'smoking', category: 'lifestyle' },
   { field: 'drinking', category: 'lifestyle' },
-  { field: 'have_pet', category: 'lifestyle' },
   { field: 'dietary_habits', category: 'lifestyle' },
   { field: 'sleep_habits', category: 'lifestyle' },
-  { field: 'life_goal', category: 'values' },
+  { field: 'volunteer_community_work', category: 'lifestyle' },
+  
+  // Pets (2 questions)
+  { field: 'have_pet', category: 'pets' },
+  { field: 'pet', category: 'pets' },
+  
+  // Hobbies & Activities (4 questions)
   { field: 'physical_activities', category: 'hobbies' },
   { field: 'cultural_activities', category: 'hobbies' },
   { field: 'creative_hobbies', category: 'hobbies' },
   { field: 'gaming_hobbies', category: 'hobbies' },
+  
+  // Travel (4 questions)
   { field: 'travel_frequency', category: 'travel' },
   { field: 'type_of_trips', category: 'travel' },
   { field: 'travel_style', category: 'travel' },
+  { field: 'travel_planning', category: 'travel' },
+  
+  // Relocation (2 questions)
+  { field: 'relocation_same_country', category: 'relocation' },
+  { field: 'relocation_across_countries', category: 'relocation' },
+  
+  // Relationship Preferences (3 questions)
+  { field: 'role_in_relationship', category: 'relationship' },
+  { field: 'age_range_preference', category: 'relationship' },
+  { field: 'red_flags', category: 'relationship' },
 ];
 
 serve(async (req) => {
@@ -253,28 +292,42 @@ function getNextQuestion(p: any, lang: string): string {
       where_was_born: "Where were you born?",
       where_he_live: "Where do you currently live?",
       where_want_to_live: "Where would you like to live?",
+      height: "What's your height in cm?",
+      height_preference: "What height preference do you have for a partner?",
       marital_status: "What's your marital status?",
       have_children: "Do you have children?",
       want_children: "Do you want children?",
       education_lvl: "What's your education level?",
       employment_status: "What's your employment status?",
       job: "What do you do for work?",
-      height: "What's your height in cm?",
+      work_life_balance: "How do you balance work and life?",
       religion: "What's your religion?",
       practice_lvl: "How religious are you?",
-      smoking: "Do you smoke?",
-      drinking: "Do you drink?",
-      have_pet: "Do you have pets?",
-      dietary_habits: "Tell me about your diet.",
-      sleep_habits: "What are your sleep habits?",
       life_goal: "What are your life goals?",
-      physical_activities: "What sports do you enjoy?",
+      health: "How would you describe your health?",
+      disabilities_and_special_need: "Do you have any disabilities or special needs?",
+      disabilities_and_special_need_type: "Can you tell me about your disability or special need?",
+      health_disability_preference: "What's your preference regarding health and disabilities in a partner?",
+      smoking: "Do you smoke?",
+      drinking: "Do you drink alcohol?",
+      dietary_habits: "Tell me about your dietary habits.",
+      sleep_habits: "What are your sleep habits?",
+      volunteer_community_work: "Do you volunteer or do community work?",
+      have_pet: "Do you have pets?",
+      pet: "Tell me about your pet(s).",
+      physical_activities: "What physical activities do you enjoy?",
       cultural_activities: "What cultural activities interest you?",
       creative_hobbies: "Any creative hobbies?",
       gaming_hobbies: "Do you game?",
       travel_frequency: "How often do you travel?",
       type_of_trips: "What kind of trips do you like?",
       travel_style: "How do you travel?",
+      travel_planning: "How do you plan your travels?",
+      relocation_same_country: "Would you relocate within the same country?",
+      relocation_across_countries: "Would you relocate to another country?",
+      role_in_relationship: "What role do you see yourself in a relationship?",
+      age_range_preference: "What age range are you looking for?",
+      red_flags: "What are your relationship red flags?",
       fallback: "Anything else to share?"
     },
     fr: {
@@ -284,28 +337,42 @@ function getNextQuestion(p: any, lang: string): string {
       where_was_born: "Où êtes-vous né(e) ?",
       where_he_live: "Où habitez-vous ?",
       where_want_to_live: "Où aimeriez-vous vivre ?",
+      height: "Votre taille en cm ?",
+      height_preference: "Quelle taille préférez-vous chez un partenaire ?",
       marital_status: "Statut marital ?",
       have_children: "Avez-vous des enfants ?",
       want_children: "Voulez-vous des enfants ?",
       education_lvl: "Niveau d'études ?",
       employment_status: "Situation professionnelle ?",
       job: "Que faites-vous ?",
-      height: "Votre taille en cm ?",
+      work_life_balance: "Comment équilibrez-vous travail et vie personnelle ?",
       religion: "Votre religion ?",
       practice_lvl: "Niveau de pratique religieuse ?",
+      life_goal: "Vos objectifs de vie ?",
+      health: "Comment décririez-vous votre santé ?",
+      disabilities_and_special_need: "Avez-vous un handicap ou des besoins spéciaux ?",
+      disabilities_and_special_need_type: "Parlez-moi de votre handicap ou besoin spécial.",
+      health_disability_preference: "Quelle est votre préférence concernant la santé chez un partenaire ?",
       smoking: "Fumez-vous ?",
-      drinking: "Buvez-vous ?",
-      have_pet: "Avez-vous des animaux ?",
+      drinking: "Buvez-vous de l'alcool ?",
       dietary_habits: "Vos habitudes alimentaires ?",
       sleep_habits: "Vos habitudes de sommeil ?",
-      life_goal: "Vos objectifs de vie ?",
-      physical_activities: "Quels sports aimez-vous ?",
+      volunteer_community_work: "Faites-vous du bénévolat ?",
+      have_pet: "Avez-vous des animaux ?",
+      pet: "Parlez-moi de votre/vos animal/animaux.",
+      physical_activities: "Quelles activités physiques aimez-vous ?",
       cultural_activities: "Activités culturelles ?",
       creative_hobbies: "Hobbies créatifs ?",
-      gaming_hobbies: "Aimez-vous les jeux ?",
+      gaming_hobbies: "Aimez-vous les jeux vidéo ?",
       travel_frequency: "Fréquence de voyage ?",
       type_of_trips: "Type de voyages ?",
       travel_style: "Style de voyage ?",
+      travel_planning: "Comment planifiez-vous vos voyages ?",
+      relocation_same_country: "Accepteriez-vous de déménager dans le même pays ?",
+      relocation_across_countries: "Accepteriez-vous de déménager à l'étranger ?",
+      role_in_relationship: "Quel rôle voyez-vous dans une relation ?",
+      age_range_preference: "Quelle tranche d'âge recherchez-vous ?",
+      red_flags: "Quels sont vos signaux d'alerte en relation ?",
       fallback: "Autre chose à partager ?"
     },
     ar: {
@@ -315,28 +382,42 @@ function getNextQuestion(p: any, lang: string): string {
       where_was_born: "أين ولدت؟",
       where_he_live: "أين تعيش؟",
       where_want_to_live: "أين تود أن تعيش؟",
+      height: "ما طولك بالسم؟",
+      height_preference: "ما تفضيلك لطول الشريك؟",
       marital_status: "حالتك الاجتماعية؟",
       have_children: "هل لديك أطفال؟",
       want_children: "هل ترغب في أطفال؟",
       education_lvl: "مستواك التعليمي؟",
       employment_status: "وضعك المهني؟",
       job: "ماذا تعمل؟",
-      height: "ما طولك بالسم؟",
+      work_life_balance: "كيف توازن بين العمل والحياة؟",
       religion: "ما ديانتك؟",
       practice_lvl: "مستوى ممارستك الدينية؟",
+      life_goal: "أهدافك في الحياة؟",
+      health: "كيف تصف صحتك؟",
+      disabilities_and_special_need: "هل لديك إعاقة أو احتياجات خاصة؟",
+      disabilities_and_special_need_type: "أخبرني عن إعاقتك أو احتياجك الخاص؟",
+      health_disability_preference: "ما تفضيلك بخصوص الصحة في الشريك؟",
       smoking: "هل تدخن؟",
       drinking: "هل تشرب الكحول؟",
-      have_pet: "هل لديك حيوانات؟",
       dietary_habits: "عن عاداتك الغذائية؟",
       sleep_habits: "عادات نومك؟",
-      life_goal: "أهدافك في الحياة؟",
-      physical_activities: "ما الرياضات التي تحبها؟",
+      volunteer_community_work: "هل تتطوع أو تعمل في المجتمع؟",
+      have_pet: "هل لديك حيوانات أليفة؟",
+      pet: "أخبرني عن حيوانك الأليف.",
+      physical_activities: "ما الأنشطة الرياضية التي تستمتع بها؟",
       cultural_activities: "الأنشطة الثقافية؟",
       creative_hobbies: "هوايات إبداعية؟",
       gaming_hobbies: "هل تحب الألعاب؟",
       travel_frequency: "كم مرة تسافر؟",
       type_of_trips: "نوع الرحلات؟",
       travel_style: "أسلوب سفرك؟",
+      travel_planning: "كيف تخطط لسفرك؟",
+      relocation_same_country: "هل تقبل الانتقال داخل نفس البلد؟",
+      relocation_across_countries: "هل تقبل الانتقال إلى بلد آخر؟",
+      role_in_relationship: "ما دورك في العلاقة؟",
+      age_range_preference: "ما الفئة العمرية التي تبحث عنها؟",
+      red_flags: "ما علامات التحذير في العلاقة؟",
       fallback: "شيء آخر؟"
     },
     tn: {
@@ -346,28 +427,42 @@ function getNextQuestion(p: any, lang: string): string {
       where_was_born: "وين تولدت؟",
       where_he_live: "وين ساكن؟",
       where_want_to_live: "وين تحب تسكن؟",
+      height: "قدّاش طولك بالسم؟",
+      height_preference: "شنوّا تفضيلك لطول الشريك؟",
       marital_status: "حالتك العائلية؟",
       have_children: "عندك صغار؟",
       want_children: "تحب يكون عندك صغار؟",
       education_lvl: "مستواك القرايي؟",
       employment_status: "وضعك المهني؟",
       job: "شنوّا تخدم؟",
-      height: "قدّاش طولك بالسم؟",
+      work_life_balance: "كيفاش توازن بين الخدمة والحياة؟",
       religion: "شنوّا ديانتك؟",
       practice_lvl: "مستوى ممارستك الدينية؟",
+      life_goal: "أهدافك في الحياة؟",
+      health: "كيفاش توصف صحتك؟",
+      disabilities_and_special_need: "عندك إعاقة ولا احتياجات خاصة؟",
+      disabilities_and_special_need_type: "حكيلي على إعاقتك ولا احتياجك الخاص؟",
+      health_disability_preference: "شنوّا تفضيلك بخصوص الصحة في الشريك؟",
       smoking: "تشرب السجاير؟",
       drinking: "تشرب الكحول؟",
-      have_pet: "عندك حيوانات؟",
       dietary_habits: "عاداتك في الماكلة؟",
       sleep_habits: "عاداتك في النوم؟",
-      life_goal: "أهدافك في الحياة؟",
-      physical_activities: "شنيّا الرياضات اللي تحبها؟",
+      volunteer_community_work: "تتطوع ولا تخدم في المجتمع؟",
+      have_pet: "عندك حيوانات أليفة؟",
+      pet: "حكيلي على حيوانك الأليف.",
+      physical_activities: "شنيّا الأنشطة الرياضية اللي تحبها؟",
       cultural_activities: "الأنشطة الثقافية؟",
       creative_hobbies: "هوايات إبداعية؟",
       gaming_hobbies: "تحب الألعاب؟",
       travel_frequency: "قدّاش مرة تسافر؟",
       type_of_trips: "شنوع الرحلات؟",
       travel_style: "أسلوبك في السفر؟",
+      travel_planning: "كيفاش تخطط لسفرك؟",
+      relocation_same_country: "تقبل تنقل في نفس البلاد؟",
+      relocation_across_countries: "تقبل تنقل لبلاد أخرى؟",
+      role_in_relationship: "شنوّا دورك في العلاقة؟",
+      age_range_preference: "شنيّا الفئة العمرية اللي قاعد تدوّر عليها؟",
+      red_flags: "شنيّا علامات التحذير في العلاقة؟",
       fallback: "حاجة أخرى؟"
     }
   };
@@ -403,7 +498,7 @@ function calculateProfileCompletion(profile: any): number {
 }
 
 function determineCurrentCategory(profile: any): { current: string; completed: string[] } {
-  const categories = ['basic', 'location', 'family', 'career', 'physical', 'values', 'lifestyle', 'hobbies', 'travel'];
+  const categories = ['basic', 'location', 'physical', 'family', 'career', 'values', 'health', 'lifestyle', 'pets', 'hobbies', 'travel', 'relocation', 'relationship'];
   const completed: string[] = [];
   let current = 'basic';
   
@@ -426,7 +521,7 @@ function determineCurrentCategory(profile: any): { current: string; completed: s
 }
 
 function getCategoryProgress(profile: any): Record<string, { completed: number; total: number; percentage: number }> {
-  const categories = ['basic', 'location', 'family', 'career', 'physical', 'values', 'lifestyle', 'hobbies', 'travel'];
+  const categories = ['basic', 'location', 'physical', 'family', 'career', 'values', 'health', 'lifestyle', 'pets', 'hobbies', 'travel', 'relocation', 'relationship'];
   const progress: Record<string, { completed: number; total: number; percentage: number }> = {};
   
   for (const cat of categories) {
