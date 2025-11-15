@@ -182,7 +182,7 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-5-mini',
+        model: 'google/gemini-2.5-pro',
         messages: [
           { role: 'system', content: systemPrompt },
           ...(conversationHistory || []).slice(-10),
