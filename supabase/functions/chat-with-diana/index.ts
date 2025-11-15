@@ -72,11 +72,14 @@ serve(async (req) => {
         tn: "مرحبا! أنا ديانا. شنوّا اسمك؟"
       };
 
+      const categoryStatus = getCategoryProgress(profile);
+      
       return new Response(JSON.stringify({
         response: greetings[lang] || greetings.en,
         profileCompletion: calculateProfileCompletion(profile),
         currentCategory: determineCurrentCategory(profile).current,
-        completedCategories: determineCurrentCategory(profile).completed
+        completedCategories: determineCurrentCategory(profile).completed,
+        categoryProgress: categoryStatus
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -217,11 +220,14 @@ RULES:
       .eq('id', userId)
       .single();
 
+    const categoryStatus = getCategoryProgress(updatedProfile);
+    
     return new Response(JSON.stringify({
       response: responseText,
       profileCompletion: calculateProfileCompletion(updatedProfile),
       currentCategory: determineCurrentCategory(updatedProfile).current,
-      completedCategories: determineCurrentCategory(updatedProfile).completed
+      completedCategories: determineCurrentCategory(updatedProfile).completed,
+      categoryProgress: categoryStatus
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
@@ -417,4 +423,20 @@ function determineCurrentCategory(profile: any): { current: string; completed: s
   }
   
   return { current, completed };
+}
+
+function getCategoryProgress(profile: any): Record<string, { completed: number; total: number; percentage: number }> {
+  const categories = ['basic', 'location', 'family', 'career', 'physical', 'values', 'lifestyle', 'hobbies', 'travel'];
+  const progress: Record<string, { completed: number; total: number; percentage: number }> = {};
+  
+  for (const cat of categories) {
+    const catFields = QUESTION_LIST.filter(q => q.category === cat);
+    const total = catFields.length;
+    const completed = catFields.filter(q => profile?.[q.field] != null && profile?.[q.field] !== '').length;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    
+    progress[cat] = { completed, total, percentage };
+  }
+  
+  return progress;
 }
