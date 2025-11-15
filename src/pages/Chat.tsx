@@ -337,7 +337,10 @@ const Chat = () => {
         </Avatar>
         <div className="flex-1">
           <h1 className="font-semibold">Diana</h1>
-          <p className="text-xs text-white/90">{t.chat.subtitle}</p>
+          <div className="flex items-center gap-2">
+            <Progress value={profileCompletion} className="h-1.5 flex-1 max-w-[120px]" />
+            <span className="text-xs font-medium text-white/90">{profileCompletion}%</span>
+          </div>
         </div>
       </div>
 
