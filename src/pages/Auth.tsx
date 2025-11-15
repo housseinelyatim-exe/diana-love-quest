@@ -31,7 +31,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success(t.common.welcomeBack);
-      navigate("/dashboard", { state: { tab: "chats" } });
+      navigate("/intro");
     }
     setLoading(false);
   };
@@ -52,6 +52,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success(t.common.accountCreated);
+      navigate("/intro");
     }
     setLoading(false);
   };
