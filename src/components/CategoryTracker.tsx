@@ -1,4 +1,4 @@
-import { Check, User, Heart, Briefcase, Sparkles, Target, Palette, Plane, Home, MapPin } from "lucide-react";
+import { Check, User, Heart, Briefcase, Sparkles, Target, Palette, Plane, Home, MapPin, Shield } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 
@@ -13,13 +13,17 @@ interface CategoryTrackerProps {
 const categories = [
   { id: "basic", label: "Basics", icon: User },
   { id: "location", label: "Location", icon: MapPin },
+  { id: "physical", label: "Physical", icon: Target },
   { id: "family", label: "Family", icon: Heart },
   { id: "career", label: "Career", icon: Briefcase },
-  { id: "physical", label: "Physical", icon: Target },
   { id: "values", label: "Values", icon: Sparkles },
+  { id: "health", label: "Health", icon: Shield },
   { id: "lifestyle", label: "Lifestyle", icon: Palette },
+  { id: "pets", label: "Pets", icon: Heart },
   { id: "hobbies", label: "Hobbies", icon: Palette },
   { id: "travel", label: "Travel", icon: Plane },
+  { id: "relocation", label: "Relocation", icon: Home },
+  { id: "relationship", label: "Relationship", icon: Heart },
 ];
 
 export const CategoryTracker = ({ 
