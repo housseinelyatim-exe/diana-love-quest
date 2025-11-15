@@ -879,11 +879,20 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
 
       const modelText = (assistantMessage?.content || '').trim();
       
-      // Use the AI's natural response - it knows how to handle conversation flow
-      replyText = modelText;
+      // Check if content is actual conversational text (not code/debug output)
+      const isGarbageContent = !modelText || 
+                               modelText.includes('print(') || 
+                               modelText.includes('default_api') ||
+                               modelText.includes('run_code') ||
+                               modelText.length < 3;
       
-      // Only use fallback if AI didn't provide a response
-      if (!replyText) {
+      // Use the AI's natural response only if it's meaningful text
+      if (!isGarbageContent) {
+        replyText = modelText;
+      }
+      
+      // If AI didn't provide a good response or it's garbage, generate next question
+      if (!replyText || isGarbageContent) {
         const newProfileState = { ...profile, ...profileUpdates };
         replyText = getNextQuestion(newProfileState, askedTopics, userLanguage);
       }
