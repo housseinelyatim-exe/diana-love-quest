@@ -748,18 +748,13 @@ Remember: BE PATIENT AND RELAXED. Don't nag. Let the conversation flow naturally
         message?.toLowerCase().includes('lost my')
       );
       
-      // Flash for moderate complexity (longer messages)
-      const needsFlashModel = message?.length > 150;
-      
-      // Default to Flash Lite (cheapest)
-      let selectedModel = 'google/gemini-2.5-flash-lite';
+      // Default to Flash (good balance of quality and cost)
+      let selectedModel = 'google/gemini-2.5-flash';
       if (needsProModel) {
         selectedModel = 'google/gemini-2.5-pro';
-      } else if (needsFlashModel) {
-        selectedModel = 'google/gemini-2.5-flash';
       }
       
-      console.log(`🤖 Economy model: ${selectedModel} (pro: ${needsProModel}, flash: ${needsFlashModel}, msg length: ${message?.length})`);
+      console.log(`🤖 Model: ${selectedModel} (pro: ${needsProModel}, msg length: ${message?.length})`);
       
       // ECONOMY OPTIMIZATION: Limit conversation history to reduce token usage
       // Keep only the last 12 messages for context (6 exchanges)
