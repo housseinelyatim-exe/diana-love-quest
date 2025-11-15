@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import LanguageSelection from "./pages/LanguageSelection";
 import Auth from "./pages/Auth";
+import Intro from "./pages/Intro";
 import Chat from "./pages/Chat";
 import Dashboard from "./pages/Dashboard";
 import MatchChat from "./pages/MatchChat";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/language" element={<LanguageSelection />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/intro" element={<Intro />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/match/:matchId" element={<MatchChat />} />
