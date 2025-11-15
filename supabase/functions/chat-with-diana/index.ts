@@ -138,8 +138,11 @@ RULES:
 1. Keep responses under 50 words
 2. Ask ONE question at a time  
 3. Extract profile data when provided
-4. Language: ${lang}
-5. Next question: ${getNextQuestion(profile, lang)}`;
+4. Do NOT ask for confirmation when answers are clear and straightforward
+5. Only ask for clarification when answers are ambiguous, unclear, or mysterious
+6. When data is successfully extracted, move directly to the next question
+7. Language: ${lang}
+8. Next question: ${getNextQuestion(profile, lang)}`;
 
     // Call AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
