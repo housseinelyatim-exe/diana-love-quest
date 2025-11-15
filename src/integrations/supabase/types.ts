@@ -102,10 +102,12 @@ export type Database = {
         Row: {
           age: number | null
           age_range_preference: unknown
+          asked_questions: Json | null
           avatar_url: string | null
           created_at: string | null
           creative_hobbies: string[] | null
           cultural_activities: string[] | null
+          current_question_index: number | null
           dietary_habits: string | null
           disabilities_and_special_need:
             | Database["public"]["Enums"]["yes_no_type"]
@@ -167,10 +169,12 @@ export type Database = {
         Insert: {
           age?: number | null
           age_range_preference?: unknown
+          asked_questions?: Json | null
           avatar_url?: string | null
           created_at?: string | null
           creative_hobbies?: string[] | null
           cultural_activities?: string[] | null
+          current_question_index?: number | null
           dietary_habits?: string | null
           disabilities_and_special_need?:
             | Database["public"]["Enums"]["yes_no_type"]
@@ -234,10 +238,12 @@ export type Database = {
         Update: {
           age?: number | null
           age_range_preference?: unknown
+          asked_questions?: Json | null
           avatar_url?: string | null
           created_at?: string | null
           creative_hobbies?: string[] | null
           cultural_activities?: string[] | null
+          current_question_index?: number | null
           dietary_habits?: string | null
           disabilities_and_special_need?:
             | Database["public"]["Enums"]["yes_no_type"]
