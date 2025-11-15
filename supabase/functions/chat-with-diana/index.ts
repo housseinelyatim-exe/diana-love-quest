@@ -142,9 +142,10 @@ RULES:
 5. Only ask for clarification when answers are ambiguous, unclear, or mysterious
 6. When user says they don't have a job (e.g., "no job", "I don't work", "unemployed"), set employment_status="unemployed" and set work_life_balance="not_applicable".
 7. If a field is not applicable (like work_life_balance for unemployed/student/retired), skip it and move to the next relevant question.
-8. Never repeat the same question consecutively.
-9. Language: ${lang}
-10. Next question: ${getNextQuestion(profile, lang)}`;
+8. Accept common typos and normalize to standard values (e.g., "diabities" -> "diabetes").
+9. Never repeat the same question consecutively.
+10. Language: ${lang}
+11. Next question: ${getNextQuestion(profile, lang)}`;
 
     // Call AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -225,6 +226,9 @@ RULES:
         }
       }
     }
+
+    // Normalize extracted data for typos and synonyms
+    extractedData = normalizeExtractedData(extractedData, message);
 
     // Update with progress tracking
     if (extractedData && Object.keys(extractedData).length > 0) {
@@ -526,6 +530,34 @@ function getNextQuestion(p: any, lang: string): string {
   }
   
   return t('fallback');
+}
+
+function normalizeExtractedData(data: any, message: string): any {
+  if (!data) return data;
+  const norm: any = { ...data };
+  const msg = (message || '').toLowerCase();
+
+  const normalizeHealth = (val?: string) => {
+    const v = (val || '').toLowerCase().trim();
+    if (v.includes('diab')) return 'diabetes';
+    if (v.includes('asthm')) return 'asthma';
+    if (v.includes('hypert') || v.includes('high blood pressure') || v.includes('blood pressure') || v === 'bp') return 'hypertension';
+    return val;
+  };
+
+  if (norm.health) norm.health = normalizeHealth(norm.health);
+  else if (msg.includes('diab')) norm.health = 'diabetes';
+
+  // If user clearly states not working, normalize employment and mark work/life balance
+  if (!norm.employment_status) {
+    const notWorkingPhrases = ['no job', "don't have a job", 'dont have a job', 'unemployed', 'jobless', 'not working', "i don't work", 'i do not work', 'without job'];
+    if (notWorkingPhrases.some((p) => msg.includes(p))) {
+      norm.employment_status = 'unemployed';
+      norm.work_life_balance = norm.work_life_balance || 'not_applicable';
+    }
+  }
+
+  return norm;
 }
 
 function calculateProfileCompletion(profile: any): number {
