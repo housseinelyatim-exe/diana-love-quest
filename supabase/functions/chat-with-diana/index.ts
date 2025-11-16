@@ -373,12 +373,17 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
         !updatedAsked.includes(`skipped:${q.field}`)
       );
       
+      // Calculate profile completion before updating
+      const tempProfile = { ...profile, ...extractedData };
+      const completion = calculateProfileCompletion(tempProfile);
+      
       await supabase
         .from('profiles')
         .update({
           ...extractedData,
           asked_questions: updatedAsked,
-          current_question_index: nextIdx >= 0 ? nextIdx : QUESTION_LIST.length
+          current_question_index: nextIdx >= 0 ? nextIdx : QUESTION_LIST.length,
+          is_profile_complete: completion
         })
         .eq('id', userId);
       
