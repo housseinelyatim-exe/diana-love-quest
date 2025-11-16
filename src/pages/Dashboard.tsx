@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { MessageSquare, Heart, User, Newspaper, LogOut, Camera, RefreshCw, X, Sparkles, Users, UserCircle, BookOpen, Headphones, TrendingUp, Lightbulb, Video, Award, BarChart3, Target } from "lucide-react";
+import { MessageSquare, Heart, User, Newspaper, LogOut, Camera, RefreshCw, X, Sparkles, Users, UserCircle, BookOpen, Headphones, TrendingUp, Lightbulb, Video, Award, BarChart3, Target, Share2, Copy, Check } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
 import { formatDistanceToNow } from "date-fns";
@@ -29,6 +29,7 @@ const Dashboard = () => {
   const location = useLocation();
   const { t } = useLanguage();
   const [profileCompletion, setProfileCompletion] = useState(0);
+  const [copySuccess, setCopySuccess] = useState(false);
   const [userName, setUserName] = useState("");
   const [dailyQuote, setDailyQuote] = useState("");
   const [matches, setMatches] = useState<Match[]>([]);
@@ -43,6 +44,7 @@ const Dashboard = () => {
     activeMatches: 0,
     successRate: 0
   });
+  const [userBio, setUserBio] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Set tab based on navigation state, otherwise default to matches
@@ -99,6 +101,7 @@ const Dashboard = () => {
           : calculateProfileCompletion(profile);
         setProfileCompletion(Math.max(0, Math.min(100, completion)));
         setAvatarUrl(profile.avatar_url || '');
+        setUserBio(profile.bio || '');
       }
 
       // Fetch last message from Diana
@@ -303,6 +306,39 @@ const Dashboard = () => {
     }
   };
 
+  const handleCopyBio = async () => {
+    if (!userBio) return;
+    
+    try {
+      await navigator.clipboard.writeText(userBio);
+      setCopySuccess(true);
+      toast.success("Bio copied to clipboard!");
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy bio");
+    }
+  };
+
+  const handleShareBio = async () => {
+    if (!userBio) return;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${userName}'s Profile`,
+          text: userBio,
+        });
+        toast.success("Bio shared successfully!");
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          toast.error("Failed to share bio");
+        }
+      }
+    } else {
+      handleCopyBio();
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 flex items-center justify-center">
@@ -504,6 +540,53 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {userBio && profileCompletion === 100 && (
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-primary" />
+                      Your Bio
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopyBio}
+                        className="gap-2"
+                      >
+                        {copySuccess ? (
+                          <>
+                            <Check className="h-4 w-4 text-green-500" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4" />
+                            Copy
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={handleShareBio}
+                        className="gap-2"
+                      >
+                        <Share2 className="h-4 w-4" />
+                        Share
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {userBio}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="bg-card border-border">
               <CardHeader>
