@@ -6,6 +6,54 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to generate hash for caching
+async function generateHash(text: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Helper function to check and retrieve cached response
+async function getCachedResponse(supabase: any, questionHash: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('ai_response_cache')
+    .select('response, id, hit_count')
+    .eq('question_hash', questionHash)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  // Update hit count and last_used_at
+  await supabase
+    .from('ai_response_cache')
+    .update({
+      hit_count: (data.hit_count || 0) + 1,
+      last_used_at: new Date().toISOString()
+    })
+    .eq('id', data.id);
+
+  console.log('💾 Cache hit! Using cached response');
+  return data.response;
+}
+
+// Helper function to cache new response
+async function cacheResponse(supabase: any, question: string, questionHash: string, response: string): Promise<void> {
+  await supabase
+    .from('ai_response_cache')
+    .insert({
+      question,
+      question_hash: questionHash,
+      response,
+      hit_count: 0
+    });
+  
+  console.log('💾 Cached new response');
+}
+
 // Predefined question list - comprehensive coverage of all profile fields
 const QUESTION_LIST = [
   // Basic Info (3 questions)
@@ -183,70 +231,91 @@ RESPONSE STYLE:
 
 Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar' ? 'Arabic' : 'Tunisian Arabic'}.`;
 
-    // Call AI
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...(conversationHistory || []).slice(-10),
-          { role: 'user', content: message }
-        ],
-        tool_choice: 'auto',
-        tools: [{
-          type: 'function',
-          function: {
-            name: 'extract_profile_data',
-            description: 'Extract profile information',
-            parameters: {
-              type: 'object',
-              properties: {
-                name: { type: 'string' },
-                age: { type: 'number' },
-                gender: { type: 'string', enum: ['male', 'female', 'other'] },
-                where_was_born: { type: 'string' },
-                where_he_live: { type: 'string' },
-                where_want_to_live: { type: 'string' },
-                marital_status: { type: 'string', enum: ['single', 'divorced', 'widowed'] },
-                have_children: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                want_children: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                education_lvl: { type: 'string', enum: ['high_school', 'bachelor', 'master', 'phd', 'vocational', 'other'] },
-                employment_status: { type: 'string', enum: ['employed', 'self_employed', 'student', 'unemployed', 'retired'] },
-                job: { type: 'string' },
-                height: { type: 'number' },
-                religion: { type: 'string', enum: ['muslim', 'christian', 'jewish', 'buddhist', 'hindu', 'other', 'none'] },
-                practice_lvl: { type: 'string', enum: ['very_religious', 'religious', 'moderate', 'not_religious'] },
-                smoking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                drinking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                have_pet: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                dietary_habits: { type: 'string' },
-                sleep_habits: { type: 'string' },
-                life_goal: { type: 'string' },
-                physical_activities: { type: 'array', items: { type: 'string' } },
-                cultural_activities: { type: 'array', items: { type: 'string' } },
-                creative_hobbies: { type: 'array', items: { type: 'string' } },
-                gaming_hobbies: { type: 'array', items: { type: 'string' } },
-                travel_frequency: { type: 'string', enum: ['never', 'rarely', 'sometimes', 'often', 'very_often'] },
-                type_of_trips: { type: 'string' },
-                travel_style: { type: 'string' }
+    // Generate cache key based on normalized message, current context, and language
+    const currentIndex = profile?.current_question_index || 0;
+    const currentField = QUESTION_LIST[currentIndex]?.field || 'general';
+    const normalizedMessage = message.toLowerCase().trim();
+    const cacheKey = `${currentField}:${normalizedMessage}:${lang}`;
+    const questionHash = await generateHash(cacheKey);
+
+    // Try to get cached response first
+    const cachedResponse = await getCachedResponse(supabase, questionHash);
+    
+    let aiMessage;
+    if (cachedResponse) {
+      // Use cached response
+      aiMessage = { content: cachedResponse };
+    } else {
+      // Call AI
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-pro',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...(conversationHistory || []).slice(-10),
+            { role: 'user', content: message }
+          ],
+          tool_choice: 'auto',
+          tools: [{
+            type: 'function',
+            function: {
+              name: 'extract_profile_data',
+              description: 'Extract profile information',
+              parameters: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  age: { type: 'number' },
+                  gender: { type: 'string', enum: ['male', 'female', 'other'] },
+                  where_was_born: { type: 'string' },
+                  where_he_live: { type: 'string' },
+                  where_want_to_live: { type: 'string' },
+                  marital_status: { type: 'string', enum: ['single', 'divorced', 'widowed'] },
+                  have_children: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  want_children: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  education_lvl: { type: 'string', enum: ['high_school', 'bachelor', 'master', 'phd', 'vocational', 'other'] },
+                  employment_status: { type: 'string', enum: ['employed', 'self_employed', 'student', 'unemployed', 'retired'] },
+                  job: { type: 'string' },
+                  height: { type: 'number' },
+                  religion: { type: 'string', enum: ['muslim', 'christian', 'jewish', 'buddhist', 'hindu', 'other', 'none'] },
+                  practice_lvl: { type: 'string', enum: ['very_religious', 'religious', 'moderate', 'not_religious'] },
+                  smoking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  drinking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  have_pet: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  dietary_habits: { type: 'string' },
+                  sleep_habits: { type: 'string' },
+                  life_goal: { type: 'string' },
+                  physical_activities: { type: 'array', items: { type: 'string' } },
+                  cultural_activities: { type: 'array', items: { type: 'string' } },
+                  creative_hobbies: { type: 'array', items: { type: 'string' } },
+                  gaming_hobbies: { type: 'array', items: { type: 'string' } },
+                  travel_frequency: { type: 'string', enum: ['never', 'rarely', 'sometimes', 'often', 'very_often'] },
+                  type_of_trips: { type: 'string' },
+                  travel_style: { type: 'string' }
+                }
               }
             }
-          }
-        }]
-      })
-    });
+          }]
+        })
+      });
 
-    if (!aiResponse.ok) {
-      throw new Error('AI API failed');
+      if (!aiResponse.ok) {
+        throw new Error('AI API failed');
+      }
+
+      const aiData = await aiResponse.json();
+      aiMessage = aiData.choices?.[0]?.message;
+      
+      // Cache the response if it's a simple conversational response (not using tools)
+      if (aiMessage?.content && !aiMessage?.tool_calls?.length) {
+        await cacheResponse(supabase, cacheKey, questionHash, aiMessage.content);
+      }
     }
-
-    const aiData = await aiResponse.json();
-    const aiMessage = aiData.choices?.[0]?.message;
     
     // Extract and update profile
     let extractedData: any = null;
@@ -267,7 +336,7 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
     extractedData = normalizeExtractedData(extractedData, message);
 
     // Track the current question being asked to prevent repetition
-    const currentIndex = profile?.current_question_index || 0;
+    // (currentIndex already declared earlier for caching)
     const currentQuestionField = QUESTION_LIST[currentIndex]?.field;
     const askedQuestions = profile?.asked_questions || [];
 
