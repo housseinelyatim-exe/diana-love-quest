@@ -468,13 +468,50 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
     ]);
 
     const categoryStatus = getCategoryProgress(updatedProfile);
+    const profileCompletion = calculateProfileCompletion(updatedProfile);
+    
+    // Generate bio if profile is complete and bio doesn't exist
+    if (profileCompletion === 100 && !updatedProfile.bio) {
+      console.log('📝 Generating bio for completed profile');
+      const bioPrompt = generateBioPrompt(updatedProfile, lang);
+      
+      const bioResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: 'You are a professional bio writer for a dating platform. Create an engaging, authentic, and warm bio that highlights the person\'s personality, values, and what makes them unique.' },
+            { role: 'user', content: bioPrompt }
+          ]
+        })
+      });
+
+      if (bioResponse.ok) {
+        const bioData = await bioResponse.json();
+        const generatedBio = bioData.choices?.[0]?.message?.content;
+        
+        if (generatedBio) {
+          await supabase
+            .from('profiles')
+            .update({ bio: generatedBio })
+            .eq('id', userId);
+          
+          console.log('✅ Bio generated and saved');
+        }
+      }
+    }
     
     return new Response(JSON.stringify({
       response: responseText,
-      profileCompletion: calculateProfileCompletion(updatedProfile),
+      profileCompletion,
       currentCategory: determineCurrentCategory(updatedProfile).current,
       completedCategories: determineCurrentCategory(updatedProfile).completed,
-      categoryProgress: categoryStatus
+      categoryProgress: categoryStatus,
+      bio: updatedProfile.bio
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
@@ -808,6 +845,47 @@ function calculateProfileCompletion(profile: any): number {
   const fields = QUESTION_LIST.map(q => q.field);
   const filled = fields.filter(f => profile?.[f] != null && profile?.[f] !== '').length;
   return Math.round((filled / fields.length) * 100);
+}
+
+function generateBioPrompt(profile: any, lang: string): string {
+  const bioIntros: Record<string, string> = {
+    en: `Create a compelling 3-4 sentence bio for this person based on their profile:\n\n`,
+    fr: `Créez une bio convaincante de 3-4 phrases pour cette personne basée sur son profil:\n\n`,
+    ar: `أنشئ سيرة ذاتية مقنعة من 3-4 جمل لهذا الشخص بناءً على ملفه الشخصي:\n\n`,
+    tn: `اعمل بيو مقنع من 3-4 جمل لهذا الشخص بناء على بروفايلو:\n\n`
+  };
+  
+  let prompt = bioIntros[lang] || bioIntros.en;
+  
+  // Add key profile details
+  if (profile.name) prompt += `Name: ${profile.name}\n`;
+  if (profile.age) prompt += `Age: ${profile.age}\n`;
+  if (profile.where_he_live) prompt += `Lives in: ${profile.where_he_live}\n`;
+  if (profile.job) prompt += `Occupation: ${profile.job}\n`;
+  if (profile.education_lvl) prompt += `Education: ${profile.education_lvl}\n`;
+  if (profile.religion && profile.practice_lvl) prompt += `Faith: ${profile.religion} (${profile.practice_lvl})\n`;
+  if (profile.life_goal) prompt += `Life Goal: ${profile.life_goal}\n`;
+  
+  // Hobbies and interests
+  const hobbies = [];
+  if (profile.physical_activities?.length) hobbies.push(...profile.physical_activities);
+  if (profile.cultural_activities?.length) hobbies.push(...profile.cultural_activities);
+  if (profile.creative_hobbies?.length) hobbies.push(...profile.creative_hobbies);
+  if (hobbies.length) prompt += `Interests: ${hobbies.join(', ')}\n`;
+  
+  if (profile.travel_frequency) prompt += `Travel Frequency: ${profile.travel_frequency}\n`;
+  if (profile.have_pet === 'yes' && profile.pet) prompt += `Pet: ${profile.pet}\n`;
+  
+  const guidelines: Record<string, string> = {
+    en: '\n\nMake it warm, authentic, and highlight what makes them unique. Focus on personality, values, and lifestyle. Keep it conversational and engaging.',
+    fr: '\n\nRendez-la chaleureuse, authentique et mettez en valeur ce qui les rend uniques. Concentrez-vous sur la personnalité, les valeurs et le style de vie. Gardez-la conversationnelle et engageante.',
+    ar: '\n\nاجعلها دافئة وأصلية وسلط الضوء على ما يجعلهم فريدين. ركز على الشخصية والقيم وأسلوب الحياة. اجعلها محادثة وجذابة.',
+    tn: '\n\nاعملها دافية وأصلية وورّي شنوا يخليهم مميزين. ركّز على الشخصية والقيم والستايل. خليها محادثة وجذابة.'
+  };
+  
+  prompt += guidelines[lang] || guidelines.en;
+  
+  return prompt;
 }
 
 function determineCurrentCategory(profile: any): { current: string; completed: string[] } {

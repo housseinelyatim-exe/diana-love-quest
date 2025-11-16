@@ -7,8 +7,9 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Send, ArrowLeft, Sparkles, ChevronDown } from "lucide-react";
+import { Send, ArrowLeft, Sparkles, ChevronDown, Edit2, Check, X } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
 import { QuestionProgressTracker } from "@/components/QuestionProgressTracker";
@@ -42,6 +43,9 @@ const Chat = () => {
   const lastMessageTime = useRef<number>(0);
   const [isThrottled, setIsThrottled] = useState(false);
   const [showProgressTracker, setShowProgressTracker] = useState(false);
+  const [userBio, setUserBio] = useState<string>("");
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [editedBio, setEditedBio] = useState<string>("");
 
   useEffect(() => {
     checkAuth();
@@ -185,6 +189,10 @@ const Chat = () => {
         }
         if (data.categoryProgress) {
           setCategoryProgress(data.categoryProgress);
+        }
+        if (data.bio) {
+          setUserBio(data.bio);
+          setEditedBio(data.bio);
         }
       }
     } catch (e: any) {
@@ -355,6 +363,12 @@ const Chat = () => {
           if (data.categoryProgress) {
             setCategoryProgress(data.categoryProgress);
           }
+          
+          if (data.bio && !userBio) {
+            setUserBio(data.bio);
+            setEditedBio(data.bio);
+            toast.success("Your bio has been generated! You can review and edit it below.");
+          }
         } catch (innerError) {
           clearTimeout(timeoutId);
           throw innerError;
@@ -388,6 +402,34 @@ const Chat = () => {
       navigate("/dashboard");
     } else {
       toast.error(t.chat.dashboardError);
+    }
+  };
+
+  const handleSaveBio = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please log in to save your bio");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ bio: editedBio })
+        .eq('id', session.user.id);
+
+      if (error) {
+        console.error('Error saving bio:', error);
+        toast.error("Failed to save bio. Please try again.");
+        return;
+      }
+
+      setUserBio(editedBio);
+      setIsEditingBio(false);
+      toast.success("Bio saved successfully!");
+    } catch (error) {
+      console.error('Error saving bio:', error);
+      toast.error("Failed to save bio. Please try again.");
     }
   };
 
@@ -525,7 +567,7 @@ const Chat = () => {
       )}
 
       {/* Input */}
-      <div className="bg-[#f0f0f0] px-3 py-2 border-t">
+      <div className={`bg-[#f0f0f0] px-3 py-2 border-t ${userBio && profileCompletion === 100 ? 'mb-[240px]' : ''}`}>
         <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
           <Input
             value={input}
@@ -550,6 +592,70 @@ const Chat = () => {
           imageUrl={viewingImage} 
           onClose={() => setViewingImage(null)} 
         />
+      )}
+
+      {/* Bio Editor Section */}
+      {userBio && profileCompletion === 100 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-30 p-4 max-h-[60vh] overflow-y-auto">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Your Bio
+              </h3>
+              <div className="flex gap-2">
+                {!isEditingBio ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditingBio(true)}
+                    className="gap-2"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    Edit
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditedBio(userBio);
+                        setIsEditingBio(false);
+                      }}
+                      className="gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleSaveBio}
+                      className="gap-2"
+                    >
+                      <Check className="h-4 w-4" />
+                      Save
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            {!isEditingBio ? (
+              <Card className="p-4 bg-gradient-to-br from-primary/5 to-secondary/5">
+                <p className="text-sm leading-relaxed text-foreground">{userBio}</p>
+              </Card>
+            ) : (
+              <Textarea
+                value={editedBio}
+                onChange={(e) => setEditedBio(e.target.value)}
+                className="min-h-[120px] resize-none"
+                placeholder="Edit your bio..."
+              />
+            )}
+          </div>
+        </div>
       )}
 
       <Sheet open={showProgressTracker} onOpenChange={setShowProgressTracker}>
