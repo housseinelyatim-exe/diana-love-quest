@@ -160,13 +160,18 @@ const Chat = () => {
         }]);
       }
 
-      // Get profile completion
-      const { data, error: completionError } = await supabase.functions.invoke('chat-with-diana', {
-        body: {
-          message: '',
-          conversationHistory: [],
-          userId: session.user.id
-        }
+      // Get profile completion with retry
+      const { data, error: completionError } = await retryWithBackoff(async () => {
+        return await supabase.functions.invoke('chat-with-diana', {
+          body: {
+            message: '',
+            conversationHistory: [],
+            userId: session.user.id
+          }
+        });
+      }, 2, 1000).catch(err => {
+        console.error('Profile completion fetch error after retries:', err);
+        return { data: null, error: err };
       });
 
       if (completionError) {
@@ -212,6 +217,54 @@ const Chat = () => {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
       setShowScrollButton(false);
     }
+  };
+
+  const retryWithBackoff = async <T,>(
+    fn: () => Promise<T>,
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+  ): Promise<T> => {
+    let lastError: any;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error: any) {
+        lastError = error;
+        
+        // Don't retry on authentication errors or user-initiated cancellations
+        if (
+          error.message?.includes('auth') ||
+          error.message?.includes('Session expired') ||
+          error.message?.includes('log in') ||
+          error.name === 'AbortError'
+        ) {
+          throw error;
+        }
+        
+        // Don't retry if this is the last attempt
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        
+        // Calculate exponential backoff delay
+        const delay = baseDelay * Math.pow(2, attempt);
+        const jitter = Math.random() * 1000; // Add jitter to prevent thundering herd
+        const totalDelay = delay + jitter;
+        
+        console.log(`Retry attempt ${attempt + 1}/${maxRetries} after ${Math.round(totalDelay)}ms`);
+        
+        // Show retry notification to user
+        if (attempt === 0) {
+          toast.info("Connection issue detected. Retrying...");
+        }
+        
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, totalDelay));
+      }
+    }
+    
+    throw lastError;
   };
 
   const extractOptions = (text: string): string[] => {
@@ -286,22 +339,30 @@ const Chat = () => {
         return;
       }
 
-      // Call edge function with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      // Call edge function with retry logic
+      const { data, error } = await retryWithBackoff(async () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      const { data, error } = await supabase.functions.invoke('chat-with-diana', {
-        body: {
-          message: messageToSend,
-          conversationHistory: [...messages, userMessage].map(m => ({
-            role: m.role,
-            content: m.content
-          })),
-          userId: session.user.id
+        try {
+          const result = await supabase.functions.invoke('chat-with-diana', {
+            body: {
+              message: messageToSend,
+              conversationHistory: [...messages, userMessage].map(m => ({
+                role: m.role,
+                content: m.content
+              })),
+              userId: session.user.id
+            }
+          });
+
+          clearTimeout(timeoutId);
+          return result;
+        } catch (err) {
+          clearTimeout(timeoutId);
+          throw err;
         }
-      });
-
-      clearTimeout(timeoutId);
+      }, 3, 1000); // 3 retries with 1 second base delay
 
       if (error) {
         console.error('Error calling chat function:', error);
