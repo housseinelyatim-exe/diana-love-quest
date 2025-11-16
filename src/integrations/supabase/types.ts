@@ -104,6 +104,7 @@ export type Database = {
           age_range_preference: unknown
           asked_questions: Json | null
           avatar_url: string | null
+          bio: string | null
           created_at: string | null
           creative_hobbies: string[] | null
           cultural_activities: string[] | null
@@ -171,6 +172,7 @@ export type Database = {
           age_range_preference?: unknown
           asked_questions?: Json | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string | null
           creative_hobbies?: string[] | null
           cultural_activities?: string[] | null
@@ -240,6 +242,7 @@ export type Database = {
           age_range_preference?: unknown
           asked_questions?: Json | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string | null
           creative_hobbies?: string[] | null
           cultural_activities?: string[] | null
