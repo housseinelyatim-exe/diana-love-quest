@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,19 @@ const Auth = () => {
   const [whatsapp, setWhatsapp] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  useEffect(() => {
+    // Check if this is a password recovery link
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    
+    if (type === 'recovery') {
+      setIsRecoveryMode(true);
+    }
+  }, []);
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +91,35 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords don't match!");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Password updated successfully!");
+      setIsRecoveryMode(false);
+      navigate("/intro");
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-[var(--shadow-soft)]">
@@ -88,13 +130,48 @@ const Auth = () => {
             </div>
           </div>
           <CardTitle className="text-3xl font-bold bg-[var(--gradient-romantic)] bg-clip-text text-transparent">
-            {t.auth.welcome}
+            {isRecoveryMode ? "Reset Your Password" : t.auth.welcome}
           </CardTitle>
           <CardDescription className="text-base">
-            {t.auth.subtitle}
+            {isRecoveryMode ? "Enter your new password below" : t.auth.subtitle}
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {isRecoveryMode ? (
+            <form onSubmit={handlePasswordUpdate} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
+                disabled={loading}
+              >
+                {loading ? "Updating..." : "Update Password"}
+              </Button>
+            </form>
+          ) : (
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="signin">{t.auth.signIn}</TabsTrigger>
@@ -201,6 +278,7 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
+          )}
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             {t.auth.terms}
