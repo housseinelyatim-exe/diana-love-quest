@@ -13,6 +13,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
 import { QuestionProgressTracker } from "@/components/QuestionProgressTracker";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { retryWithBackoff } from "@/lib/retryWithBackoff";
 
 interface Message {
   role: "user" | "assistant";
@@ -286,95 +287,93 @@ const Chat = () => {
         return;
       }
 
-      // Call edge function with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      // Retry logic for sending message to edge function
+      await retryWithBackoff(async () => {
+        // Call edge function with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      const { data, error } = await supabase.functions.invoke('chat-with-diana', {
-        body: {
-          message: messageToSend,
-          conversationHistory: [...messages, userMessage].map(m => ({
-            role: m.role,
-            content: m.content
-          })),
-          userId: session.user.id
+        try {
+          const { data, error } = await supabase.functions.invoke('chat-with-diana', {
+            body: {
+              message: messageToSend,
+              conversationHistory: [...messages, userMessage].map(m => ({
+                role: m.role,
+                content: m.content
+              })),
+              userId: session.user.id
+            },
+            signal: controller.signal
+          });
+
+          clearTimeout(timeoutId);
+
+          if (error) {
+            console.error('Error calling chat function:', error);
+            
+            // Handle specific error types
+            if (error.message?.includes('FunctionsRelayError') || error.message?.includes('Failed to fetch')) {
+              throw new Error("Network error. Please check your connection.");
+            } else if (error.message?.includes('FunctionsHttpError')) {
+              throw new Error("Server error occurred. Please try again.");
+            } else if (error.message?.includes('timeout') || error.message?.includes('aborted')) {
+              throw new Error("Request timeout. Please try again.");
+            } else if (error.message?.includes('429')) {
+              throw new Error("Too many requests. Please wait a moment.");
+            } else {
+              throw new Error("Failed to send message.");
+            }
+          }
+
+          // Validate response
+          if (!data || !data.response) {
+            console.error('Invalid response from chat function:', data);
+            throw new Error("Received invalid response.");
+          }
+
+          const aiResponse: Message = {
+            role: "assistant",
+            content: data.response,
+            timestamp: new Date(),
+          };
+          
+          setMessages((prev) => [...prev, aiResponse]);
+          
+          // Update profile completion with validation
+          if (typeof data.profileCompletion === 'number') {
+            setProfileCompletion(data.profileCompletion);
+          }
+          
+          if (data.currentCategory) {
+            setCurrentCategory(data.currentCategory);
+          }
+          
+          if (data.completedCategories) {
+            setCompletedCategories(data.completedCategories);
+          }
+          
+          if (data.categoryProgress) {
+            setCategoryProgress(data.categoryProgress);
+          }
+        } catch (innerError) {
+          clearTimeout(timeoutId);
+          throw innerError;
         }
-      });
-
-      clearTimeout(timeoutId);
-
-      if (error) {
-        console.error('Error calling chat function:', error);
-        
-        // Handle specific error types
-        if (error.message?.includes('FunctionsRelayError') || error.message?.includes('Failed to fetch')) {
-          toast.error("Network error. Please check your connection and try again.");
-        } else if (error.message?.includes('FunctionsHttpError')) {
-          toast.error("Server error. Our team has been notified. Please try again.");
-        } else if (error.message?.includes('timeout') || error.message?.includes('aborted')) {
-          toast.error("Request timeout. Please try again.");
-        } else if (error.message?.includes('429')) {
-          toast.error("Too many requests. Please wait a moment and try again.");
-        } else {
-          toast.error("Failed to send message. Please try again.");
-        }
-        
-        setLoading(false);
-        return;
-      }
-
-      // Validate response
-      if (!data || !data.response) {
-        console.error('Invalid response from chat function:', data);
-        toast.error("Received invalid response. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      const aiResponse: Message = {
-        role: "assistant",
-        content: data.response,
-        timestamp: new Date(),
-      };
-      
-      setMessages((prev) => [...prev, aiResponse]);
-      
-      // Update profile completion with validation
-      if (typeof data.profileCompletion === 'number') {
-        setProfileCompletion(data.profileCompletion);
-      }
-      
-      if (data.currentCategory) {
-        setCurrentCategory(data.currentCategory);
-      }
-      if (data.completedCategories) {
-        setCompletedCategories(data.completedCategories);
-      }
-      if (data.categoryProgress) {
-        setCategoryProgress(data.categoryProgress);
-      }
+      }, { maxRetries: 2, initialDelay: 2000, maxDelay: 8000 });
 
       // Show progress toasts
-      if (data.profileCompletion >= 50 && data.profileCompletion < 100 && !hasShown50Toast.current) {
+      if (profileCompletion >= 50 && profileCompletion < 100 && !hasShown50Toast.current) {
         toast.success(t.chat.greatProgress);
         hasShown50Toast.current = true;
-      } else if (data.profileCompletion === 100 && !hasShown100Toast.current) {
+      } else if (profileCompletion === 100 && !hasShown100Toast.current) {
         toast.success("Profile complete! You'll get the best possible matches now.");
         hasShown100Toast.current = true;
       }
     } catch (error: any) {
-      console.error('Unexpected error:', error);
+      console.error('Error after retries:', error);
       
-      // Handle network errors
-      if (error.name === 'AbortError') {
-        toast.error("Request timeout. Please check your connection and try again.");
-      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
-        toast.error("Network error. Please check your internet connection.");
-      } else if (error.message?.includes('JSON')) {
-        toast.error("Invalid response format. Please try again.");
-      } else {
-        toast.error("An unexpected error occurred. Please try again.");
-      }
+      // Show user-friendly error message
+      toast.error(error.message || "Failed to send message after multiple attempts. Please try again.");
       
       // Remove the user message if it failed
       setMessages((prev) => prev.filter(m => m !== userMessage));
