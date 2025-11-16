@@ -347,11 +347,10 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
     }
 
     // Normalize extracted data for typos and synonyms
-    extractedData = normalizeExtractedData(extractedData, message);
-
     // Track the current question being asked to prevent repetition
     // (currentIndex already declared earlier for caching)
     const currentQuestionField = QUESTION_LIST[currentIndex]?.field;
+    extractedData = normalizeExtractedData(extractedData, message, currentQuestionField);
     const askedQuestions = profile?.asked_questions || [];
 
     // Check if user wants to skip the current question
@@ -708,7 +707,7 @@ function getNextQuestion(p: any, lang: string): string {
   return t('fallback');
 }
 
-function normalizeExtractedData(data: any, message: string): any {
+function normalizeExtractedData(data: any, message: string, currentField: string): any {
   if (!data) return data;
   const norm: any = { ...data };
   const msg = (message || '').toLowerCase();
@@ -728,27 +727,29 @@ function normalizeExtractedData(data: any, message: string): any {
 
   // Handle "no" responses for yes_no_type fields
   const noPatterns = ['no', 'noo', 'nope', 'never', 'not at all', "don't have", "dont have", 'i do not', "i don't"];
-  if (noPatterns.some(p => msg === p || msg.startsWith(p + ' ') || msg.endsWith(' ' + p))) {
-    // Check which question is being answered based on context
-    if (!norm.disabilities_and_special_need && (msg.includes('disab') || msg.includes('special need'))) {
+  const isNoResponse = noPatterns.some(p => msg === p || msg.startsWith(p + ' ') || msg.endsWith(' ' + p));
+  
+  if (isNoResponse) {
+    // Check which question is being answered based on current field context
+    if (!norm.disabilities_and_special_need && currentField === 'disabilities_and_special_need') {
       norm.disabilities_and_special_need = 'no';
     }
-    if (!norm.smoking && msg.includes('smok')) {
+    if (!norm.smoking && currentField === 'smoking') {
       norm.smoking = 'no';
     }
-    if (!norm.drinking && msg.includes('drink')) {
+    if (!norm.drinking && currentField === 'drinking') {
       norm.drinking = 'no';
     }
-    if (!norm.have_children && msg.includes('child')) {
+    if (!norm.have_children && currentField === 'have_children') {
       norm.have_children = 'no';
     }
-    if (!norm.want_children && msg.includes('want') && msg.includes('child')) {
+    if (!norm.want_children && currentField === 'want_children') {
       norm.want_children = 'no';
     }
-    if (!norm.have_pet && (msg.includes('pet') || msg.includes('dog') || msg.includes('cat'))) {
+    if (!norm.have_pet && currentField === 'have_pet') {
       norm.have_pet = 'no';
     }
-    if (!norm.volunteer_community_work && (msg.includes('volunteer') || msg.includes('community'))) {
+    if (!norm.volunteer_community_work && currentField === 'volunteer_community_work') {
       norm.volunteer_community_work = 'no';
     }
   }
