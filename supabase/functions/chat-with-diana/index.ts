@@ -160,11 +160,20 @@ CONVERSATION STYLE:
    - After a good exchange, naturally transition: "By the way..." or "Oh, I'm curious..."
    - Make questions feel like natural conversation, not an interview
 
+SKIPPING QUESTIONS:
+- Users can skip ANY question by saying "skip", "pass", "next", "prefer not to say", or similar
+- When they skip, respond warmly: "No problem! That's totally fine" or "Of course, let's move on"
+- NEVER pressure them to answer skipped questions
+- Remember they skipped it - don't ask that question again
+- Some topics are sensitive - respect their boundaries completely
+- If a question makes them uncomfortable, acknowledge it and move forward gracefully
+
 DATA EXTRACTION:
 - Always use the tool to extract profile information
 - Accept typos and variations (e.g., "diabities" -> "diabetes")
 - When user says no job/unemployed: set employment_status="unemployed", work_life_balance="not_applicable"
-- NEVER repeat questions already asked
+- NEVER repeat questions already asked (including those marked with "skipped:")
+- When user skips, DO NOT extract data for that field
 
 RESPONSE STYLE:
 - Keep under 100 words but be conversational
@@ -262,6 +271,13 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
     const currentQuestionField = QUESTION_LIST[currentIndex]?.field;
     const askedQuestions = profile?.asked_questions || [];
 
+    // Check if user wants to skip the current question
+    const lowerMessage = message.toLowerCase().trim();
+    const skipKeywords = ['skip', 'pass', 'next', 'skip this', 'skip it', 'move on', 'prefer not to say', "don't want to answer", 'rather not say'];
+    const isSkipping = skipKeywords.some(keyword => lowerMessage.includes(keyword)) && 
+                       lowerMessage.length < 100 && 
+                       !extractedData;
+
     // Update with progress tracking
     if (extractedData && Object.keys(extractedData).length > 0) {
       const answeredFields = Object.keys(extractedData);
@@ -270,7 +286,8 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
       const nextIdx = QUESTION_LIST.findIndex((q, idx) => 
         idx > currentIndex &&
         !profile?.[q.field] &&
-        !updatedAsked.includes(q.field)
+        !updatedAsked.includes(q.field) &&
+        !updatedAsked.includes(`skipped:${q.field}`)
       );
       
       await supabase
@@ -283,14 +300,35 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
         .eq('id', userId);
       
       console.log('✅ Profile updated with progress');
-    } else if (currentQuestionField && !askedQuestions.includes(currentQuestionField)) {
-      // No data extracted but mark current question as asked to avoid repetition
+    } else if (isSkipping && currentQuestionField && !askedQuestions.includes(currentQuestionField) && !askedQuestions.includes(`skipped:${currentQuestionField}`)) {
+      // User wants to skip this question
+      const updatedAsked = [...new Set([...askedQuestions, `skipped:${currentQuestionField}`])];
+      
+      const nextIdx = QUESTION_LIST.findIndex((q, idx) => 
+        idx > currentIndex &&
+        !profile?.[q.field] &&
+        !updatedAsked.includes(q.field) &&
+        !updatedAsked.includes(`skipped:${q.field}`)
+      );
+      
+      await supabase
+        .from('profiles')
+        .update({
+          asked_questions: updatedAsked,
+          current_question_index: nextIdx >= 0 ? nextIdx : currentIndex + 1
+        })
+        .eq('id', userId);
+      
+      console.log('⏭️ Question skipped by user, moving to next');
+    } else if (currentQuestionField && !askedQuestions.includes(currentQuestionField) && !askedQuestions.includes(`skipped:${currentQuestionField}`)) {
+      // No data extracted and not skipping but mark current question as asked to avoid repetition
       const updatedAsked = [...new Set([...askedQuestions, currentQuestionField])];
       
       const nextIdx = QUESTION_LIST.findIndex((q, idx) => 
         idx > currentIndex &&
         !profile?.[q.field] &&
-        !updatedAsked.includes(q.field)
+        !updatedAsked.includes(q.field) &&
+        !updatedAsked.includes(`skipped:${q.field}`)
       );
       
       await supabase
