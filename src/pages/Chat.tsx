@@ -78,25 +78,46 @@ const Chat = () => {
   }, [messages.length]);
 
   const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        toast.error("Authentication error. Please log in again.");
+        navigate("/auth");
+        return;
+      }
+      if (!session) {
+        navigate("/auth");
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      toast.error("Connection error. Please check your internet and try again.");
       navigate("/auth");
     }
   };
 
   const initializeChat = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        toast.error("Failed to verify session. Please log in again.");
+        navigate("/auth");
+        return;
+      }
       if (!session) return; // checkAuth will redirect
 
       // Sync language from localStorage to profile and load avatar
       const savedLanguage = localStorage.getItem('preferredLanguage') || localStorage.getItem('language');
       if (savedLanguage && ['en', 'fr', 'ar', 'tn'].includes(savedLanguage)) {
-        const { data: currentProfile } = await supabase
+        const { data: currentProfile, error: profileError } = await supabase
           .from('profiles')
           .select('language, avatar_url')
           .eq('id', session.user.id)
           .single();
+
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          toast.error("Failed to load profile. Some features may not work.");
+        }
 
         if (currentProfile) {
           if (currentProfile.language !== savedLanguage) {
@@ -105,69 +126,54 @@ const Chat = () => {
               .update({ language: savedLanguage as 'en' | 'fr' | 'ar' | 'tn' })
               .eq('id', session.user.id);
           }
-          setAvatarUrl(currentProfile.avatar_url || '');
+          if (currentProfile.avatar_url) {
+            setAvatarUrl(currentProfile.avatar_url);
+          }
         }
       }
 
-      // Load previous messages from database
-      const { data: dbMessages, error: messagesError } = await supabase
+      // Load previous messages
+      const { data: prevMessages, error: messagesError } = await supabase
         .from('messages')
-        .select('*')
+        .select('content, is_from_diana, created_at')
         .or(`sender_id.eq.${session.user.id},receiver_id.eq.${session.user.id}`)
         .order('created_at', { ascending: true });
 
       if (messagesError) {
-        console.error('Error loading messages:', messagesError);
+        console.error('Messages fetch error:', messagesError);
+        toast.error("Failed to load previous messages.");
       }
 
-      // Convert database messages to frontend format
-      const loadedMessages: Message[] = dbMessages?.map(msg => ({
-        role: msg.is_from_diana ? 'assistant' as const : 'user' as const,
-        content: msg.content,
-        timestamp: new Date(msg.created_at),
-      })) || [];
-
-      // If there are previous messages, load them
-      if (loadedMessages.length > 0) {
+      if (prevMessages && prevMessages.length > 0) {
+        const loadedMessages: Message[] = prevMessages.map(msg => ({
+          role: msg.is_from_diana ? 'assistant' : 'user',
+          content: msg.content,
+          timestamp: new Date(msg.created_at || Date.now()),
+        }));
         setMessages(loadedMessages);
-        
-        // Get current profile completion
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_profile_complete')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (profile?.is_profile_complete) {
-          setProfileCompletion(profile.is_profile_complete);
-        }
       } else {
-        // No previous messages, get initial greeting
-        const { data, error } = await supabase.functions.invoke('chat-with-diana', {
-          body: {
-            message: "",
-            conversationHistory: [],
-            userId: session.user.id,
-          },
-        });
-
-        if (error) {
-          console.error('Error initializing chat:', error);
-          setMessages([{
-            role: 'assistant',
-            content: "Hello! I'm Diana, your personal matchmaking assistant. Let's get to know each other!",
-            timestamp: new Date(),
-          }]);
-          return;
-        }
-
+        // Initial greeting
         setMessages([{
           role: 'assistant',
-          content: data.response,
+          content: "Hello! I'm Diana, your personal matchmaking assistant. Let's build your profile together! 💕",
           timestamp: new Date(),
         }]);
-        
-        if (typeof data.profileCompletion === 'number') {
+      }
+
+      // Get profile completion
+      const { data, error: completionError } = await supabase.functions.invoke('chat-with-diana', {
+        body: {
+          message: '',
+          conversationHistory: [],
+          userId: session.user.id
+        }
+      });
+
+      if (completionError) {
+        console.error('Profile completion fetch error:', completionError);
+        toast.error("Failed to load profile completion status.");
+      } else if (data) {
+        if (data.profileCompletion !== undefined) {
           setProfileCompletion(data.profileCompletion);
         }
         if (data.currentCategory) {
@@ -180,8 +186,19 @@ const Chat = () => {
           setCategoryProgress(data.categoryProgress);
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Init error:', e);
+      
+      // Check for specific error types
+      if (e.message?.includes('Failed to fetch') || e.message?.includes('NetworkError')) {
+        toast.error("Network error. Please check your connection and refresh the page.");
+      } else if (e.message?.includes('timeout')) {
+        toast.error("Connection timeout. Please try again.");
+      } else {
+        toast.error("Failed to initialize chat. Please refresh the page.");
+      }
+      
+      // Fallback greeting
       setMessages([{
         role: 'assistant',
         content: "Hello! I'm Diana, your personal matchmaking assistant.",
@@ -254,12 +271,24 @@ const Chat = () => {
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Check authentication
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        toast.error("Session expired. Please log in again.");
+        navigate("/auth");
+        return;
+      }
+      
       if (!session) {
         toast.error("Please log in to continue");
         navigate("/auth");
         return;
       }
+
+      // Call edge function with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
       const { data, error } = await supabase.functions.invoke('chat-with-diana', {
         body: {
@@ -272,9 +301,32 @@ const Chat = () => {
         }
       });
 
+      clearTimeout(timeoutId);
+
       if (error) {
         console.error('Error calling chat function:', error);
-        toast.error("Failed to send message. Please try again.");
+        
+        // Handle specific error types
+        if (error.message?.includes('FunctionsRelayError') || error.message?.includes('Failed to fetch')) {
+          toast.error("Network error. Please check your connection and try again.");
+        } else if (error.message?.includes('FunctionsHttpError')) {
+          toast.error("Server error. Our team has been notified. Please try again.");
+        } else if (error.message?.includes('timeout') || error.message?.includes('aborted')) {
+          toast.error("Request timeout. Please try again.");
+        } else if (error.message?.includes('429')) {
+          toast.error("Too many requests. Please wait a moment and try again.");
+        } else {
+          toast.error("Failed to send message. Please try again.");
+        }
+        
+        setLoading(false);
+        return;
+      }
+
+      // Validate response
+      if (!data || !data.response) {
+        console.error('Invalid response from chat function:', data);
+        toast.error("Received invalid response. Please try again.");
         setLoading(false);
         return;
       }
@@ -286,7 +338,11 @@ const Chat = () => {
       };
       
       setMessages((prev) => [...prev, aiResponse]);
-      setProfileCompletion(data.profileCompletion);
+      
+      // Update profile completion with validation
+      if (typeof data.profileCompletion === 'number') {
+        setProfileCompletion(data.profileCompletion);
+      }
       
       if (data.currentCategory) {
         setCurrentCategory(data.currentCategory);
@@ -298,6 +354,7 @@ const Chat = () => {
         setCategoryProgress(data.categoryProgress);
       }
 
+      // Show progress toasts
       if (data.profileCompletion >= 50 && data.profileCompletion < 100 && !hasShown50Toast.current) {
         toast.success(t.chat.greatProgress);
         hasShown50Toast.current = true;
@@ -305,9 +362,23 @@ const Chat = () => {
         toast.success("Profile complete! You'll get the best possible matches now.");
         hasShown100Toast.current = true;
       }
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error("Something went wrong. Please try again.");
+    } catch (error: any) {
+      console.error('Unexpected error:', error);
+      
+      // Handle network errors
+      if (error.name === 'AbortError') {
+        toast.error("Request timeout. Please check your connection and try again.");
+      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+        toast.error("Network error. Please check your internet connection.");
+      } else if (error.message?.includes('JSON')) {
+        toast.error("Invalid response format. Please try again.");
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+      
+      // Remove the user message if it failed
+      setMessages((prev) => prev.filter(m => m !== userMessage));
+      setInput(messageToSend); // Restore the input
     } finally {
       setLoading(false);
     }
