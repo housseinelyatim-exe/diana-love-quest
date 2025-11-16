@@ -338,8 +338,16 @@ const Chat = () => {
         <div className="flex-1">
           <h1 className="font-semibold">Diana</h1>
           <div className="flex items-center gap-2">
-            <Progress value={profileCompletion} className="h-1.5 flex-1 max-w-[120px]" />
-            <span className="text-xs font-medium text-white/90">{profileCompletion}%</span>
+            <div className="flex-1 max-w-[140px]">
+              <Progress 
+                value={profileCompletion} 
+                className="h-2 bg-white/20 rounded-full overflow-hidden shadow-inner" 
+              />
+            </div>
+            <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded-full border border-white/20">
+              <Sparkles className="h-3 w-3 text-white/90 animate-pulse" />
+              <span className="text-xs font-semibold text-white">{profileCompletion}%</span>
+            </div>
           </div>
         </div>
       </div>
