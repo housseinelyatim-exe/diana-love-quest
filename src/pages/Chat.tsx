@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { Send, ArrowLeft, Sparkles, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
+import { QuestionProgressTracker } from "@/components/QuestionProgressTracker";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 interface Message {
   role: "user" | "assistant";
@@ -38,6 +40,7 @@ const Chat = () => {
   const hasShown100Toast = useRef(false);
   const lastMessageTime = useRef<number>(0);
   const [isThrottled, setIsThrottled] = useState(false);
+  const [showProgressTracker, setShowProgressTracker] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -350,6 +353,14 @@ const Chat = () => {
             </div>
           </div>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowProgressTracker(true)}
+          className="hover:bg-white/20 text-white text-xs h-8 px-3 whitespace-nowrap"
+        >
+          Progress
+        </Button>
       </div>
 
       {/* Chat Messages */}
@@ -470,6 +481,17 @@ const Chat = () => {
           onClose={() => setViewingImage(null)} 
         />
       )}
+
+      <Sheet open={showProgressTracker} onOpenChange={setShowProgressTracker}>
+        <SheetContent side="right" className="w-full sm:max-w-lg p-0 overflow-hidden">
+          <SheetHeader className="px-6 pt-6 pb-4 border-b">
+            <SheetTitle>Question Progress Tracker</SheetTitle>
+          </SheetHeader>
+          <div className="p-6 overflow-y-auto h-[calc(100vh-80px)]">
+            <QuestionProgressTracker />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
