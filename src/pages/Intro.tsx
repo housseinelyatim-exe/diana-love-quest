@@ -70,10 +70,12 @@ const Intro = () => {
   };
 
   const handleGetStarted = () => {
+    localStorage.setItem('hasSeenIntro', 'true');
     navigate("/chat");
   };
 
   const handleSkip = () => {
+    localStorage.setItem('hasSeenIntro', 'true');
     navigate("/chat");
   };
 
