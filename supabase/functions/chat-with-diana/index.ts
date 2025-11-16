@@ -282,13 +282,20 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
                   employment_status: { type: 'string', enum: ['employed', 'self_employed', 'student', 'unemployed', 'retired'] },
                   job: { type: 'string' },
                   height: { type: 'number' },
+                  height_preference: { type: 'string' },
                   religion: { type: 'string', enum: ['muslim', 'christian', 'jewish', 'buddhist', 'hindu', 'other', 'none'] },
                   practice_lvl: { type: 'string', enum: ['very_religious', 'religious', 'moderate', 'not_religious'] },
                   smoking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
                   drinking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  health: { type: 'string' },
+                  disabilities_and_special_need: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  disabilities_and_special_need_type: { type: 'string' },
                   have_pet: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  pet: { type: 'string', description: 'Type and details of pet(s), e.g., "2 dogs", "cat", "3 puppies"' },
                   dietary_habits: { type: 'string' },
                   sleep_habits: { type: 'string' },
+                  work_life_balance: { type: 'string' },
+                  volunteer_community_work: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
                   life_goal: { type: 'string' },
                   physical_activities: { type: 'array', items: { type: 'string' } },
                   cultural_activities: { type: 'array', items: { type: 'string' } },
@@ -296,7 +303,14 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
                   gaming_hobbies: { type: 'array', items: { type: 'string' } },
                   travel_frequency: { type: 'string', enum: ['never', 'rarely', 'sometimes', 'often', 'very_often'] },
                   type_of_trips: { type: 'string' },
-                  travel_style: { type: 'string' }
+                  travel_style: { type: 'string' },
+                  travel_planning: { type: 'string' },
+                  relocation_same_country: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  relocation_across_countries: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
+                  role_in_relationship: { type: 'string' },
+                  age_range_preference: { type: 'string' },
+                  health_disability_preference: { type: 'string' },
+                  red_flags: { type: 'array', items: { type: 'string' } }
                 }
               }
             }
@@ -699,11 +713,77 @@ function normalizeExtractedData(data: any, message: string): any {
     if (v.includes('diab')) return 'diabetes';
     if (v.includes('asthm')) return 'asthma';
     if (v.includes('hypert') || v.includes('high blood pressure') || v.includes('blood pressure') || v === 'bp') return 'hypertension';
+    if (v.includes('cancer')) return 'cancer';
     return val;
   };
 
   if (norm.health) norm.health = normalizeHealth(norm.health);
   else if (msg.includes('diab')) norm.health = 'diabetes';
+  else if (msg.includes('cancer')) norm.health = 'cancer';
+
+  // Handle "no" responses for yes_no_type fields
+  const noPatterns = ['no', 'noo', 'nope', 'never', 'not at all', "don't have", "dont have", 'i do not', "i don't"];
+  if (noPatterns.some(p => msg === p || msg.startsWith(p + ' ') || msg.endsWith(' ' + p))) {
+    // Check which question is being answered based on context
+    if (!norm.disabilities_and_special_need && (msg.includes('disab') || msg.includes('special need'))) {
+      norm.disabilities_and_special_need = 'no';
+    }
+    if (!norm.smoking && msg.includes('smok')) {
+      norm.smoking = 'no';
+    }
+    if (!norm.drinking && msg.includes('drink')) {
+      norm.drinking = 'no';
+    }
+    if (!norm.have_children && msg.includes('child')) {
+      norm.have_children = 'no';
+    }
+    if (!norm.want_children && msg.includes('want') && msg.includes('child')) {
+      norm.want_children = 'no';
+    }
+    if (!norm.have_pet && (msg.includes('pet') || msg.includes('dog') || msg.includes('cat'))) {
+      norm.have_pet = 'no';
+    }
+    if (!norm.volunteer_community_work && (msg.includes('volunteer') || msg.includes('community'))) {
+      norm.volunteer_community_work = 'no';
+    }
+  }
+
+  // Detect pet types and set both have_pet and pet
+  const petPatterns = [
+    { match: ['dog', 'puppy', 'puppies', 'pup', 'canine'], value: 'dog' },
+    { match: ['cat', 'kitten', 'kitty', 'feline'], value: 'cat' },
+    { match: ['bird', 'parrot', 'budgie'], value: 'bird' },
+    { match: ['fish', 'goldfish', 'aquarium'], value: 'fish' },
+    { match: ['rabbit', 'bunny'], value: 'rabbit' },
+    { match: ['hamster', 'guinea pig'], value: 'hamster' },
+  ];
+
+  for (const pattern of petPatterns) {
+    if (pattern.match.some(m => msg.includes(m))) {
+      norm.have_pet = 'yes';
+      
+      // Extract count if mentioned
+      const countMatch = msg.match(/(\d+|one|two|three|four|five|six|seven|eight|nine|ten)/i);
+      let count = '';
+      if (countMatch) {
+        const numMap: Record<string, string> = {
+          'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5',
+          'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10'
+        };
+        count = numMap[countMatch[1].toLowerCase()] || countMatch[1];
+      }
+      
+      // Build pet description
+      if (count && parseInt(count) > 1) {
+        norm.pet = `${count} ${pattern.value}s`;
+      } else if (count === '1') {
+        norm.pet = `1 ${pattern.value}`;
+      } else {
+        norm.pet = pattern.value;
+      }
+      break;
+    }
+  }
 
   // If user clearly states not working, normalize employment and mark work/life balance
   if (!norm.employment_status) {
