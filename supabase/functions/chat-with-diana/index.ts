@@ -693,14 +693,14 @@ function getNextQuestion(p: any, lang: string): string {
 
   for (let i = currentIndex; i < QUESTION_LIST.length; i++) {
     const { field } = QUESTION_LIST[i];
-    if (!p?.[field] && !askedQuestions.includes(field) && shouldAsk(field)) {
+    if (!p?.[field] && !askedQuestions.includes(field) && !askedQuestions.includes(`skipped:${field}`) && shouldAsk(field)) {
       return t(field);
     }
   }
   
   // Check for any missed
   for (const { field } of QUESTION_LIST) {
-    if (!p?.[field] && !askedQuestions.includes(field) && shouldAsk(field)) {
+    if (!p?.[field] && !askedQuestions.includes(field) && !askedQuestions.includes(`skipped:${field}`) && shouldAsk(field)) {
       return t(field);
     }
   }
