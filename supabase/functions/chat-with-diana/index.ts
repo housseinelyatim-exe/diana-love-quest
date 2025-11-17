@@ -438,32 +438,9 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
         .eq("id", userId);
 
       console.log("⏭️ Question skipped by user, moving to next");
-    } else if (
-      currentQuestionField &&
-      !askedQuestions.includes(currentQuestionField) &&
-      !askedQuestions.includes(`skipped:${currentQuestionField}`)
-    ) {
-      // No data extracted and not skipping but mark current question as asked to avoid repetition
-      const updatedAsked = [...new Set([...askedQuestions, currentQuestionField])];
-
-      const nextIdx = QUESTION_LIST.findIndex(
-        (q, idx) =>
-          idx > currentIndex &&
-          !profile?.[q.field] &&
-          !updatedAsked.includes(q.field) &&
-          !updatedAsked.includes(`skipped:${q.field}`),
-      );
-
-      await supabase
-        .from("profiles")
-        .update({
-          asked_questions: updatedAsked,
-          current_question_index: nextIdx >= 0 ? nextIdx : currentIndex + 1,
-        })
-        .eq("id", userId);
-
-      console.log("⏭️ Marked question as asked, moving to next");
     }
+    // If no data was extracted and user didn't skip, don't mark question as asked
+    // This allows Diana to re-ask or clarify the current question
 
     // Get updated profile for next question
     const { data: updatedProfile } = await supabase.from("profiles").select("*").eq("id", userId).single();
