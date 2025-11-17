@@ -236,12 +236,14 @@ export const QuestionProgressTracker = () => {
                           {status === 'remaining' && (
                             <Circle className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                           )}
-                          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                          <div className={`flex flex-col gap-0.5 flex-1 min-w-0 ${
+                            status === 'skipped' ? 'line-through' : ''
+                          }`}>
                             <span className={`text-sm ${
                               status === 'answered' 
                                 ? 'text-foreground font-medium' 
                                 : status === 'skipped'
-                                ? 'text-muted-foreground line-through'
+                                ? 'text-muted-foreground'
                                 : 'text-muted-foreground'
                             }`}>
                               {formatFieldName(question.field)}
