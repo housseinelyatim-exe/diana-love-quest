@@ -75,6 +75,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 export const QuestionProgressTracker = () => {
   const { t } = useLanguage();
   const [askedQuestions, setAskedQuestions] = useState<string[]>([]);
+  const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -110,18 +111,32 @@ export const QuestionProgressTracker = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('asked_questions')
+        .select('*')
         .eq('id', session.user.id)
         .single();
 
       if (profile?.asked_questions) {
         setAskedQuestions(profile.asked_questions as string[]);
       }
+      setProfileData(profile);
     } catch (error) {
       console.error('Error loading progress:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatValue = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    if (Array.isArray(value)) return value.join(', ');
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+  };
+
+  const getFieldValue = (field: string): string => {
+    if (!profileData) return '';
+    const value = profileData[field];
+    return formatValue(value);
   };
 
   const getQuestionStatus = (field: string): 'answered' | 'skipped' | 'remaining' => {
@@ -221,15 +236,22 @@ export const QuestionProgressTracker = () => {
                           {status === 'remaining' && (
                             <Circle className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                           )}
-                          <span className={`text-sm ${
-                            status === 'answered' 
-                              ? 'text-foreground font-medium' 
-                              : status === 'skipped'
-                              ? 'text-muted-foreground line-through'
-                              : 'text-muted-foreground'
-                          }`}>
-                            {formatFieldName(question.field)}
-                          </span>
+                          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                            <span className={`text-sm ${
+                              status === 'answered' 
+                                ? 'text-foreground font-medium' 
+                                : status === 'skipped'
+                                ? 'text-muted-foreground line-through'
+                                : 'text-muted-foreground'
+                            }`}>
+                              {formatFieldName(question.field)}
+                            </span>
+                            {status === 'answered' && getFieldValue(question.field) && (
+                              <span className="text-xs text-muted-foreground truncate">
+                                {getFieldValue(question.field)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
