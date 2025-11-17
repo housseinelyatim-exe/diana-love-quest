@@ -930,38 +930,90 @@ function calculateProfileCompletion(profile: any): number {
 
 function generateBioPrompt(profile: any, lang: string): string {
   const bioIntros: Record<string, string> = {
-    en: `Create a compelling 3-4 sentence bio for this person based on their profile:\n\n`,
-    fr: `Créez une bio convaincante de 3-4 phrases pour cette personne basée sur son profil:\n\n`,
-    ar: `أنشئ سيرة ذاتية مقنعة من 3-4 جمل لهذا الشخص بناءً على ملفه الشخصي:\n\n`,
-    tn: `اعمل بيو مقنع من 3-4 جمل لهذا الشخص بناء على بروفايلو:\n\n`,
+    en: `Create a compelling 3-4 sentence bio for this person based on their complete profile:\n\n`,
+    fr: `Créez une bio convaincante de 3-4 phrases pour cette personne basée sur son profil complet:\n\n`,
+    ar: `أنشئ سيرة ذاتية مقنعة من 3-4 جمل لهذا الشخص بناءً على ملفه الشخصي الكامل:\n\n`,
+    tn: `اعمل بيو مقنع من 3-4 جمل لهذا الشخص بناء على بروفايلو الكامل:\n\n`,
   };
 
   let prompt = bioIntros[lang] || bioIntros.en;
 
-  // Add key profile details
+  // BASIC INFORMATION
   if (profile.name) prompt += `Name: ${profile.name}\n`;
   if (profile.age) prompt += `Age: ${profile.age}\n`;
+  if (profile.gender) prompt += `Gender: ${profile.gender}\n`;
+  if (profile.height) prompt += `Height: ${profile.height} cm\n`;
+
+  // LOCATION
+  if (profile.where_was_born) prompt += `Born in: ${profile.where_was_born}\n`;
   if (profile.where_he_live) prompt += `Lives in: ${profile.where_he_live}\n`;
+  if (profile.where_want_to_live) prompt += `Wants to live in: ${profile.where_want_to_live}\n`;
+
+  // FAMILY & CHILDREN
+  if (profile.marital_status) prompt += `Marital Status: ${profile.marital_status}\n`;
+  if (profile.have_children) prompt += `Has Children: ${profile.have_children}\n`;
+  if (profile.want_children) prompt += `Wants Children: ${profile.want_children}\n`;
+
+  // CAREER & EDUCATION
   if (profile.job) prompt += `Occupation: ${profile.job}\n`;
   if (profile.education_lvl) prompt += `Education: ${profile.education_lvl}\n`;
-  if (profile.religion && profile.practice_lvl) prompt += `Faith: ${profile.religion} (${profile.practice_lvl})\n`;
+  if (profile.employment_status) prompt += `Employment Status: ${profile.employment_status}\n`;
+  if (profile.work_life_balance) prompt += `Work-Life Balance: ${profile.work_life_balance}\n`;
+
+  // VALUES & BELIEFS
+  if (profile.religion) prompt += `Religion: ${profile.religion}\n`;
+  if (profile.practice_lvl) prompt += `Practice Level: ${profile.practice_lvl}\n`;
   if (profile.life_goal) prompt += `Life Goal: ${profile.life_goal}\n`;
+  if (profile.role_in_relationship) prompt += `Role in Relationship: ${profile.role_in_relationship}\n`;
 
-  // Hobbies and interests
-  const hobbies = [];
-  if (profile.physical_activities?.length) hobbies.push(...profile.physical_activities);
-  if (profile.cultural_activities?.length) hobbies.push(...profile.cultural_activities);
-  if (profile.creative_hobbies?.length) hobbies.push(...profile.creative_hobbies);
-  if (hobbies.length) prompt += `Interests: ${hobbies.join(", ")}\n`;
+  // HEALTH & WELLNESS
+  if (profile.health) prompt += `Health: ${profile.health}\n`;
+  if (profile.disabilities_and_special_need === "yes" && profile.disabilities_and_special_need_type) {
+    prompt += `Disabilities/Special Needs: ${profile.disabilities_and_special_need_type}\n`;
+  }
 
+  // LIFESTYLE HABITS
+  if (profile.smoking) prompt += `Smoking: ${profile.smoking}\n`;
+  if (profile.drinking) prompt += `Drinking: ${profile.drinking}\n`;
+  if (profile.sleep_habits) prompt += `Sleep Habits: ${profile.sleep_habits}\n`;
+  if (profile.dietary_habits) prompt += `Dietary Habits: ${profile.dietary_habits}\n`;
+  if (profile.volunteer_community_work) prompt += `Volunteer/Community Work: ${profile.volunteer_community_work}\n`;
+
+  // PETS
+  if (profile.have_pet) prompt += `Has Pet: ${profile.have_pet}\n`;
+  if (profile.have_pet === "yes" && profile.pet) prompt += `Pet Type: ${profile.pet}\n`;
+
+  // HOBBIES & INTERESTS
+  const allHobbies = [];
+  if (profile.physical_activities?.length) allHobbies.push(`Physical: ${profile.physical_activities.join(", ")}`);
+  if (profile.cultural_activities?.length) allHobbies.push(`Cultural: ${profile.cultural_activities.join(", ")}`);
+  if (profile.creative_hobbies?.length) allHobbies.push(`Creative: ${profile.creative_hobbies.join(", ")}`);
+  if (profile.gaming_hobbies?.length) allHobbies.push(`Gaming: ${profile.gaming_hobbies.join(", ")}`);
+  if (allHobbies.length) prompt += `Hobbies & Interests:\n${allHobbies.join("\n")}\n`;
+
+  // TRAVEL
   if (profile.travel_frequency) prompt += `Travel Frequency: ${profile.travel_frequency}\n`;
-  if (profile.have_pet === "yes" && profile.pet) prompt += `Pet: ${profile.pet}\n`;
+  if (profile.travel_style) prompt += `Travel Style: ${profile.travel_style}\n`;
+  if (profile.travel_planning) prompt += `Travel Planning: ${profile.travel_planning}\n`;
+  if (profile.type_of_trips) prompt += `Type of Trips: ${profile.type_of_trips}\n`;
+
+  // RELOCATION
+  if (profile.relocation_same_country) prompt += `Willing to Relocate (Same Country): ${profile.relocation_same_country}\n`;
+  if (profile.relocation_across_countries) prompt += `Willing to Relocate (Across Countries): ${profile.relocation_across_countries}\n`;
+
+  // PREFERENCES
+  if (profile.age_range_preference) prompt += `Age Range Preference: ${profile.age_range_preference}\n`;
+  if (profile.height_preference) prompt += `Height Preference: ${profile.height_preference}\n`;
+  if (profile.health_disability_preference) prompt += `Health/Disability Preference: ${profile.health_disability_preference}\n`;
+
+  // RED FLAGS
+  if (profile.red_flags?.length) prompt += `Red Flags: ${profile.red_flags.join(", ")}\n`;
 
   const guidelines: Record<string, string> = {
-    en: "\n\nMake it warm, authentic, and highlight what makes them unique. Focus on personality, values, and lifestyle. Keep it conversational and engaging.",
-    fr: "\n\nRendez-la chaleureuse, authentique et mettez en valeur ce qui les rend uniques. Concentrez-vous sur la personnalité, les valeurs et le style de vie. Gardez-la conversationnelle et engageante.",
-    ar: "\n\nاجعلها دافئة وأصلية وسلط الضوء على ما يجعلهم فريدين. ركز على الشخصية والقيم وأسلوب الحياة. اجعلها محادثة وجذابة.",
-    tn: "\n\nاعملها دافية وأصلية وورّي شنوا يخليهم مميزين. ركّز على الشخصية والقيم والستايل. خليها محادثة وجذابة.",
+    en: "\n\nUse ALL the information above to create a warm, authentic, and comprehensive bio that captures who this person truly is. Highlight their personality, values, lifestyle, goals, and what makes them unique. Make it conversational, engaging, and paint a complete picture of their life and character.",
+    fr: "\n\nUtilisez TOUTES les informations ci-dessus pour créer une bio chaleureuse, authentique et complète qui capture qui est vraiment cette personne. Mettez en valeur leur personnalité, leurs valeurs, leur style de vie, leurs objectifs et ce qui les rend uniques. Rendez-la conversationnelle, engageante et dressez un tableau complet de leur vie et de leur caractère.",
+    ar: "\n\nاستخدم كل المعلومات أعلاه لإنشاء سيرة ذاتية دافئة وأصلية وشاملة تلتقط من هو هذا الشخص حقًا. سلط الضوء على شخصيتهم وقيمهم وأسلوب حياتهم وأهدافهم وما يجعلهم فريدين. اجعلها محادثة وجذابة وارسم صورة كاملة لحياتهم وشخصيتهم.",
+    tn: "\n\nاستخدم كل المعلومات لفوق باش تعمل بيو دافي وأصلي وكامل يوصف هذا الشخص كيما هو بالحق. ورّي الشخصية متاعو والقيم والستايل والأهداف وشنوا يخليه مميز. اعملها محادثة وجذابة وورّي صورة كاملة على حياتو وشخصيتو.",
   };
 
   prompt += guidelines[lang] || guidelines.en;
