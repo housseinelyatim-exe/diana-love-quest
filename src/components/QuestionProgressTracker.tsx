@@ -248,9 +248,9 @@ export const QuestionProgressTracker = () => {
                             }`}>
                               {formatFieldName(question.field)}
                             </span>
-                            {status === 'answered' && profileData?.question_responses?.[question.field] && (
+                            {status === 'answered' && (
                               <span className="text-xs text-muted-foreground truncate">
-                                {profileData.question_responses[question.field]}
+                                {profileData?.question_responses?.[question.field] || getFieldValue(question.field)}
                               </span>
                             )}
                           </div>
