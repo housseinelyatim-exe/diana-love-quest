@@ -47,9 +47,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success(t.common.welcomeBack);
-      // Check if user has seen intro before
-      const hasSeenIntro = localStorage.getItem('hasSeenIntro');
-      navigate(hasSeenIntro === 'true' ? "/chat" : "/intro");
+      navigate("/chat");
     }
     setLoading(false);
   };
