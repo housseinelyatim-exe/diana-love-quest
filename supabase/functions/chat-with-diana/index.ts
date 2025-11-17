@@ -2,25 +2,25 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 // Helper function to generate hash for caching
 async function generateHash(text: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(text);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 // Helper function to check and retrieve cached response
 async function getCachedResponse(supabase: any, questionHash: string): Promise<string | null> {
   const { data, error } = await supabase
-    .from('ai_response_cache')
-    .select('response, id, hit_count')
-    .eq('question_hash', questionHash)
+    .from("ai_response_cache")
+    .select("response, id, hit_count")
+    .eq("question_hash", questionHash)
     .single();
 
   if (error || !data) {
@@ -29,150 +29,147 @@ async function getCachedResponse(supabase: any, questionHash: string): Promise<s
 
   // Update hit count and last_used_at
   await supabase
-    .from('ai_response_cache')
+    .from("ai_response_cache")
     .update({
       hit_count: (data.hit_count || 0) + 1,
-      last_used_at: new Date().toISOString()
+      last_used_at: new Date().toISOString(),
     })
-    .eq('id', data.id);
+    .eq("id", data.id);
 
-  console.log('💾 Cache hit! Using cached response');
+  console.log("💾 Cache hit! Using cached response");
   return data.response;
 }
 
 // Helper function to cache new response
 async function cacheResponse(supabase: any, question: string, questionHash: string, response: string): Promise<void> {
-  await supabase
-    .from('ai_response_cache')
-    .insert({
-      question,
-      question_hash: questionHash,
-      response,
-      hit_count: 0
-    });
-  
-  console.log('💾 Cached new response');
+  await supabase.from("ai_response_cache").insert({
+    question,
+    question_hash: questionHash,
+    response,
+    hit_count: 0,
+  });
+
+  console.log("💾 Cached new response");
 }
 
 // Predefined question list - comprehensive coverage of all profile fields
 const QUESTION_LIST = [
   // Basic Info (3 questions)
-  { field: 'name', category: 'basic' },
-  { field: 'age', category: 'basic' },
-  { field: 'gender', category: 'basic' },
-  
+  { field: "name", category: "basic" },
+  { field: "age", category: "basic" },
+  { field: "gender", category: "basic" },
+
   // Location (3 questions)
-  { field: 'where_was_born', category: 'location' },
-  { field: 'where_he_live', category: 'location' },
-  { field: 'where_want_to_live', category: 'location' },
-  
+  { field: "where_was_born", category: "location" },
+  { field: "where_he_live", category: "location" },
+  { field: "where_want_to_live", category: "location" },
+
   // Physical (2 questions)
-  { field: 'height', category: 'physical' },
-  { field: 'height_preference', category: 'physical' },
-  
+  { field: "height", category: "physical" },
+  { field: "height_preference", category: "physical" },
+
   // Family (3 questions)
-  { field: 'marital_status', category: 'family' },
-  { field: 'have_children', category: 'family' },
-  { field: 'want_children', category: 'family' },
-  
+  { field: "marital_status", category: "family" },
+  { field: "have_children", category: "family" },
+  { field: "want_children", category: "family" },
+
   // Career (4 questions)
-  { field: 'education_lvl', category: 'career' },
-  { field: 'employment_status', category: 'career' },
-  { field: 'job', category: 'career' },
-  { field: 'work_life_balance', category: 'career' },
-  
+  { field: "education_lvl", category: "career" },
+  { field: "employment_status", category: "career" },
+  { field: "job", category: "career" },
+  { field: "work_life_balance", category: "career" },
+
   // Values & Religion (3 questions)
-  { field: 'religion', category: 'values' },
-  { field: 'practice_lvl', category: 'values' },
-  { field: 'life_goal', category: 'values' },
-  
+  { field: "religion", category: "values" },
+  { field: "practice_lvl", category: "values" },
+  { field: "life_goal", category: "values" },
+
   // Health & Wellness (4 questions)
-  { field: 'health', category: 'health' },
-  { field: 'disabilities_and_special_need', category: 'health' },
-  { field: 'disabilities_and_special_need_type', category: 'health' },
-  { field: 'health_disability_preference', category: 'health' },
-  
+  { field: "health", category: "health" },
+  { field: "disabilities_and_special_need", category: "health" },
+  { field: "disabilities_and_special_need_type", category: "health" },
+  { field: "health_disability_preference", category: "health" },
+
   // Lifestyle Habits (5 questions)
-  { field: 'smoking', category: 'lifestyle' },
-  { field: 'drinking', category: 'lifestyle' },
-  { field: 'dietary_habits', category: 'lifestyle' },
-  { field: 'sleep_habits', category: 'lifestyle' },
-  { field: 'volunteer_community_work', category: 'lifestyle' },
-  
+  { field: "smoking", category: "lifestyle" },
+  { field: "drinking", category: "lifestyle" },
+  { field: "dietary_habits", category: "lifestyle" },
+  { field: "sleep_habits", category: "lifestyle" },
+  { field: "volunteer_community_work", category: "lifestyle" },
+
   // Pets (2 questions)
-  { field: 'have_pet', category: 'pets' },
-  { field: 'pet', category: 'pets' },
-  
+  { field: "have_pet", category: "pets" },
+  { field: "pet", category: "pets" },
+
   // Hobbies & Activities (4 questions)
-  { field: 'physical_activities', category: 'hobbies' },
-  { field: 'cultural_activities', category: 'hobbies' },
-  { field: 'creative_hobbies', category: 'hobbies' },
-  { field: 'gaming_hobbies', category: 'hobbies' },
-  
+  { field: "physical_activities", category: "hobbies" },
+  { field: "cultural_activities", category: "hobbies" },
+  { field: "creative_hobbies", category: "hobbies" },
+  { field: "gaming_hobbies", category: "hobbies" },
+
   // Travel (4 questions)
-  { field: 'travel_frequency', category: 'travel' },
-  { field: 'type_of_trips', category: 'travel' },
-  { field: 'travel_style', category: 'travel' },
-  { field: 'travel_planning', category: 'travel' },
-  
+  { field: "travel_frequency", category: "travel" },
+  { field: "type_of_trips", category: "travel" },
+  { field: "travel_style", category: "travel" },
+  { field: "travel_planning", category: "travel" },
+
   // Relocation (2 questions)
-  { field: 'relocation_same_country', category: 'relocation' },
-  { field: 'relocation_across_countries', category: 'relocation' },
-  
+  { field: "relocation_same_country", category: "relocation" },
+  { field: "relocation_across_countries", category: "relocation" },
+
   // Relationship Preferences (3 questions)
-  { field: 'role_in_relationship', category: 'relationship' },
-  { field: 'age_range_preference', category: 'relationship' },
-  { field: 'red_flags', category: 'relationship' },
+  { field: "role_in_relationship", category: "relationship" },
+  { field: "age_range_preference", category: "relationship" },
+  { field: "red_flags", category: "relationship" },
 ];
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { message, conversationHistory, userId } = await req.json();
-    console.log('💬 Chat request:', { userId, messageLength: message?.length || 0 });
-    
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+    console.log("💬 Chat request:", { userId, messageLength: message?.length || 0 });
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Fetch profile
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", userId).single();
 
-    console.log('👤 Profile data:', profile);
+    console.log("👤 Profile data:", profile);
 
     // Initial greeting
-    if (!message || message.trim() === '') {
-      const lang = profile?.language || 'en';
+    if (!message || message.trim() === "") {
+      const lang = profile?.language || "en";
       const greetings: Record<string, string> = {
         en: "Hi! I'm Diana, your matchmaking assistant 💝\n\nI'm here to help you find your perfect match through meaningful conversation. I'll guide you through building your complete profile by asking thoughtful questions about your life, values, interests, and what you're looking for in a partner.\n\nWe'll cover topics like your background, career, lifestyle, hobbies, travel preferences, and relationship goals. The more you share, the better I can understand you and find compatible matches!\n\nReady to begin? What's your name?",
         fr: "Bonjour ! Je suis Diana, votre assistante de matchmaking 💝\n\nJe suis là pour vous aider à trouver votre match parfait grâce à des conversations significatives. Je vais vous guider dans la création de votre profil complet en posant des questions réfléchies sur votre vie, vos valeurs, vos intérêts et ce que vous recherchez chez un partenaire.\n\nNous aborderons des sujets comme votre parcours, votre carrière, votre style de vie, vos loisirs, vos préférences de voyage et vos objectifs relationnels. Plus vous partagez, mieux je peux vous comprendre et trouver des matchs compatibles !\n\nPrêt à commencer ? Quel est votre nom ?",
         ar: "مرحباً! أنا ديانا، مساعدتك في إيجاد شريك الحياة 💝\n\nأنا هنا لمساعدتك في العثور على الشريك المثالي من خلال محادثة هادفة. سأرشدك خلال بناء ملفك الشخصي الكامل بطرح أسئلة مدروسة حول حياتك وقيمك واهتماماتك وما تبحث عنه في الشريك.\n\nسنتناول مواضيع مثل خلفيتك ومهنتك وأسلوب حياتك وهواياتك وتفضيلات السفر وأهداف العلاقة. كلما شاركت أكثر، كان بإمكاني فهمك بشكل أفضل وإيجاد التطابقات المناسبة!\n\nهل أنت مستعد للبدء؟ ما اسمك؟",
-        tn: "مرحبا! أنا ديانا، مساعدتك باش تلقى شريك حياتك 💝\n\nأنا هنا باش نساعدك تلقى الشريك المثالي متاعك من خلال حديث معنى. باش نهديك كيفاش تبني بروفايلك الكامل بأسئلة مدروسة على حياتك وقيمك واهتماماتك وشنوا تحب تلقى في الشريك.\n\nباش نحكيو على أمور كيما خلفيتك وخدمتك وستايل حياتك وهواياتك وتفضيلات السفر والأهداف متاع العلاقة. كل ما تشارك أكثر، كل ما نفهمك أحسن ونلقالك ماتشات مناسبة!\n\nواجد باش نبداو؟ شنوّا اسمك؟"
+        tn: "مرحبا! أنا ديانا، مساعدتك باش تلقى شريك حياتك 💝\n\nأنا هنا باش نساعدك تلقى الشريك المثالي متاعك من خلال حديث معنى. باش نهديك كيفاش تبني بروفايلك الكامل بأسئلة مدروسة على حياتك وقيمك واهتماماتك وشنوا تحب تلقى في الشريك.\n\nباش نحكيو على أمور كيما خلفيتك وخدمتك وستايل حياتك وهواياتك وتفضيلات السفر والأهداف متاع العلاقة. كل ما تشارك أكثر، كل ما نفهمك أحسن ونلقالك ماتشات مناسبة!\n\nواجد باش نبداو؟ شنوّا اسمك؟",
       };
 
       const categoryStatus = getCategoryProgress(profile);
-      
-      return new Response(JSON.stringify({
-        response: greetings[lang] || greetings.en,
-        profileCompletion: calculateProfileCompletion(profile),
-        currentCategory: determineCurrentCategory(profile).current,
-        completedCategories: determineCurrentCategory(profile).completed,
-        categoryProgress: categoryStatus
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+
+      return new Response(
+        JSON.stringify({
+          response: greetings[lang] || greetings.en,
+          profileCompletion: calculateProfileCompletion(profile),
+          currentCategory: determineCurrentCategory(profile).current,
+          completedCategories: determineCurrentCategory(profile).completed,
+          categoryProgress: categoryStatus,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
-    const lang = profile?.language || 'en';
+    const lang = profile?.language || "en";
 
     // Build system prompt
     const systemPrompt = `You are Diana, a warm and engaging matchmaking assistant who has genuine conversations.
@@ -219,128 +216,146 @@ SKIPPING QUESTIONS:
 DATA EXTRACTION:
 - Always use the tool to extract profile information
 - Accept typos and variations (e.g., "diabities" -> "diabetes")
-- When user says no job/unemployed: set employment_status="unemployed", work_life_balance="not_applicable"
+- When user says no job/unemployed/student: set employment_status="unemployed", work_life_balance="not_applicable"
 - NEVER repeat questions already asked (including those marked with "skipped:")
 - When user skips, DO NOT extract data for that field
+- The user can answer a question before it's asked affect the answer to the right place and remeber not to ask the question related to it
 
 RESPONSE STYLE:
 - Keep under 100 words but be conversational
 - ONE question at a time maximum
 - Show personality and warmth
-- Don't ask for confirmation on clear answers
+- Don't ask for confirmation on clear answers do it only if the answer is perturbing 
 
-Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar' ? 'Arabic' : 'Tunisian Arabic'}.`;
+Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar" ? "Arabic" : "Tunisian Arabic"}.`;
 
     // Generate cache key based on normalized message, current context, and language
     const currentIndex = profile?.current_question_index || 0;
-    const currentField = QUESTION_LIST[currentIndex]?.field || 'general';
+    const currentField = QUESTION_LIST[currentIndex]?.field || "general";
     const normalizedMessage = message.toLowerCase().trim();
     const cacheKey = `${currentField}:${normalizedMessage}:${lang}`;
     const questionHash = await generateHash(cacheKey);
 
     // Try to get cached response first
     const cachedResponse = await getCachedResponse(supabase, questionHash);
-    
+
     let aiMessage;
     if (cachedResponse) {
       // Use cached response
       aiMessage = { content: cachedResponse };
     } else {
       // Call AI
-      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-pro',
+          model: "google/gemini-2.5-pro",
           messages: [
-            { role: 'system', content: systemPrompt },
+            { role: "system", content: systemPrompt },
             ...(conversationHistory || []).slice(-10),
-            { role: 'user', content: message }
+            { role: "user", content: message },
           ],
-          tool_choice: 'auto',
-          tools: [{
-            type: 'function',
-            function: {
-              name: 'extract_profile_data',
-              description: 'Extract profile information',
-              parameters: {
-                type: 'object',
-                properties: {
-                  name: { type: 'string' },
-                  age: { type: 'number' },
-                  gender: { type: 'string', enum: ['male', 'female', 'other'] },
-                  where_was_born: { type: 'string' },
-                  where_he_live: { type: 'string' },
-                  where_want_to_live: { type: 'string' },
-                  marital_status: { type: 'string', enum: ['single', 'divorced', 'widowed'] },
-                  have_children: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  want_children: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  education_lvl: { type: 'string', enum: ['high_school', 'bachelor', 'master', 'phd', 'vocational', 'other'] },
-                  employment_status: { type: 'string', enum: ['employed', 'self_employed', 'student', 'unemployed', 'retired'] },
-                  job: { type: 'string' },
-                  height: { type: 'number' },
-                  height_preference: { type: 'string' },
-                  religion: { type: 'string', enum: ['muslim', 'christian', 'jewish', 'buddhist', 'hindu', 'other', 'none'] },
-                  practice_lvl: { type: 'string', enum: ['very_religious', 'religious', 'moderate', 'not_religious'] },
-                  smoking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  drinking: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  health: { type: 'string' },
-                  disabilities_and_special_need: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  disabilities_and_special_need_type: { type: 'string' },
-                  have_pet: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  pet: { type: 'string', description: 'Type and details of pet(s), e.g., "2 dogs", "cat", "3 puppies"' },
-                  dietary_habits: { type: 'string' },
-                  sleep_habits: { type: 'string' },
-                  work_life_balance: { type: 'string' },
-                  volunteer_community_work: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  life_goal: { type: 'string' },
-                  physical_activities: { type: 'array', items: { type: 'string' } },
-                  cultural_activities: { type: 'array', items: { type: 'string' } },
-                  creative_hobbies: { type: 'array', items: { type: 'string' } },
-                  gaming_hobbies: { type: 'array', items: { type: 'string' } },
-                  travel_frequency: { type: 'string', enum: ['never', 'rarely', 'sometimes', 'often', 'very_often'] },
-                  type_of_trips: { type: 'string' },
-                  travel_style: { type: 'string' },
-                  travel_planning: { type: 'string' },
-                  relocation_same_country: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  relocation_across_countries: { type: 'string', enum: ['yes', 'no', 'prefer_not_to_say'] },
-                  role_in_relationship: { type: 'string' },
-                  age_range_preference: { type: 'string' },
-                  health_disability_preference: { type: 'string' },
-                  red_flags: { type: 'array', items: { type: 'string' } }
-                }
-              }
-            }
-          }]
-        })
+          tool_choice: "auto",
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "extract_profile_data",
+                description: "Extract profile information",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string" },
+                    age: { type: "number" },
+                    gender: { type: "string", enum: ["male", "female", "other"] },
+                    where_was_born: { type: "string" },
+                    where_he_live: { type: "string" },
+                    where_want_to_live: { type: "string" },
+                    marital_status: { type: "string", enum: ["single", "divorced", "widowed"] },
+                    have_children: { type: "string", enum: ["yes", "no", "prefer_not_to_say"] },
+                    want_children: { type: "string", enum: ["yes", "no", "prefer_not_to_say"] },
+                    education_lvl: {
+                      type: "string",
+                      enum: ["high_school", "bachelor", "master", "phd", "vocational", "other"],
+                    },
+                    employment_status: {
+                      type: "string",
+                      enum: ["employed", "self_employed", "student", "unemployed", "retired"],
+                    },
+                    job: { type: "string" },
+                    height: { type: "number" },
+                    height_preference: { type: "string" },
+                    religion: {
+                      type: "string",
+                      enum: ["muslim", "christian", "jewish", "buddhist", "hindu", "other", "none"],
+                    },
+                    practice_lvl: {
+                      type: "string",
+                      enum: ["very_religious", "religious", "moderate", "not_religious"],
+                    },
+                    smoking: { type: "string", enum: ["yes", "no", "prefer_not_to_say"] },
+                    drinking: { type: "string", enum: ["yes", "no", "prefer_not_to_say"] },
+                    health: { type: "string" },
+                    disabilities_and_special_need: { type: "string", enum: ["yes", "no", "prefer_not_to_say"] },
+                    disabilities_and_special_need_type: { type: "string" },
+                    have_pet: { type: "string", enum: ["yes", "no", "prefer_not_to_say"] },
+                    pet: {
+                      type: "string",
+                      description: 'Type and details of pet(s), e.g., "2 dogs", "cat", "3 puppies"',
+                    },
+                    dietary_habits: { type: "string" },
+                    sleep_habits: { type: "string" },
+                    work_life_balance: { type: "string" },
+                    volunteer_community_work: { type: "string", enum: ["yes", "no", "prefer_not_to_say"] },
+                    life_goal: { type: "string" },
+                    physical_activities: { type: "array", items: { type: "string" } },
+                    cultural_activities: { type: "array", items: { type: "string" } },
+                    creative_hobbies: { type: "array", items: { type: "string" } },
+                    gaming_hobbies: { type: "array", items: { type: "string" } },
+                    travel_frequency: { type: "string", enum: ["never", "rarely", "sometimes", "often", "very_often"] },
+                    type_of_trips: { type: "string" },
+                    travel_style: { type: "string" },
+                    travel_planning: { type: "string" },
+                    relocation_same_country: { type: "string", enum: ["yes", "no", "prefer_not_to_say"] },
+                    relocation_across_countries: { type: "string", enum: ["yes", "no", "prefer_not_to_say"] },
+                    role_in_relationship: { type: "string" },
+                    age_range_preference: { type: "string" },
+                    health_disability_preference: { type: "string" },
+                    red_flags: { type: "array", items: { type: "string" } },
+                  },
+                },
+              },
+            },
+          ],
+        }),
       });
 
       if (!aiResponse.ok) {
-        throw new Error('AI API failed');
+        throw new Error("AI API failed");
       }
 
       const aiData = await aiResponse.json();
       aiMessage = aiData.choices?.[0]?.message;
-      
+
       // Cache the response if it's a simple conversational response (not using tools)
       if (aiMessage?.content && !aiMessage?.tool_calls?.length) {
         await cacheResponse(supabase, cacheKey, questionHash, aiMessage.content);
       }
     }
-    
+
     // Extract and update profile
     let extractedData: any = null;
     if (aiMessage?.tool_calls?.length > 0) {
       for (const toolCall of aiMessage.tool_calls) {
-        if (toolCall.function?.name === 'extract_profile_data') {
+        if (toolCall.function?.name === "extract_profile_data") {
           try {
             extractedData = JSON.parse(toolCall.function.arguments);
-            console.log('📝 Extracted:', extractedData);
+            console.log("📝 Extracted:", extractedData);
           } catch (e) {
-            console.error('Parse error:', e);
+            console.error("Parse error:", e);
           }
         }
       }
@@ -355,90 +370,107 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
 
     // Check if user wants to skip the current question
     const lowerMessage = message.toLowerCase().trim();
-    const skipKeywords = ['skip', 'pass', 'next', 'skip this', 'skip it', 'move on', 'prefer not to say', "don't want to answer", 'rather not say'];
-    const isSkipping = skipKeywords.some(keyword => lowerMessage.includes(keyword)) && 
-                       lowerMessage.length < 100 && 
-                       !extractedData;
+    const skipKeywords = [
+      "skip",
+      "pass",
+      "next",
+      "skip this",
+      "skip it",
+      "move on",
+      "prefer not to say",
+      "don't want to answer",
+      "rather not say",
+    ];
+    const isSkipping =
+      skipKeywords.some((keyword) => lowerMessage.includes(keyword)) && lowerMessage.length < 100 && !extractedData;
 
     // Update with progress tracking
     if (extractedData && Object.keys(extractedData).length > 0) {
       const answeredFields = Object.keys(extractedData);
       const updatedAsked = [...new Set([...askedQuestions, ...answeredFields])];
-      
-      const nextIdx = QUESTION_LIST.findIndex((q, idx) => 
-        idx > currentIndex &&
-        !profile?.[q.field] &&
-        !updatedAsked.includes(q.field) &&
-        !updatedAsked.includes(`skipped:${q.field}`)
+
+      const nextIdx = QUESTION_LIST.findIndex(
+        (q, idx) =>
+          idx > currentIndex &&
+          !profile?.[q.field] &&
+          !updatedAsked.includes(q.field) &&
+          !updatedAsked.includes(`skipped:${q.field}`),
       );
-      
+
       // Calculate profile completion before updating
       const tempProfile = { ...profile, ...extractedData };
       const completion = calculateProfileCompletion(tempProfile);
-      
+
       await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           ...extractedData,
           asked_questions: updatedAsked,
           current_question_index: nextIdx >= 0 ? nextIdx : QUESTION_LIST.length,
-          is_profile_complete: completion
+          is_profile_complete: completion,
         })
-        .eq('id', userId);
-      
-      console.log('✅ Profile updated with progress');
-    } else if (isSkipping && currentQuestionField && !askedQuestions.includes(currentQuestionField) && !askedQuestions.includes(`skipped:${currentQuestionField}`)) {
+        .eq("id", userId);
+
+      console.log("✅ Profile updated with progress");
+    } else if (
+      isSkipping &&
+      currentQuestionField &&
+      !askedQuestions.includes(currentQuestionField) &&
+      !askedQuestions.includes(`skipped:${currentQuestionField}`)
+    ) {
       // User wants to skip this question
       const updatedAsked = [...new Set([...askedQuestions, `skipped:${currentQuestionField}`])];
-      
-      const nextIdx = QUESTION_LIST.findIndex((q, idx) => 
-        idx > currentIndex &&
-        !profile?.[q.field] &&
-        !updatedAsked.includes(q.field) &&
-        !updatedAsked.includes(`skipped:${q.field}`)
+
+      const nextIdx = QUESTION_LIST.findIndex(
+        (q, idx) =>
+          idx > currentIndex &&
+          !profile?.[q.field] &&
+          !updatedAsked.includes(q.field) &&
+          !updatedAsked.includes(`skipped:${q.field}`),
       );
-      
+
       await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           asked_questions: updatedAsked,
-          current_question_index: nextIdx >= 0 ? nextIdx : currentIndex + 1
+          current_question_index: nextIdx >= 0 ? nextIdx : currentIndex + 1,
         })
-        .eq('id', userId);
-      
-      console.log('⏭️ Question skipped by user, moving to next');
-    } else if (currentQuestionField && !askedQuestions.includes(currentQuestionField) && !askedQuestions.includes(`skipped:${currentQuestionField}`)) {
+        .eq("id", userId);
+
+      console.log("⏭️ Question skipped by user, moving to next");
+    } else if (
+      currentQuestionField &&
+      !askedQuestions.includes(currentQuestionField) &&
+      !askedQuestions.includes(`skipped:${currentQuestionField}`)
+    ) {
       // No data extracted and not skipping but mark current question as asked to avoid repetition
       const updatedAsked = [...new Set([...askedQuestions, currentQuestionField])];
-      
-      const nextIdx = QUESTION_LIST.findIndex((q, idx) => 
-        idx > currentIndex &&
-        !profile?.[q.field] &&
-        !updatedAsked.includes(q.field) &&
-        !updatedAsked.includes(`skipped:${q.field}`)
+
+      const nextIdx = QUESTION_LIST.findIndex(
+        (q, idx) =>
+          idx > currentIndex &&
+          !profile?.[q.field] &&
+          !updatedAsked.includes(q.field) &&
+          !updatedAsked.includes(`skipped:${q.field}`),
       );
-      
+
       await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           asked_questions: updatedAsked,
-          current_question_index: nextIdx >= 0 ? nextIdx : currentIndex + 1
+          current_question_index: nextIdx >= 0 ? nextIdx : currentIndex + 1,
         })
-        .eq('id', userId);
-      
-      console.log('⏭️ Marked question as asked, moving to next');
+        .eq("id", userId);
+
+      console.log("⏭️ Marked question as asked, moving to next");
     }
 
     // Get updated profile for next question
-    const { data: updatedProfile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    const { data: updatedProfile } = await supabase.from("profiles").select("*").eq("id", userId).single();
 
     // Generate response text
     let responseText = aiMessage?.content;
-    
+
     // If extraction succeeded but no text response, generate next question
     if (!responseText && extractedData && Object.keys(extractedData).length > 0) {
       const nextQuestion = getNextQuestion(updatedProfile, lang);
@@ -450,81 +482,87 @@ Language: ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : lang === 'ar'
           en: "Perfect! Feel free to tell me more about what matters to you, or ask me anything about finding your match.",
           fr: "Parfait ! N'hésitez pas à me dire plus sur ce qui compte pour vous, ou posez-moi des questions sur la recherche de votre match.",
           ar: "ممتاز! لا تتردد في إخباري المزيد عما يهمك، أو اسألني أي شيء عن إيجاد الشريك المناسب.",
-          tn: "برشا مليح! ما تترددش تقولي أكثر على شنوا يهمك، ولا اسألني على أي حاجة على لقاء الماتش متاعك."
+          tn: "برشا مليح! ما تترددش تقولي أكثر على شنوا يهمك، ولا اسألني على أي حاجة على لقاء الماتش متاعك.",
         };
         responseText = completionMessages[lang] || completionMessages.en;
       }
     }
-    
+
     // Final fallback
     if (!responseText) {
-      responseText = 'Could you rephrase that?';
+      responseText = "Could you rephrase that?";
     }
 
     // Store messages
-    await supabase.from('messages').insert([
+    await supabase.from("messages").insert([
       { sender_id: userId, content: message, is_from_diana: false },
-      { receiver_id: userId, content: responseText, is_from_diana: true }
+      { receiver_id: userId, content: responseText, is_from_diana: true },
     ]);
 
     const categoryStatus = getCategoryProgress(updatedProfile);
     const profileCompletion = calculateProfileCompletion(updatedProfile);
-    
+
     // Generate bio if profile is complete and bio doesn't exist
     if (profileCompletion === 100 && !updatedProfile.bio) {
-      console.log('📝 Generating bio for completed profile');
+      console.log("📝 Generating bio for completed profile");
       const bioPrompt = generateBioPrompt(updatedProfile, lang);
-      
-      const bioResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
+
+      const bioResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
+          model: "google/gemini-2.5-flash",
           messages: [
-            { role: 'system', content: 'You are a professional bio writer for a dating platform. Create an engaging, authentic, and warm bio that highlights the person\'s personality, values, and what makes them unique.' },
-            { role: 'user', content: bioPrompt }
-          ]
-        })
+            {
+              role: "system",
+              content:
+                "You are a professional bio writer for a dating platform. Create an engaging, authentic, and warm bio that highlights the person's personality, values, and what makes them unique.",
+            },
+            { role: "user", content: bioPrompt },
+          ],
+        }),
       });
 
       if (bioResponse.ok) {
         const bioData = await bioResponse.json();
         const generatedBio = bioData.choices?.[0]?.message?.content;
-        
+
         if (generatedBio) {
-          await supabase
-            .from('profiles')
-            .update({ bio: generatedBio })
-            .eq('id', userId);
-          
-          console.log('✅ Bio generated and saved');
+          await supabase.from("profiles").update({ bio: generatedBio }).eq("id", userId);
+
+          console.log("✅ Bio generated and saved");
         }
       }
     }
-    
-    return new Response(JSON.stringify({
-      response: responseText,
-      profileCompletion,
-      currentCategory: determineCurrentCategory(updatedProfile).current,
-      completedCategories: determineCurrentCategory(updatedProfile).completed,
-      categoryProgress: categoryStatus,
-      bio: updatedProfile.bio
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
 
+    return new Response(
+      JSON.stringify({
+        response: responseText,
+        profileCompletion,
+        currentCategory: determineCurrentCategory(updatedProfile).current,
+        completedCategories: determineCurrentCategory(updatedProfile).completed,
+        categoryProgress: categoryStatus,
+        bio: updatedProfile.bio,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
-    console.error('❌ Error:', error);
-    return new Response(JSON.stringify({
-      error: error instanceof Error ? error.message : 'Unknown error',
-      response: 'Sorry, something went wrong. Please try again.'
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    console.error("❌ Error:", error);
+    return new Response(
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Unknown error",
+        response: "Sorry, something went wrong. Please try again.",
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 });
 
@@ -573,7 +611,7 @@ function getNextQuestion(p: any, lang: string): string {
       role_in_relationship: "What role do you see yourself in a relationship?",
       age_range_preference: "What age range are you looking for?",
       red_flags: "What are your relationship red flags?",
-      fallback: "Anything else to share?"
+      fallback: "Anything else to share?",
     },
     fr: {
       name: "Comment vous appelez-vous ?",
@@ -618,7 +656,7 @@ function getNextQuestion(p: any, lang: string): string {
       role_in_relationship: "Quel rôle voyez-vous dans une relation ?",
       age_range_preference: "Quelle tranche d'âge recherchez-vous ?",
       red_flags: "Quels sont vos signaux d'alerte en relation ?",
-      fallback: "Autre chose à partager ?"
+      fallback: "Autre chose à partager ?",
     },
     ar: {
       name: "ما اسمك؟",
@@ -663,7 +701,7 @@ function getNextQuestion(p: any, lang: string): string {
       role_in_relationship: "ما دورك في العلاقة؟",
       age_range_preference: "ما الفئة العمرية التي تبحث عنها؟",
       red_flags: "ما علامات التحذير في العلاقة؟",
-      fallback: "شيء آخر؟"
+      fallback: "شيء آخر؟",
     },
     tn: {
       name: "شنوّا اسمك؟",
@@ -708,118 +746,137 @@ function getNextQuestion(p: any, lang: string): string {
       role_in_relationship: "شنوّا دورك في العلاقة؟",
       age_range_preference: "شنيّا الفئة العمرية اللي قاعد تدوّر عليها؟",
       red_flags: "شنيّا علامات التحذير في العلاقة؟",
-      fallback: "حاجة أخرى؟"
-    }
+      fallback: "حاجة أخرى؟",
+    },
   };
 
   const t = (key: string) => questions[lang]?.[key] || questions.en[key] || questions.en.fallback;
 
   const currentIndex = p?.current_question_index || 0;
   const askedQuestions = p?.asked_questions || [];
-  
+
   // Find next unanswered from predefined list
   const shouldAsk = (field: string) => {
-    if (field === 'work_life_balance') {
+    if (field === "work_life_balance") {
       const status = p?.employment_status as string | undefined;
       // Skip if not working
-      if (!status || ['unemployed', 'student', 'retired'].includes(status)) return false;
+      if (!status || ["unemployed", "student", "retired"].includes(status)) return false;
     }
     return true;
   };
 
   for (let i = currentIndex; i < QUESTION_LIST.length; i++) {
     const { field } = QUESTION_LIST[i];
-    if (!p?.[field] && !askedQuestions.includes(field) && !askedQuestions.includes(`skipped:${field}`) && shouldAsk(field)) {
+    if (
+      !p?.[field] &&
+      !askedQuestions.includes(field) &&
+      !askedQuestions.includes(`skipped:${field}`) &&
+      shouldAsk(field)
+    ) {
       return t(field);
     }
   }
-  
+
   // Check for any missed
   for (const { field } of QUESTION_LIST) {
-    if (!p?.[field] && !askedQuestions.includes(field) && !askedQuestions.includes(`skipped:${field}`) && shouldAsk(field)) {
+    if (
+      !p?.[field] &&
+      !askedQuestions.includes(field) &&
+      !askedQuestions.includes(`skipped:${field}`) &&
+      shouldAsk(field)
+    ) {
       return t(field);
     }
   }
-  
-  return t('fallback');
+
+  return t("fallback");
 }
 
 function normalizeExtractedData(data: any, message: string, currentField: string): any {
   if (!data) return data;
   const norm: any = { ...data };
-  const msg = (message || '').toLowerCase();
+  const msg = (message || "").toLowerCase();
 
   const normalizeHealth = (val?: string) => {
-    const v = (val || '').toLowerCase().trim();
-    if (v.includes('diab')) return 'diabetes';
-    if (v.includes('asthm')) return 'asthma';
-    if (v.includes('hypert') || v.includes('high blood pressure') || v.includes('blood pressure') || v === 'bp') return 'hypertension';
-    if (v.includes('cancer')) return 'cancer';
+    const v = (val || "").toLowerCase().trim();
+    if (v.includes("diab")) return "diabetes";
+    if (v.includes("asthm")) return "asthma";
+    if (v.includes("hypert") || v.includes("high blood pressure") || v.includes("blood pressure") || v === "bp")
+      return "hypertension";
+    if (v.includes("cancer")) return "cancer";
     return val;
   };
 
   if (norm.health) norm.health = normalizeHealth(norm.health);
-  else if (msg.includes('diab')) norm.health = 'diabetes';
-  else if (msg.includes('cancer')) norm.health = 'cancer';
+  else if (msg.includes("diab")) norm.health = "diabetes";
+  else if (msg.includes("cancer")) norm.health = "cancer";
 
   // Handle "no" responses for yes_no_type fields
-  const noPatterns = ['no', 'noo', 'nope', 'never', 'not at all', "don't have", "dont have", 'i do not', "i don't"];
-  const isNoResponse = noPatterns.some(p => msg === p || msg.startsWith(p + ' ') || msg.endsWith(' ' + p));
-  
+  const noPatterns = ["no", "noo", "nope", "never", "not at all", "don't have", "dont have", "i do not", "i don't"];
+  const isNoResponse = noPatterns.some((p) => msg === p || msg.startsWith(p + " ") || msg.endsWith(" " + p));
+
   if (isNoResponse) {
     // Check which question is being answered based on current field context
-    if (!norm.disabilities_and_special_need && currentField === 'disabilities_and_special_need') {
-      norm.disabilities_and_special_need = 'no';
+    if (!norm.disabilities_and_special_need && currentField === "disabilities_and_special_need") {
+      norm.disabilities_and_special_need = "no";
     }
-    if (!norm.smoking && currentField === 'smoking') {
-      norm.smoking = 'no';
+    if (!norm.smoking && currentField === "smoking") {
+      norm.smoking = "no";
     }
-    if (!norm.drinking && currentField === 'drinking') {
-      norm.drinking = 'no';
+    if (!norm.drinking && currentField === "drinking") {
+      norm.drinking = "no";
     }
-    if (!norm.have_children && currentField === 'have_children') {
-      norm.have_children = 'no';
+    if (!norm.have_children && currentField === "have_children") {
+      norm.have_children = "no";
     }
-    if (!norm.want_children && currentField === 'want_children') {
-      norm.want_children = 'no';
+    if (!norm.want_children && currentField === "want_children") {
+      norm.want_children = "no";
     }
-    if (!norm.have_pet && currentField === 'have_pet') {
-      norm.have_pet = 'no';
+    if (!norm.have_pet && currentField === "have_pet") {
+      norm.have_pet = "no";
     }
-    if (!norm.volunteer_community_work && currentField === 'volunteer_community_work') {
-      norm.volunteer_community_work = 'no';
+    if (!norm.volunteer_community_work && currentField === "volunteer_community_work") {
+      norm.volunteer_community_work = "no";
     }
   }
 
   // Detect pet types and set both have_pet and pet
   const petPatterns = [
-    { match: ['dog', 'puppy', 'puppies', 'pup', 'canine'], value: 'dog' },
-    { match: ['cat', 'kitten', 'kitty', 'feline'], value: 'cat' },
-    { match: ['bird', 'parrot', 'budgie'], value: 'bird' },
-    { match: ['fish', 'goldfish', 'aquarium'], value: 'fish' },
-    { match: ['rabbit', 'bunny'], value: 'rabbit' },
-    { match: ['hamster', 'guinea pig'], value: 'hamster' },
+    { match: ["dog", "puppy", "puppies", "pup", "canine"], value: "dog" },
+    { match: ["cat", "kitten", "kitty", "feline"], value: "cat" },
+    { match: ["bird", "parrot", "budgie"], value: "bird" },
+    { match: ["fish", "goldfish", "aquarium"], value: "fish" },
+    { match: ["rabbit", "bunny"], value: "rabbit" },
+    { match: ["hamster", "guinea pig"], value: "hamster" },
   ];
 
   for (const pattern of petPatterns) {
-    if (pattern.match.some(m => msg.includes(m))) {
-      norm.have_pet = 'yes';
-      
+    if (pattern.match.some((m) => msg.includes(m))) {
+      norm.have_pet = "yes";
+
       // Extract count if mentioned
       const countMatch = msg.match(/(\d+|one|two|three|four|five|six|seven|eight|nine|ten)/i);
-      let count = '';
+      let count = "";
       if (countMatch) {
         const numMap: Record<string, string> = {
-          'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5',
-          'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10'
+          one: "1",
+          two: "2",
+          three: "3",
+          four: "4",
+          five: "5",
+          six: "6",
+          seven: "7",
+          eight: "8",
+          nine: "9",
+          ten: "10",
         };
         count = numMap[countMatch[1].toLowerCase()] || countMatch[1];
       }
-      
+
       // Build pet description
       if (count && parseInt(count) > 1) {
         norm.pet = `${count} ${pattern.value}s`;
-      } else if (count === '1') {
+      } else if (count === "1") {
         norm.pet = `1 ${pattern.value}`;
       } else {
         norm.pet = pattern.value;
@@ -830,10 +887,20 @@ function normalizeExtractedData(data: any, message: string, currentField: string
 
   // If user clearly states not working, normalize employment and mark work/life balance
   if (!norm.employment_status) {
-    const notWorkingPhrases = ['no job', "don't have a job", 'dont have a job', 'unemployed', 'jobless', 'not working', "i don't work", 'i do not work', 'without job'];
+    const notWorkingPhrases = [
+      "no job",
+      "don't have a job",
+      "dont have a job",
+      "unemployed",
+      "jobless",
+      "not working",
+      "i don't work",
+      "i do not work",
+      "without job",
+    ];
     if (notWorkingPhrases.some((p) => msg.includes(p))) {
-      norm.employment_status = 'unemployed';
-      norm.work_life_balance = norm.work_life_balance || 'not_applicable';
+      norm.employment_status = "unemployed";
+      norm.work_life_balance = norm.work_life_balance || "not_applicable";
     }
   }
 
@@ -842,8 +909,8 @@ function normalizeExtractedData(data: any, message: string, currentField: string
 
 function calculateProfileCompletion(profile: any): number {
   if (!profile) return 0;
-  const fields = QUESTION_LIST.map(q => q.field);
-  const filled = fields.filter(f => profile?.[f] != null && profile?.[f] !== '').length;
+  const fields = QUESTION_LIST.map((q) => q.field);
+  const filled = fields.filter((f) => profile?.[f] != null && profile?.[f] !== "").length;
   return Math.round((filled / fields.length) * 100);
 }
 
@@ -852,11 +919,11 @@ function generateBioPrompt(profile: any, lang: string): string {
     en: `Create a compelling 3-4 sentence bio for this person based on their profile:\n\n`,
     fr: `Créez une bio convaincante de 3-4 phrases pour cette personne basée sur son profil:\n\n`,
     ar: `أنشئ سيرة ذاتية مقنعة من 3-4 جمل لهذا الشخص بناءً على ملفه الشخصي:\n\n`,
-    tn: `اعمل بيو مقنع من 3-4 جمل لهذا الشخص بناء على بروفايلو:\n\n`
+    tn: `اعمل بيو مقنع من 3-4 جمل لهذا الشخص بناء على بروفايلو:\n\n`,
   };
-  
+
   let prompt = bioIntros[lang] || bioIntros.en;
-  
+
   // Add key profile details
   if (profile.name) prompt += `Name: ${profile.name}\n`;
   if (profile.age) prompt += `Age: ${profile.age}\n`;
@@ -865,64 +932,92 @@ function generateBioPrompt(profile: any, lang: string): string {
   if (profile.education_lvl) prompt += `Education: ${profile.education_lvl}\n`;
   if (profile.religion && profile.practice_lvl) prompt += `Faith: ${profile.religion} (${profile.practice_lvl})\n`;
   if (profile.life_goal) prompt += `Life Goal: ${profile.life_goal}\n`;
-  
+
   // Hobbies and interests
   const hobbies = [];
   if (profile.physical_activities?.length) hobbies.push(...profile.physical_activities);
   if (profile.cultural_activities?.length) hobbies.push(...profile.cultural_activities);
   if (profile.creative_hobbies?.length) hobbies.push(...profile.creative_hobbies);
-  if (hobbies.length) prompt += `Interests: ${hobbies.join(', ')}\n`;
-  
+  if (hobbies.length) prompt += `Interests: ${hobbies.join(", ")}\n`;
+
   if (profile.travel_frequency) prompt += `Travel Frequency: ${profile.travel_frequency}\n`;
-  if (profile.have_pet === 'yes' && profile.pet) prompt += `Pet: ${profile.pet}\n`;
-  
+  if (profile.have_pet === "yes" && profile.pet) prompt += `Pet: ${profile.pet}\n`;
+
   const guidelines: Record<string, string> = {
-    en: '\n\nMake it warm, authentic, and highlight what makes them unique. Focus on personality, values, and lifestyle. Keep it conversational and engaging.',
-    fr: '\n\nRendez-la chaleureuse, authentique et mettez en valeur ce qui les rend uniques. Concentrez-vous sur la personnalité, les valeurs et le style de vie. Gardez-la conversationnelle et engageante.',
-    ar: '\n\nاجعلها دافئة وأصلية وسلط الضوء على ما يجعلهم فريدين. ركز على الشخصية والقيم وأسلوب الحياة. اجعلها محادثة وجذابة.',
-    tn: '\n\nاعملها دافية وأصلية وورّي شنوا يخليهم مميزين. ركّز على الشخصية والقيم والستايل. خليها محادثة وجذابة.'
+    en: "\n\nMake it warm, authentic, and highlight what makes them unique. Focus on personality, values, and lifestyle. Keep it conversational and engaging.",
+    fr: "\n\nRendez-la chaleureuse, authentique et mettez en valeur ce qui les rend uniques. Concentrez-vous sur la personnalité, les valeurs et le style de vie. Gardez-la conversationnelle et engageante.",
+    ar: "\n\nاجعلها دافئة وأصلية وسلط الضوء على ما يجعلهم فريدين. ركز على الشخصية والقيم وأسلوب الحياة. اجعلها محادثة وجذابة.",
+    tn: "\n\nاعملها دافية وأصلية وورّي شنوا يخليهم مميزين. ركّز على الشخصية والقيم والستايل. خليها محادثة وجذابة.",
   };
-  
+
   prompt += guidelines[lang] || guidelines.en;
-  
+
   return prompt;
 }
 
 function determineCurrentCategory(profile: any): { current: string; completed: string[] } {
-  const categories = ['basic', 'location', 'physical', 'family', 'career', 'values', 'health', 'lifestyle', 'pets', 'hobbies', 'travel', 'relocation', 'relationship'];
+  const categories = [
+    "basic",
+    "location",
+    "physical",
+    "family",
+    "career",
+    "values",
+    "health",
+    "lifestyle",
+    "pets",
+    "hobbies",
+    "travel",
+    "relocation",
+    "relationship",
+  ];
   const completed: string[] = [];
-  let current = 'basic';
-  
+  let current = "basic";
+
   for (const cat of categories) {
-    const catFields = QUESTION_LIST.filter(q => q.category === cat);
-    const allFilled = catFields.every(q => profile?.[q.field] != null);
-    
+    const catFields = QUESTION_LIST.filter((q) => q.category === cat);
+    const allFilled = catFields.every((q) => profile?.[q.field] != null);
+
     if (allFilled) {
       completed.push(cat);
-    } else if (completed.length > 0 && current === 'basic') {
+    } else if (completed.length > 0 && current === "basic") {
       current = cat;
     }
   }
-  
+
   if (completed.length === categories.length) {
-    current = 'complete';
+    current = "complete";
   }
-  
+
   return { current, completed };
 }
 
 function getCategoryProgress(profile: any): Record<string, { completed: number; total: number; percentage: number }> {
-  const categories = ['basic', 'location', 'physical', 'family', 'career', 'values', 'health', 'lifestyle', 'pets', 'hobbies', 'travel', 'relocation', 'relationship'];
+  const categories = [
+    "basic",
+    "location",
+    "physical",
+    "family",
+    "career",
+    "values",
+    "health",
+    "lifestyle",
+    "pets",
+    "hobbies",
+    "travel",
+    "relocation",
+    "relationship",
+  ];
   const progress: Record<string, { completed: number; total: number; percentage: number }> = {};
-  
+
   for (const cat of categories) {
-    const catFields = QUESTION_LIST.filter(q => q.category === cat);
+    const catFields = QUESTION_LIST.filter((q) => q.category === cat);
     const total = catFields.length;
-    const completed = catFields.filter(q => profile?.[q.field] != null && profile?.[q.field] !== '').length;
+    const completed = catFields.filter((q) => profile?.[q.field] != null && profile?.[q.field] !== "").length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    
+
     progress[cat] = { completed, total, percentage };
   }
-  
+
   return progress;
 }
