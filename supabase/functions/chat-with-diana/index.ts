@@ -174,8 +174,13 @@ serve(async (req) => {
 
     const lang = profile?.language || "en";
 
+    const askedQuestions = profile?.asked_questions || [];
+    
     // Build system prompt
     const systemPrompt = `You are Diana, a warm and engaging matchmaking assistant who has genuine conversations.
+
+⚠️ CRITICAL - DO NOT ASK THESE QUESTIONS AGAIN ⚠️
+Already asked questions: ${askedQuestions.join(", ")}
 
 PROFILE STATUS:
 ${JSON.stringify(profile, null, 2)}
@@ -225,11 +230,14 @@ OPTIONAL QUESTIONS (CAN BE SKIPPED):
 DATA EXTRACTION:
 - Always use the tool to extract profile information
 - Accept typos and variations (e.g., "diabities" -> "diabetes")
+- When user says "no", "none", "I don't have any" to a question, that IS a valid answer - extract it (e.g., disabilities_and_special_need="no")
 - When user says no job/unemployed/student: set employment_status="unemployed", work_life_balance="not_applicable"
-- NEVER repeat questions already asked (including those marked with "skipped:")
+- **ABSOLUTELY NEVER** repeat questions already in the "Already asked questions" list - this is NON-NEGOTIABLE
+- Check the "Already asked questions" list BEFORE asking any question
+- If a question or "skipped:question" appears in "Already asked questions", DO NOT ask it again under ANY circumstances
 - When user skips optional questions, DO NOT extract data for that field
 - For MANDATORY questions (name, age, gender, health, age_range_preference), keep asking until you get a valid answer
-- The user can answer a question before it's asked affect the answer to the right place and remeber not to ask the question related to it
+- The user can answer a question before it's asked - extract the answer to the right field and don't ask about it later
 
 RESPONSE STYLE:
 - Keep under 100 words but be conversational
@@ -376,7 +384,7 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
     // (currentIndex already declared earlier for caching)
     const currentQuestionField = QUESTION_LIST[currentIndex]?.field;
     extractedData = normalizeExtractedData(extractedData, message, currentQuestionField);
-    const askedQuestions = profile?.asked_questions || [];
+    const profileAskedQuestions = profile?.asked_questions || [];
 
     // Check if user wants to skip the current question
     const lowerMessage = message.toLowerCase().trim();
@@ -397,7 +405,10 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
     // Update with progress tracking
     if (extractedData && Object.keys(extractedData).length > 0) {
       const answeredFields = Object.keys(extractedData);
-      const updatedAsked = [...new Set([...askedQuestions, ...answeredFields])];
+      const updatedAsked = [...new Set([...profileAskedQuestions, ...answeredFields])];
+      
+      console.log(`📌 Marking questions as answered: ${answeredFields.join(", ")}`);
+      console.log(`📋 Updated asked_questions list: ${updatedAsked.join(", ")}`);
 
       const nextIdx = QUESTION_LIST.findIndex(
         (q, idx) =>
@@ -433,8 +444,8 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
     } else if (
       isSkipping &&
       currentQuestionField &&
-      !askedQuestions.includes(currentQuestionField) &&
-      !askedQuestions.includes(`skipped:${currentQuestionField}`)
+      !profileAskedQuestions.includes(currentQuestionField) &&
+      !profileAskedQuestions.includes(`skipped:${currentQuestionField}`)
     ) {
       // Check if this is a mandatory question
       if (MANDATORY_QUESTIONS.includes(currentQuestionField)) {
@@ -444,7 +455,7 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
         // The AI's response will explain why this question is mandatory
       } else {
         // User wants to skip this optional question
-        const updatedAsked = [...new Set([...askedQuestions, `skipped:${currentQuestionField}`])];
+        const updatedAsked = [...new Set([...profileAskedQuestions, `skipped:${currentQuestionField}`])];
 
         const nextIdx = QUESTION_LIST.findIndex(
           (q, idx) =>
