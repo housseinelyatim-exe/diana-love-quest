@@ -45,10 +45,10 @@ const Intro = () => {
   useEffect(() => {
     checkAuth();
     
-    // If user has already seen intro, redirect to chat
+    // If user has already seen intro, redirect to dashboard chats
     const hasSeenIntro = localStorage.getItem('hasSeenIntro');
     if (hasSeenIntro === 'true') {
-      navigate("/chat");
+      navigate("/dashboard", { state: { tab: "chats" } });
     }
   }, [navigate]);
 
@@ -77,12 +77,12 @@ const Intro = () => {
 
   const handleGetStarted = () => {
     localStorage.setItem('hasSeenIntro', 'true');
-    navigate("/chat");
+    navigate("/dashboard", { state: { tab: "chats" } });
   };
 
   const handleSkip = () => {
     localStorage.setItem('hasSeenIntro', 'true');
-    navigate("/chat");
+    navigate("/dashboard", { state: { tab: "chats" } });
   };
 
   return (
