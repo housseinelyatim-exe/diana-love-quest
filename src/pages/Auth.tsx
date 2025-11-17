@@ -68,6 +68,8 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success(t.common.accountCreated);
+      // Clear the flag so new signups always see intro
+      localStorage.removeItem("hasSeenIntro");
       navigate("/intro");
     }
     setLoading(false);
