@@ -533,7 +533,7 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
             {
               role: "system",
               content:
-                "You are a professional bio writer for a dating platform. Create an engaging, authentic, and warm bio that highlights the person's personality, values, and what makes them unique.",
+                "You are a professional bio writer for a dating platform. Create an engaging, authentic, and comprehensive bio that includes EVERY piece of information provided. YOU MUST include: their exact age, exact height in cm, location, occupation, all hobbies, lifestyle habits, values, goals, and personality traits. Use ALL the data - do not skip or summarize any details. Make it warm and conversational while being thorough and complete.",
             },
             { role: "user", content: bioPrompt },
           ],
@@ -1010,10 +1010,10 @@ function generateBioPrompt(profile: any, lang: string): string {
   if (profile.red_flags?.length) prompt += `Red Flags: ${profile.red_flags.join(", ")}\n`;
 
   const guidelines: Record<string, string> = {
-    en: "\n\nUse ALL the information above to create a warm, authentic, and comprehensive bio that captures who this person truly is. Highlight their personality, values, lifestyle, goals, and what makes them unique. Make it conversational, engaging, and paint a complete picture of their life and character.",
-    fr: "\n\nUtilisez TOUTES les informations ci-dessus pour créer une bio chaleureuse, authentique et complète qui capture qui est vraiment cette personne. Mettez en valeur leur personnalité, leurs valeurs, leur style de vie, leurs objectifs et ce qui les rend uniques. Rendez-la conversationnelle, engageante et dressez un tableau complet de leur vie et de leur caractère.",
-    ar: "\n\nاستخدم كل المعلومات أعلاه لإنشاء سيرة ذاتية دافئة وأصلية وشاملة تلتقط من هو هذا الشخص حقًا. سلط الضوء على شخصيتهم وقيمهم وأسلوب حياتهم وأهدافهم وما يجعلهم فريدين. اجعلها محادثة وجذابة وارسم صورة كاملة لحياتهم وشخصيتهم.",
-    tn: "\n\nاستخدم كل المعلومات لفوق باش تعمل بيو دافي وأصلي وكامل يوصف هذا الشخص كيما هو بالحق. ورّي الشخصية متاعو والقيم والستايل والأهداف وشنوا يخليه مميز. اعملها محادثة وجذابة وورّي صورة كاملة على حياتو وشخصيتو.",
+    en: "\n\nYOU MUST USE ALL THE INFORMATION ABOVE - especially their age, height, and every detail they shared. Create a warm, authentic, and comprehensive 3-4 sentence bio that captures who this person truly is. Include specific numbers (age, height), concrete details about their lifestyle, values, goals, hobbies, and what makes them unique. Make it conversational and engaging while painting a complete picture of their life and character. DO NOT generalize or skip any information provided above.",
+    fr: "\n\nVOUS DEVEZ UTILISER TOUTES LES INFORMATIONS CI-DESSUS - en particulier leur âge, taille et chaque détail partagé. Créez une bio chaleureuse, authentique et complète de 3-4 phrases qui capture qui est vraiment cette personne. Incluez des chiffres spécifiques (âge, taille), des détails concrets sur leur style de vie, valeurs, objectifs, loisirs et ce qui les rend uniques. Rendez-la conversationnelle et engageante tout en dressant un tableau complet de leur vie et caractère. NE généralisez PAS et ne sautez aucune information fournie ci-dessus.",
+    ar: "\n\nيجب عليك استخدام كل المعلومات أعلاه - خاصة العمر والطول وكل التفاصيل التي شاركوها. أنشئ سيرة ذاتية دافئة وأصلية وشاملة من 3-4 جمل تلتقط من هو هذا الشخص حقًا. قم بتضمين أرقام محددة (العمر، الطول)، تفاصيل ملموسة حول أسلوب حياتهم وقيمهم وأهدافهم وهواياتهم وما يجعلهم فريدين. اجعلها محادثة وجذابة بينما ترسم صورة كاملة لحياتهم وشخصيتهم. لا تعمم أو تتخطى أي معلومات مقدمة أعلاه.",
+    tn: "\n\nلازم تستعمل كل المعلومات لفوق - خاصة العمر والطول وكل التفاصيل اللي شاركوهم. اعمل بيو دافي وأصلي وكامل من 3-4 جمل يوصف هذا الشخص كيما هو بالحق. حط أرقام محددة (العمر، الطول)، تفاصيل ملموسة على الستايل متاعهم والقيم والأهداف والهوايات وشنوا يخليهم مميزين. اعملها محادثة وجذابة وورّي صورة كاملة على حياتهم وشخصيتهم. ما تعممش وما تنساش حتى معلومة من اللي لفوق.",
   };
 
   prompt += guidelines[lang] || guidelines.en;
