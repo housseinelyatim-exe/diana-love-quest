@@ -44,7 +44,13 @@ const Intro = () => {
 
   useEffect(() => {
     checkAuth();
-  }, []);
+    
+    // If user has already seen intro, redirect to chat
+    const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+    if (hasSeenIntro === 'true') {
+      navigate("/chat");
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const timer = setInterval(() => {
