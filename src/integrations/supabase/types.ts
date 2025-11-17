@@ -142,6 +142,7 @@ export type Database = {
           profile_status:
             | Database["public"]["Enums"]["profile_status_type"]
             | null
+          question_responses: Json | null
           red_flags: string[] | null
           religion: Database["public"]["Enums"]["religion_type"] | null
           relocation_across_countries:
@@ -210,6 +211,7 @@ export type Database = {
           profile_status?:
             | Database["public"]["Enums"]["profile_status_type"]
             | null
+          question_responses?: Json | null
           red_flags?: string[] | null
           religion?: Database["public"]["Enums"]["religion_type"] | null
           relocation_across_countries?:
@@ -280,6 +282,7 @@ export type Database = {
           profile_status?:
             | Database["public"]["Enums"]["profile_status_type"]
             | null
+          question_responses?: Json | null
           red_flags?: string[] | null
           religion?: Database["public"]["Enums"]["religion_type"] | null
           relocation_across_countries?:
