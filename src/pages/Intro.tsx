@@ -10,6 +10,7 @@ const Intro = () => {
   const { t } = useLanguage();
   const [currentFeature, setCurrentFeature] = useState(0);
   const [showButton, setShowButton] = useState(false);
+  const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
 
   const features = [
     {
@@ -133,11 +134,14 @@ const Intro = () => {
             return (
               <div
                 key={index}
+                onMouseEnter={() => setHoveredFeature(index)}
+                onMouseLeave={() => setHoveredFeature(null)}
                 className={`
-                  transition-all duration-700 ease-out w-full
+                  transition-all duration-500 ease-out w-full
                   ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
                   ${isActive ? "scale-100" : "scale-95"}
-                  ${index < currentFeature ? "blur-sm" : ""}
+                  ${hoveredFeature !== null && hoveredFeature !== index ? "blur-sm scale-95 opacity-70" : ""}
+                  ${hoveredFeature === index ? "scale-105 blur-0" : ""}
                 `}
                 style={{
                   transitionDelay: `${index * 100}ms`,
@@ -147,7 +151,8 @@ const Intro = () => {
                   className={`
                   bg-card border rounded-2xl p-6 shadow-lg
                   ${isActive ? "ring-2 ring-primary/50" : ""}
-                  hover:shadow-xl transition-shadow
+                  ${hoveredFeature === index ? "ring-2 ring-primary shadow-2xl" : ""}
+                  transition-all duration-500
                 `}
                 >
                   <div className="flex items-start gap-4">
