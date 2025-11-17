@@ -401,6 +401,13 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
       const tempProfile = { ...profile, ...extractedData };
       const completion = calculateProfileCompletion(tempProfile);
 
+      // Store actual user response for each extracted field
+      const currentResponses = profile?.question_responses || {};
+      const newResponses = { ...currentResponses };
+      answeredFields.forEach(field => {
+        newResponses[field] = message; // Save the user's actual message
+      });
+
       await supabase
         .from("profiles")
         .update({
@@ -408,6 +415,7 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
           asked_questions: updatedAsked,
           current_question_index: nextIdx >= 0 ? nextIdx : QUESTION_LIST.length,
           is_profile_complete: completion,
+          question_responses: newResponses,
         })
         .eq("id", userId);
 
