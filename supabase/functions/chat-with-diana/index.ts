@@ -52,6 +52,9 @@ async function cacheResponse(supabase: any, question: string, questionHash: stri
   console.log("💾 Cached new response");
 }
 
+// Mandatory questions that cannot be skipped
+const MANDATORY_QUESTIONS = ["name", "age", "gender", "health", "age_range_preference"];
+
 // Predefined question list - comprehensive coverage of all profile fields
 const QUESTION_LIST = [
   // Basic Info (3 questions)
@@ -205,8 +208,14 @@ CONVERSATION STYLE:
    - After a good exchange, naturally transition: "By the way..." or "Oh, I'm curious..."
    - Make questions feel like natural conversation, not an interview
 
-SKIPPING QUESTIONS:
-- Users can skip ANY question by saying "skip", "pass", "next", "prefer not to say", or similar
+MANDATORY QUESTIONS (CANNOT BE SKIPPED):
+- name, age, gender, health, age_range_preference are MANDATORY
+- If user tries to skip a mandatory question, politely explain: "I understand this might feel personal, but this information is essential for finding you the right match. Could you please share it?"
+- Stay warm and encouraging, but be clear these questions are required
+- Don't move to the next question until they answer a mandatory one
+
+OPTIONAL QUESTIONS (CAN BE SKIPPED):
+- All other questions can be skipped by saying "skip", "pass", "next", "prefer not to say", or similar
 - When they skip, ALWAYS gently remind them: "I understand, but just so you know, answering this helps us find you the most compatible match possible" or "That's okay! Though the more I know, the better I can match you with someone perfect"
 - Keep the reminder brief, warm, and non-judgmental
 - NEVER pressure them after the reminder - immediately move to the next question
@@ -218,7 +227,8 @@ DATA EXTRACTION:
 - Accept typos and variations (e.g., "diabities" -> "diabetes")
 - When user says no job/unemployed/student: set employment_status="unemployed", work_life_balance="not_applicable"
 - NEVER repeat questions already asked (including those marked with "skipped:")
-- When user skips, DO NOT extract data for that field
+- When user skips optional questions, DO NOT extract data for that field
+- For MANDATORY questions (name, age, gender, health, age_range_preference), keep asking until you get a valid answer
 - The user can answer a question before it's asked affect the answer to the right place and remeber not to ask the question related to it
 
 RESPONSE STYLE:
@@ -426,26 +436,34 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
       !askedQuestions.includes(currentQuestionField) &&
       !askedQuestions.includes(`skipped:${currentQuestionField}`)
     ) {
-      // User wants to skip this question
-      const updatedAsked = [...new Set([...askedQuestions, `skipped:${currentQuestionField}`])];
+      // Check if this is a mandatory question
+      if (MANDATORY_QUESTIONS.includes(currentQuestionField)) {
+        // Cannot skip mandatory questions - AI should handle this in the response
+        console.log(`⚠️ User tried to skip mandatory question: ${currentQuestionField}`);
+        // Don't mark as skipped, don't move to next question
+        // The AI's response will explain why this question is mandatory
+      } else {
+        // User wants to skip this optional question
+        const updatedAsked = [...new Set([...askedQuestions, `skipped:${currentQuestionField}`])];
 
-      const nextIdx = QUESTION_LIST.findIndex(
-        (q, idx) =>
-          idx > currentIndex &&
-          !profile?.[q.field] &&
-          !updatedAsked.includes(q.field) &&
-          !updatedAsked.includes(`skipped:${q.field}`),
-      );
+        const nextIdx = QUESTION_LIST.findIndex(
+          (q, idx) =>
+            idx > currentIndex &&
+            !profile?.[q.field] &&
+            !updatedAsked.includes(q.field) &&
+            !updatedAsked.includes(`skipped:${q.field}`),
+        );
 
-      await supabase
-        .from("profiles")
-        .update({
-          asked_questions: updatedAsked,
-          current_question_index: nextIdx >= 0 ? nextIdx : currentIndex + 1,
-        })
-        .eq("id", userId);
+        await supabase
+          .from("profiles")
+          .update({
+            asked_questions: updatedAsked,
+            current_question_index: nextIdx >= 0 ? nextIdx : currentIndex + 1,
+          })
+          .eq("id", userId);
 
-      console.log("⏭️ Question skipped by user, moving to next");
+        console.log("⏭️ Question skipped by user, moving to next");
+      }
     }
     // If no data was extracted and user didn't skip, don't mark question as asked
     // This allows Diana to re-ask or clarify the current question
