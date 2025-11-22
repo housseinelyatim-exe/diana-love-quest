@@ -195,15 +195,14 @@ const Chat = () => {
           setUserBio(data.bio);
           setEditedBio(data.bio);
         }
-        // If no previous messages, use the initial greeting from edge function
-        if ((!prevMessages || prevMessages.length === 0) && data.response) {
-          setMessages([
-            {
-              role: "assistant",
-              content: data.response,
-              timestamp: new Date(),
-            },
-          ]);
+        // If no previous messages, use the initial greeting messages from edge function
+        if ((!prevMessages || prevMessages.length === 0) && data.messages) {
+          const greetingMessages: Message[] = data.messages.map((content: string, index: number) => ({
+            role: "assistant" as const,
+            content,
+            timestamp: new Date(Date.now() + index * 100), // Slight time offset for each message
+          }));
+          setMessages(greetingMessages);
         }
       }
     } catch (e: any) {
@@ -473,7 +472,7 @@ const Chat = () => {
         return;
       }
 
-      // Fetch fresh initial greeting from edge function
+      // Fetch fresh initial greeting messages from edge function
       const { data, error: greetingError } = await supabase.functions.invoke("chat-with-diana", {
         body: {
           message: "",
@@ -482,7 +481,7 @@ const Chat = () => {
         },
       });
 
-      if (greetingError || !data?.response) {
+      if (greetingError || !data?.messages) {
         console.error("Error fetching initial greeting:", greetingError);
         // Fallback greeting
         setMessages([
@@ -493,13 +492,12 @@ const Chat = () => {
           },
         ]);
       } else {
-        setMessages([
-          {
-            role: "assistant",
-            content: data.response,
-            timestamp: new Date(),
-          },
-        ]);
+        const greetingMessages: Message[] = data.messages.map((content: string, index: number) => ({
+          role: "assistant" as const,
+          content,
+          timestamp: new Date(Date.now() + index * 100),
+        }));
+        setMessages(greetingMessages);
       }
 
       setUserBio("");
