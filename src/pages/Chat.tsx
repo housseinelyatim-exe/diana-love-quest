@@ -20,6 +20,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  savedData?: Record<string, any>;
 }
 
 const Chat = () => {
@@ -361,7 +362,22 @@ const Chat = () => {
               timestamp: new Date(),
             };
 
-            setMessages((prev) => [...prev, aiResponse]);
+            // Update the user message with saved data if available
+            if (data.extractedData && Object.keys(data.extractedData).length > 0) {
+              setMessages((prev) => {
+                const updatedMessages = [...prev];
+                const lastUserMessageIndex = updatedMessages.length - 1;
+                if (updatedMessages[lastUserMessageIndex]?.role === "user") {
+                  updatedMessages[lastUserMessageIndex] = {
+                    ...updatedMessages[lastUserMessageIndex],
+                    savedData: data.extractedData,
+                  };
+                }
+                return [...updatedMessages, aiResponse];
+              });
+            } else {
+              setMessages((prev) => [...prev, aiResponse]);
+            }
 
             // Update profile completion with validation
             if (typeof data.profileCompletion === "number") {
@@ -582,15 +598,30 @@ const Chat = () => {
                         </AvatarFallback>
                       </Avatar>
                     )}
-                    <div
-                      className={`rounded-lg px-3 py-2 max-w-[75%] shadow-sm ${
-                        message.role === "user" ? "bg-[#dcf8c6] text-gray-900" : "bg-white text-gray-900"
-                      }`}
-                    >
-                      <p className="text-sm leading-relaxed">{message.content}</p>
-                      <span className="text-[10px] text-gray-500 float-right mt-1">
-                        {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </span>
+                    <div className="flex flex-col gap-1 max-w-[75%]">
+                      <div
+                        className={`rounded-lg px-3 py-2 shadow-sm ${
+                          message.role === "user" ? "bg-[#dcf8c6] text-gray-900" : "bg-white text-gray-900"
+                        }`}
+                      >
+                        <p className="text-sm leading-relaxed">{message.content}</p>
+                        <span className="text-[10px] text-gray-500 float-right mt-1">
+                          {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+                      {message.role === "user" && message.savedData && Object.keys(message.savedData).length > 0 && (
+                        <div className="bg-primary/10 rounded-md px-2 py-1.5 text-xs">
+                          <p className="text-muted-foreground font-medium mb-1">Saved:</p>
+                          <div className="space-y-0.5">
+                            {Object.entries(message.savedData).map(([key, value]) => (
+                              <div key={key} className="text-foreground/80">
+                                <span className="font-medium capitalize">{key.replace(/_/g, " ")}:</span>{" "}
+                                <span>{typeof value === "object" ? JSON.stringify(value) : String(value)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 

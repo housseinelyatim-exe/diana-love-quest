@@ -593,6 +593,7 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
         completedCategories: determineCurrentCategory(updatedProfile).completed,
         categoryProgress: categoryStatus,
         bio: updatedProfile.bio,
+        extractedData: extractedData && Object.keys(extractedData).length > 0 ? extractedData : null,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
