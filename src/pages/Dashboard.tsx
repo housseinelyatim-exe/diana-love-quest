@@ -933,79 +933,122 @@ const Dashboard = () => {
               </Card>
             </div>
 
-            {/* Resources Grid */}
+            {/* Learning Resources */}
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
                   Learning Resources
                 </h3>
+                <Badge variant="secondary" className="text-xs">Educational</Badge>
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
-                {/* Books */}
-                <Card 
-                  onClick={() => window.open('https://www.goodreads.com/shelf/show/relationship', '_blank')}
-                  className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/30 hover:border-orange-500/50"
-                >
-                  <CardContent className="p-5 text-center">
-                    <div className="mb-3 flex justify-center">
-                      <div className="p-4 bg-orange-500/15 rounded-2xl group-hover:bg-orange-500/25 transition-all group-hover:scale-110 group-hover:rotate-6 duration-300 shadow-md">
-                        <BookOpen className="h-7 w-7 text-orange-500" />
-                      </div>
+              {/* Reading List */}
+              <Card 
+                onClick={() => window.open('https://www.goodreads.com/shelf/show/relationship', '_blank')}
+                className="group relative overflow-hidden bg-gradient-to-br from-orange-500/10 to-amber-500/10 border-orange-500/30 hover:border-orange-500/50 hover:shadow-xl transition-all duration-300 cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <CardContent className="p-5 relative z-10">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-md">
+                      <BookOpen className="h-7 w-7 text-orange-500" />
                     </div>
-                    <h4 className="font-bold text-sm mb-1">Reading List</h4>
-                    <p className="text-xs text-muted-foreground">Must-read books</p>
-                  </CardContent>
-                </Card>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-base mb-1 text-card-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                        Reading List
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+                        Essential books on love, relationships, and building meaningful connections
+                      </p>
+                      <Badge className="bg-orange-500/20 text-orange-700 dark:text-orange-300 hover:bg-orange-500/30 border-0">
+                        📚 Must-reads
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Podcasts */}
-                <Card 
-                  onClick={() => window.open('https://open.spotify.com/search/relationship%20podcast', '_blank')}
-                  className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-gradient-to-br from-purple-500/5 to-purple-500/10 border-purple-500/30 hover:border-purple-500/50"
-                >
-                  <CardContent className="p-5 text-center">
-                    <div className="mb-3 flex justify-center">
-                      <div className="p-4 bg-purple-500/15 rounded-2xl group-hover:bg-purple-500/25 transition-all group-hover:scale-110 group-hover:rotate-6 duration-300 shadow-md">
-                        <Headphones className="h-7 w-7 text-purple-500" />
-                      </div>
+              {/* Podcasts */}
+              <Card 
+                onClick={() => window.open('https://open.spotify.com/search/relationship%20podcast', '_blank')}
+                className="group relative overflow-hidden bg-gradient-to-br from-purple-500/10 to-violet-500/10 border-purple-500/30 hover:border-purple-500/50 hover:shadow-xl transition-all duration-300 cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <CardContent className="p-5 relative z-10">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-md">
+                      <Headphones className="h-7 w-7 text-purple-500" />
                     </div>
-                    <h4 className="font-bold text-sm mb-1">Podcasts</h4>
-                    <p className="text-xs text-muted-foreground">Expert discussions</p>
-                  </CardContent>
-                </Card>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-base mb-1 text-card-foreground group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                        Podcasts
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+                        Expert discussions on dating psychology, communication, and healthy relationships
+                      </p>
+                      <Badge className="bg-purple-500/20 text-purple-700 dark:text-purple-300 hover:bg-purple-500/30 border-0">
+                        🎧 Listen & Learn
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Videos */}
-                <Card 
-                  onClick={() => window.open('https://www.youtube.com/results?search_query=relationship+advice', '_blank')}
-                  className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-gradient-to-br from-red-500/5 to-red-500/10 border-red-500/30 hover:border-red-500/50"
-                >
-                  <CardContent className="p-5 text-center">
-                    <div className="mb-3 flex justify-center">
-                      <div className="p-4 bg-red-500/15 rounded-2xl group-hover:bg-red-500/25 transition-all group-hover:scale-110 group-hover:rotate-6 duration-300 shadow-md">
-                        <Video className="h-7 w-7 text-red-500" />
-                      </div>
+              {/* Video Guides */}
+              <Card 
+                onClick={() => window.open('https://www.youtube.com/results?search_query=relationship+advice', '_blank')}
+                className="group relative overflow-hidden bg-gradient-to-br from-red-500/10 to-rose-500/10 border-red-500/30 hover:border-red-500/50 hover:shadow-xl transition-all duration-300 cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-rose-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <CardContent className="p-5 relative z-10">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-gradient-to-br from-red-500/20 to-rose-500/20 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-md">
+                      <Video className="h-7 w-7 text-red-500" />
                     </div>
-                    <h4 className="font-bold text-sm mb-1">Video Guides</h4>
-                    <p className="text-xs text-muted-foreground">Visual learning</p>
-                  </CardContent>
-                </Card>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-base mb-1 text-card-foreground group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                        Video Guides
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+                        Visual tutorials on body language, first impressions, and conversation skills
+                      </p>
+                      <Badge className="bg-red-500/20 text-red-700 dark:text-red-300 hover:bg-red-500/30 border-0">
+                        🎥 Watch Now
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Trends */}
-                <Card 
-                  onClick={() => window.open('https://www.psychologytoday.com/us/blog/the-attraction-doctor', '_blank')}
-                  className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-gradient-to-br from-green-500/5 to-green-500/10 border-green-500/30 hover:border-green-500/50"
-                >
-                  <CardContent className="p-5 text-center">
-                    <div className="mb-3 flex justify-center">
-                      <div className="p-4 bg-green-500/15 rounded-2xl group-hover:bg-green-500/25 transition-all group-hover:scale-110 group-hover:rotate-6 duration-300 shadow-md">
-                        <TrendingUp className="h-7 w-7 text-green-500" />
-                      </div>
+              {/* Trends */}
+              <Card 
+                onClick={() => window.open('https://www.psychologytoday.com/us/blog/the-attraction-doctor', '_blank')}
+                className="group relative overflow-hidden bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/30 hover:border-green-500/50 hover:shadow-xl transition-all duration-300 cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <CardContent className="p-5 relative z-10">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-md">
+                      <TrendingUp className="h-7 w-7 text-green-500" />
                     </div>
-                    <h4 className="font-bold text-sm mb-1">Trends</h4>
-                    <p className="text-xs text-muted-foreground">Latest insights</p>
-                  </CardContent>
-                </Card>
-              </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-base mb-1 text-card-foreground group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                        Dating Trends
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+                        Latest insights on modern dating, psychology research, and relationship patterns
+                      </p>
+                      <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 hover:bg-green-500/30 border-0">
+                        📊 Stay Updated
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Pro Tip */}
