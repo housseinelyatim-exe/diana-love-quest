@@ -268,6 +268,9 @@ CONTEXTUAL QUESTION PHRASING:
 
 DATA EXTRACTION:
 - Always use the tool to extract profile information
+- **CRITICAL**: ONLY extract fields that are EXPLICITLY mentioned in the user's current message
+- DO NOT make assumptions or extract data for fields that weren't mentioned in the message
+- DO NOT fill in fields based on context or previous conversations unless explicitly stated in the current message
 - Accept typos and variations (e.g., "diabities" -> "diabetes")
 - When user says "no", "none", "I don't have any" to a question, that IS a valid answer - extract it (e.g., disabilities_and_special_need="no")
 - When user says no job/unemployed/student: set employment_status="unemployed", work_life_balance="not_applicable"
