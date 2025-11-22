@@ -288,6 +288,14 @@ RESPONSE STYLE:
 - Show personality and warmth
 - Don't ask for confirmation on clear answers do it only if the answer is perturbing 
 
+**CRITICAL EXTRACTION RULES:**
+- ONLY extract data that is EXPLICITLY mentioned in the user's current message
+- DO NOT infer, guess, assume, or hallucinate data that isn't directly stated
+- DO NOT extract fields unrelated to what the user is talking about
+- If the user talks about location, ONLY extract location fields
+- If the user talks about pets, ONLY extract pet fields
+- When in doubt, DO NOT extract the field
+
 **CRITICAL LANGUAGE REQUIREMENT**:
 - User's preferred language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar" ? "Arabic" : "Tunisian Arabic"}
 - You MUST respond in ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar" ? "Arabic" : "Tunisian Arabic"} at all times
@@ -466,43 +474,57 @@ RESPONSE STYLE:
         console.log("🔄 Auto-setting disabilities_and_special_need_type to null because disabilities_and_special_need is 'no'");
       }
 
-      const answeredFields = Object.keys(extractedData);
-      const updatedAsked = [...new Set([...profileAskedQuestions, ...answeredFields])];
-      
-      console.log(`📌 Marking questions as answered: ${answeredFields.join(", ")}`);
-      console.log(`📋 Updated asked_questions list: ${updatedAsked.join(", ")}`);
-
-      const nextIdx = QUESTION_LIST.findIndex(
-        (q, idx) =>
-          idx > currentIndex &&
-          !profile?.[q.field] &&
-          !updatedAsked.includes(q.field) &&
-          !updatedAsked.includes(`skipped:${q.field}`),
-      );
-
-      // Calculate profile completion before updating
-      const tempProfile = { ...profile, ...extractedData };
-      const completion = calculateProfileCompletion(tempProfile);
-
-      // Store actual user response for each extracted field
-      const currentResponses = profile?.question_responses || {};
-      const newResponses = { ...currentResponses };
-      answeredFields.forEach(field => {
-        newResponses[field] = message; // Save the user's actual message
+      // CRITICAL FIX: Filter out null/undefined values to prevent marking fields as "answered" when they weren't mentioned
+      const cleanedData: any = {};
+      Object.keys(extractedData).forEach(key => {
+        if (extractedData[key] !== null && extractedData[key] !== undefined && extractedData[key] !== '') {
+          cleanedData[key] = extractedData[key];
+        }
       });
 
-      await supabase
-        .from("profiles")
-        .update({
-          ...extractedData,
-          asked_questions: updatedAsked,
-          current_question_index: nextIdx >= 0 ? nextIdx : QUESTION_LIST.length,
-          is_profile_complete: completion,
-          question_responses: newResponses,
-        })
-        .eq("id", userId);
+      // If after cleaning we have no data, don't proceed
+      if (Object.keys(cleanedData).length === 0) {
+        console.log("⚠️ All extracted data was null/undefined - skipping profile update");
+        // Continue to generate AI response without updating profile
+      } else {
+        const answeredFields = Object.keys(cleanedData);
+        const updatedAsked = [...new Set([...profileAskedQuestions, ...answeredFields])];
+        
+        console.log(`📌 Marking questions as answered: ${answeredFields.join(", ")}`);
+        console.log(`📋 Updated asked_questions list: ${updatedAsked.join(", ")}`);
 
-      console.log("✅ Profile updated with progress");
+        const nextIdx = QUESTION_LIST.findIndex(
+          (q, idx) =>
+            idx > currentIndex &&
+            !profile?.[q.field] &&
+            !updatedAsked.includes(q.field) &&
+            !updatedAsked.includes(`skipped:${q.field}`),
+        );
+
+        // Calculate profile completion before updating
+        const tempProfile = { ...profile, ...cleanedData };
+        const completion = calculateProfileCompletion(tempProfile);
+
+        // Store actual user response for each extracted field
+        const currentResponses = profile?.question_responses || {};
+        const newResponses = { ...currentResponses };
+        answeredFields.forEach(field => {
+          newResponses[field] = message; // Save the user's actual message
+        });
+
+        await supabase
+          .from("profiles")
+          .update({
+            ...cleanedData,
+            asked_questions: updatedAsked,
+            current_question_index: nextIdx >= 0 ? nextIdx : QUESTION_LIST.length,
+            is_profile_complete: completion,
+            question_responses: newResponses,
+          })
+          .eq("id", userId);
+
+        console.log("✅ Profile updated with progress");
+      }
     } else if (
       isSkipping &&
       currentQuestionField &&
