@@ -287,7 +287,12 @@ RESPONSE STYLE:
 - Show personality and warmth
 - Don't ask for confirmation on clear answers do it only if the answer is perturbing 
 
-Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar" ? "Arabic" : "Tunisian Arabic"}.`;
+**CRITICAL LANGUAGE REQUIREMENT**:
+- User's preferred language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar" ? "Arabic" : "Tunisian Arabic"}
+- You MUST respond in ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar" ? "Arabic" : "Tunisian Arabic"} at all times
+- Do NOT force English - always match the user's language preference
+- If the user writes in their selected language, respond in that same language
+- Adapt your warmth and personality to the language while maintaining your supportive tone`;
 
     // Generate cache key based on normalized message, current context, and language
     const currentIndex = profile?.current_question_index || 0;
