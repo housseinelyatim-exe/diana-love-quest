@@ -164,19 +164,9 @@ const Chat = () => {
           timestamp: new Date(msg.created_at || Date.now()),
         }));
         setMessages(loadedMessages);
-      } else {
-        // Initial greeting
-        setMessages([
-          {
-            role: "assistant",
-            content:
-              "Hi! I'm Diana, your AI matchmaking assistant. I'll help you build your profile by asking questions about your life, interests, and what you're looking for. Once your profile is complete, I'll connect you with compatible matches. Ready to get started? 💕",
-            timestamp: new Date(),
-          },
-        ]);
       }
 
-      // Get profile completion
+      // Get profile completion and initial greeting if needed
       const { data, error: completionError } = await supabase.functions.invoke("chat-with-diana", {
         body: {
           message: "",
@@ -204,6 +194,16 @@ const Chat = () => {
         if (data.bio) {
           setUserBio(data.bio);
           setEditedBio(data.bio);
+        }
+        // If no previous messages, use the initial greeting from edge function
+        if ((!prevMessages || prevMessages.length === 0) && data.response) {
+          setMessages([
+            {
+              role: "assistant",
+              content: data.response,
+              timestamp: new Date(),
+            },
+          ]);
         }
       }
     } catch (e: any) {
@@ -473,15 +473,35 @@ const Chat = () => {
         return;
       }
 
-      // Reset state and show initial greeting
-      setMessages([
-        {
-          role: "assistant",
-          content:
-            "Hi! I'm Diana, your AI matchmaking assistant. I'll help you build your profile by asking questions about your life, interests, and what you're looking for. Once your profile is complete, I'll connect you with compatible matches. Ready to get started? 💕",
-          timestamp: new Date(),
+      // Fetch fresh initial greeting from edge function
+      const { data, error: greetingError } = await supabase.functions.invoke("chat-with-diana", {
+        body: {
+          message: "",
+          conversationHistory: [],
+          userId: session.user.id,
         },
-      ]);
+      });
+
+      if (greetingError || !data?.response) {
+        console.error("Error fetching initial greeting:", greetingError);
+        // Fallback greeting
+        setMessages([
+          {
+            role: "assistant",
+            content: "Hi! I'm Diana, your personal matchmaking assistant. Let's get started!",
+            timestamp: new Date(),
+          },
+        ]);
+      } else {
+        setMessages([
+          {
+            role: "assistant",
+            content: data.response,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+
       setUserBio("");
       setEditedBio("");
       setIsEditingBio(false);
