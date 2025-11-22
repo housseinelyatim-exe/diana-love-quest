@@ -431,9 +431,16 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
       "prefer not to say",
       "don't want to answer",
       "rather not say",
+      "no thanks",
+      "not now",
     ];
-    const isSkipping =
-      skipKeywords.some((keyword) => lowerMessage.includes(keyword)) && lowerMessage.length < 100 && !extractedData;
+    
+    // More lenient skip detection - check if message contains skip keywords and is short
+    const containsSkipKeyword = skipKeywords.some((keyword) => lowerMessage.includes(keyword));
+    const isShortMessage = lowerMessage.length < 100;
+    const isSkipping = containsSkipKeyword && isShortMessage;
+    
+    console.log(`🔍 Skip detection: message="${lowerMessage}", containsSkip=${containsSkipKeyword}, isShort=${isShortMessage}, currentField=${currentQuestionField}, hasData=${!!extractedData && Object.keys(extractedData || {}).length > 0}`);
 
     // Update with progress tracking
     if (extractedData && Object.keys(extractedData).length > 0) {
@@ -490,6 +497,9 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
         // User wants to skip this optional question
         const updatedAsked = [...new Set([...profileAskedQuestions, `skipped:${currentQuestionField}`])];
 
+        console.log(`⏭️ Marking question as skipped: ${currentQuestionField}`);
+        console.log(`📋 Updated asked_questions after skip: ${updatedAsked.join(", ")}`);
+
         const nextIdx = QUESTION_LIST.findIndex(
           (q, idx) =>
             idx > currentIndex &&
@@ -506,8 +516,10 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
           })
           .eq("id", userId);
 
-        console.log("⏭️ Question skipped by user, moving to next");
+        console.log(`✅ Question skipped successfully. Moving from index ${currentIndex} to ${nextIdx >= 0 ? nextIdx : currentIndex + 1}`);
       }
+    } else if (isSkipping && !currentQuestionField) {
+      console.log(`⚠️ User wants to skip but currentQuestionField is undefined. currentIndex=${currentIndex}`);
     }
     // If no data was extracted and user didn't skip, don't mark question as asked
     // This allows Diana to re-ask or clarify the current question
