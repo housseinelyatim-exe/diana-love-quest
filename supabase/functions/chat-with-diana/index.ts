@@ -280,6 +280,7 @@ DATA EXTRACTION:
 - When user skips optional questions, DO NOT extract data for that field
 - For MANDATORY questions (name, age, gender, health, age_range_preference), keep asking until you get a valid answer
 - The user can answer a question before it's asked - extract the answer to the right field and don't ask about it later
+- **LANGUAGE CHANGES**: If user asks to change language or switch to another language (e.g., "parler en français", "speak French", "change to Arabic"), extract the language field with the appropriate code: "en" for English, "fr" for French, "ar" for Arabic, "tn" for Tunisian Arabic
 
 RESPONSE STYLE:
 - Keep under 100 words but be conversational
@@ -390,6 +391,7 @@ RESPONSE STYLE:
                     age_range_preference: { type: "string" },
                     health_disability_preference: { type: "string" },
                     red_flags: { type: "array", items: { type: "string" } },
+                    language: { type: "string", enum: ["en", "fr", "ar", "tn"], description: "User's preferred language for the conversation" },
                   },
                 },
               },
