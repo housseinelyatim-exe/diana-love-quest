@@ -262,6 +262,7 @@ OPTIONAL QUESTIONS (CAN BE SKIPPED):
 
 CONTEXTUAL QUESTION PHRASING:
 - When asking about "want_children" and the user has already answered "have_children" as "yes", ask "Do you want MORE children?" instead of "Do you want children?"
+- When "disabilities_and_special_need" is set to "no", skip asking about "disabilities_and_special_need_type" entirely - move to the next question in the sequence
 - Review the profile data before asking questions to ensure contextually appropriate phrasing
 - Adapt question wording based on their previous answers to make the conversation flow naturally
 
@@ -449,6 +450,12 @@ Language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar"
 
     // Update with progress tracking
     if (extractedData && Object.keys(extractedData).length > 0) {
+      // Conditional logic: if disabilities_and_special_need is "no", set disabilities_and_special_need_type to null
+      if (extractedData.disabilities_and_special_need === "no") {
+        extractedData.disabilities_and_special_need_type = null;
+        console.log("🔄 Auto-setting disabilities_and_special_need_type to null because disabilities_and_special_need is 'no'");
+      }
+
       const answeredFields = Object.keys(extractedData);
       const updatedAsked = [...new Set([...profileAskedQuestions, ...answeredFields])];
       
