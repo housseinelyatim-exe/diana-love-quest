@@ -154,48 +154,36 @@ serve(async (req) => {
           "Hi! I'm Diana, your personal matchmaking assistant 💝",
           "Welcome to a new way of finding meaningful connections. Let me explain how this works.",
           "I'll have a natural conversation with you to build your profile. I'll ask thoughtful questions about your life - background, values, lifestyle, career, hobbies, travel, family goals, and what you're looking for in a partner.",
-          "The questions are organized into categories like basics, location, family, career, beliefs, hobbies, and travel. You can track your progress as we go.",
           "Here's something important - while some basic questions are required (like your name, age, and gender), MOST questions are completely optional. You can skip any question by saying 'skip' or 'pass'.",
           "However, here's the key: The more you answer, the better your matches will be! Each answer helps our algorithm paint a more complete picture of who you are.",
           "Once your profile is at least 50% complete, you'll unlock the Discover section with potential matches. Our algorithm analyzes compatibility across shared values, lifestyle, goals, and preferences.",
-          "Your information is private and secure. You control what you share. Conversations only happen when there's mutual interest.",
-          "Ready to start? This is more than filling out a form - it's a conversation. Feel free to ask me questions anytime!",
           "Let's begin with the basics. What's your name?"
         ],
         fr: [
           "Bonjour ! Je suis Diana, votre assistante personnelle de matchmaking 💝",
           "Bienvenue dans une nouvelle façon de trouver des connexions significatives. Laissez-moi vous expliquer.",
           "Je vais avoir une conversation naturelle avec vous pour construire votre profil. Je poserai des questions sur votre vie - parcours, valeurs, style de vie, carrière, loisirs, voyages, objectifs familiaux et ce que vous recherchez.",
-          "Les questions sont organisées en catégories comme les bases, la localisation, la famille, la carrière, les croyances, les loisirs et les voyages. Vous pouvez suivre votre progression.",
           "Important - bien que certaines questions de base soient requises (nom, âge et sexe), la PLUPART des questions sont complètement optionnelles. Vous pouvez passer n'importe quelle question en disant 'passer'.",
           "Cependant, voici la clé : Plus vous répondez, meilleurs seront vos matchs ! Chaque réponse aide notre algorithme à mieux vous comprendre.",
           "Une fois que votre profil est complété à 50%, vous débloquerez la section Découverte avec les matchs potentiels. Notre algorithme analyse la compatibilité sur les valeurs, le style de vie, les objectifs et les préférences.",
-          "Vos informations sont privées et sécurisées. Vous contrôlez ce que vous partagez. Les conversations ne se produisent que s'il y a un intérêt mutuel.",
-          "Prêt à commencer ? C'est plus qu'un formulaire - c'est une conversation. N'hésitez pas à poser des questions !",
           "Commençons par les bases. Quel est votre nom ?"
         ],
         ar: [
           "مرحباً! أنا ديانا، مساعدتك الشخصية في إيجاد شريك الحياة 💝",
           "مرحباً بك في طريقة جديدة للعثور على علاقات ذات معنى. دعني أشرح لك.",
           "سأجري معك محادثة طبيعية لبناء ملفك الشخصي. سأطرح أسئلة عن حياتك - خلفيتك، قيمك، أسلوب حياتك، مهنتك، هواياتك، السفر، أهدافك العائلية وما تبحث عنه.",
-          "الأسئلة منظمة في فئات مثل الأساسيات، الموقع، العائلة، المهنة، المعتقدات، الهوايات والسفر. يمكنك متابعة تقدمك.",
           "مهم - بينما بعض الأسئلة الأساسية مطلوبة (الاسم والعمر والجنس)، معظم الأسئلة اختيارية تماماً. يمكنك تخطي أي سؤال بقول 'تخطي'.",
           "ومع ذلك، النقطة الأساسية: كلما أجبت أكثر، كانت مطابقاتك أفضل! كل إجابة تساعد خوارزميتنا على فهمك بشكل أفضل.",
           "بمجرد أن يصل ملفك إلى 50%، ستفتح قسم الاكتشاف مع المطابقات المحتملة. تحلل خوارزميتنا التوافق في القيم وأسلوب الحياة والأهداف والتفضيلات.",
-          "معلوماتك خاصة وآمنة. أنت تتحكم فيما تشاركه. المحادثات تحدث فقط عند وجود اهتمام متبادل.",
-          "جاهز للبدء؟ هذا أكثر من ملء نموذج - إنها محادثة. لا تتردد في طرح الأسئلة!",
           "لنبدأ بالأساسيات. ما اسمك؟"
         ],
         tn: [
           "مرحبا! أنا ديانا، مساعدتك الشخصية باش تلقى شريك حياتك 💝",
           "مرحبا بيك في طريقة جديدة باش تلقى علاقات معناها. خليني نشرحلك.",
           "باش نعمل معاك حديث طبيعي باش نبنيو البروفايل متاعك. باش نسألك على حياتك - الخلفية، القيم، ستايل الحياة، الخدمة، الهوايات، السفر، الأهداف العائلية، وشنوا تحب تلقى.",
-          "الأسئلة منظمين في كاتيغوريات كيما الأساسيات، الموقع، العائلة، الخدمة، المعتقدات، الهوايات والسفر. تنجم تتبع التقدم متاعك.",
           "مهم - رغم إلي بعض الأسئلة الأساسية مطلوبة (اسمك وعمرك وجنسك)، معظم الأسئلة اختيارية. تنجم تعدي أي سؤال كان تقول 'تعدّى'.",
           "أما هوني المفتاح: كل ما تجاوب أكثر، كل ما الماتشات يكونو أحسن! كل جواب يساعد الخوارزمية باش تفهمك أحسن.",
           "كي البروفايل يوصل 50%، باش تفتحلك سيكسيون الديسكوفر مع الماتشات المحتملة. الخوارزمية تحلل التوافق في القيم، ستايل الحياة، الأهداف والتفضيلات.",
-          "المعلومات متاعك خاصة وآمنة. إنت لي تتحكم في شنوا تشارك. المحادثات يصيرو برك كان فما اهتمام مشترك.",
-          "واجد باش نبداو؟ هذا أكثر من تعبية فورميلار - هي محادثة. لا تتردد تسألني أسئلة!",
           "خلينا نبداو بالأساسيات. شنوّا اسمك؟"
         ],
       };
