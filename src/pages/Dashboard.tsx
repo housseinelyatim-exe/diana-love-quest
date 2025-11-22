@@ -696,7 +696,7 @@ const Dashboard = () => {
 
         {/* Discover/Info Tab */}
         <TabsContent value="discover" className="flex-1 m-0 pb-20">
-          <div className="p-4 space-y-3">
+          <div className="p-4 space-y-4">
             {profileCompletion < 50 ? (
               <Card className="bg-card border-border">
                 <CardContent className="py-12">
@@ -721,10 +721,16 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="blur-sm pointer-events-none select-none opacity-40">
-                      <div className="space-y-2">
-                        <div className="h-16 bg-muted rounded-lg animate-pulse" />
-                        <div className="h-16 bg-muted rounded-lg animate-pulse" />
-                        <div className="h-16 bg-muted rounded-lg animate-pulse" />
+                      <Card className="mb-4">
+                        <CardContent className="p-6">
+                          <div className="h-24 bg-muted rounded animate-pulse" />
+                        </CardContent>
+                      </Card>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Card><CardContent className="p-4"><div className="h-20 bg-muted rounded animate-pulse" /></CardContent></Card>
+                        <Card><CardContent className="p-4"><div className="h-20 bg-muted rounded animate-pulse" /></CardContent></Card>
+                        <Card><CardContent className="p-4"><div className="h-20 bg-muted rounded animate-pulse" /></CardContent></Card>
+                        <Card><CardContent className="p-4"><div className="h-20 bg-muted rounded animate-pulse" /></CardContent></Card>
                       </div>
                     </div>
                   </div>
@@ -732,160 +738,294 @@ const Dashboard = () => {
               </Card>
             ) : (
               <>
-                {/* Daily Quote */}
-                {showQuote && dailyQuote && (
-                  <div className="p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/20">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-primary" />
-                        <h4 className="font-medium text-sm">Daily Inspiration</h4>
+            {/* Hero Welcome Card */}
+            <Card className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-accent/15 to-primary/20 border-primary/30">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+              <CardContent className="p-6 relative z-10">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-2xl shadow-lg">
+                    <Sparkles className="h-8 w-8 text-primary-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-card-foreground mb-2">Welcome to Discover, {userName}!</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Explore curated content, insights, and resources to enhance your dating journey
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Daily Quote */}
+            {showQuote && dailyQuote && (
+              <Card className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border-primary/20 animate-fade-in">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/10 rounded-full blur-3xl" />
+                <CardHeader className="pb-3 relative z-10">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-gradient-to-br from-primary to-accent rounded-lg shadow-md">
+                        <Sparkles className="h-5 w-5 text-primary-foreground" />
                       </div>
+                      <CardTitle className="text-lg">Daily Inspiration</CardTitle>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleRefreshQuote}
+                        className="h-8 w-8 hover:bg-primary/10 transition-all hover:rotate-180 duration-500"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={handleDismissQuote}
-                        className="h-6 w-6 -mt-1 -mr-2"
+                        className="h-8 w-8 hover:bg-primary/10"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-4 w-4" />
                       </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground italic leading-relaxed">{dailyQuote}</p>
                   </div>
-                )}
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  <p className="text-card-foreground italic text-base leading-relaxed font-medium">{dailyQuote}</p>
+                </CardContent>
+              </Card>
+            )}
 
-                {/* Platform Stats */}
-                <div 
-                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-primary/10 p-2 rounded-lg">
-                      <BarChart3 className="h-4 w-4 text-primary" />
+            {/* Platform Statistics */}
+            <Card className="bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5 border-primary/20 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-gradient-to-br from-primary to-accent rounded-lg shadow-md">
+                      <BarChart3 className="h-5 w-5 text-primary-foreground" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-sm">Platform Insights</h4>
-                      <p className="text-xs text-muted-foreground">{platformStats.totalUsers} users · {platformStats.activeMatches} matches · {platformStats.successRate}% success</p>
+                      <CardTitle className="text-lg">Platform Insights</CardTitle>
+                      <CardDescription className="text-xs">Real-time statistics</CardDescription>
                     </div>
                   </div>
-                  <span className="text-muted-foreground">›</span>
                 </div>
-
-                {/* Dating Safety */}
-                <div 
-                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-rose-500/10 p-2 rounded-lg">
-                      <Award className="h-4 w-4 text-rose-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="text-center p-4 bg-gradient-to-br from-background/80 to-background/60 rounded-xl border border-border/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary/30">
+                    <Users className="h-6 w-6 text-primary mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-card-foreground mb-1">
+                      <AnimatedCounter value={platformStats.totalUsers} duration={1500} />
                     </div>
-                    <div>
-                      <h4 className="font-medium text-sm">Dating Safety Tips</h4>
-                      <p className="text-xs text-muted-foreground">Stay safe while dating</p>
+                    <div className="text-xs text-muted-foreground font-medium">Active Users</div>
+                  </div>
+                  <div className="text-center p-4 bg-gradient-to-br from-background/80 to-background/60 rounded-xl border border-border/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-pink-500/30">
+                    <Heart className="h-6 w-6 text-pink-500 mx-auto mb-2 fill-current" />
+                    <div className="text-2xl font-bold text-card-foreground mb-1">
+                      <AnimatedCounter value={platformStats.activeMatches} duration={1500} />
+                    </div>
+                    <div className="text-xs text-muted-foreground font-medium">Matches</div>
+                  </div>
+                  <div className="text-center p-4 bg-gradient-to-br from-background/80 to-background/60 rounded-xl border border-border/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-green-500/30">
+                    <Target className="h-6 w-6 text-green-500 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-card-foreground mb-1">
+                      <AnimatedCounter value={platformStats.successRate} duration={1500} suffix="%" />
+                    </div>
+                    <div className="text-xs text-muted-foreground font-medium">Success Rate</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Dating Safety Tips */}
+            <Card className="bg-gradient-to-br from-rose-500/10 to-pink-500/10 border-rose-500/30 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-rose-500/20 rounded-lg">
+                    <Award className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Safety First</CardTitle>
+                    <CardDescription className="text-xs">Stay safe while dating</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2 text-sm">
+                    <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-rose-500 flex-shrink-0" />
+                    <p className="text-muted-foreground leading-relaxed">Meet in public places for first dates</p>
+                  </div>
+                  <div className="flex items-start gap-2 text-sm">
+                    <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-rose-500 flex-shrink-0" />
+                    <p className="text-muted-foreground leading-relaxed">Tell a friend about your plans</p>
+                  </div>
+                  <div className="flex items-start gap-2 text-sm">
+                    <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-rose-500 flex-shrink-0" />
+                    <p className="text-muted-foreground leading-relaxed">Trust your instincts always</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Featured Content */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                  Featured Content
+                </h3>
+                <Badge variant="secondary" className="text-xs">Popular</Badge>
+              </div>
+              
+              {/* Success Stories Card */}
+              <Card 
+                onClick={() => window.open('https://www.theknot.com/content/love-stories', '_blank')}
+                className="group relative overflow-hidden bg-gradient-to-br from-pink-500/10 to-purple-500/10 border-pink-500/30 hover:border-pink-500/50 hover:shadow-xl transition-all duration-300 cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <CardContent className="p-5 relative z-10">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-md">
+                      <Heart className="h-7 w-7 text-pink-500" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-base mb-1 text-card-foreground group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
+                        Success Stories
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+                        Real couples share their journey from first match to lasting love
+                      </p>
+                      <Badge className="bg-pink-500/20 text-pink-700 dark:text-pink-300 hover:bg-pink-500/30 border-0">
+                        💕 Inspiring
+                      </Badge>
                     </div>
                   </div>
-                  <span className="text-muted-foreground">›</span>
-                </div>
+                </CardContent>
+              </Card>
 
-                {/* Success Stories */}
-                <div 
-                  onClick={() => window.open('https://www.theknot.com/content/love-stories', '_blank')}
-                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-pink-500/10 p-2 rounded-lg">
-                      <Heart className="h-4 w-4 text-pink-500" />
+              {/* Relationship Tips */}
+              <Card 
+                onClick={() => window.open('https://www.gottman.com/blog/', '_blank')}
+                className="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/30 hover:border-blue-500/50 hover:shadow-xl transition-all duration-300 cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <CardContent className="p-5 relative z-10">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-md">
+                      <Lightbulb className="h-7 w-7 text-blue-500" />
                     </div>
-                    <div>
-                      <h4 className="font-medium text-sm">Success Stories</h4>
-                      <p className="text-xs text-muted-foreground">Real couples' journeys</p>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-base mb-1 text-card-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        Dating Tips & Advice
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+                        Expert guidance on first dates, deep conversations, and building chemistry
+                      </p>
+                      <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-300 hover:bg-blue-500/30 border-0">
+                        💡 Expert Tips
+                      </Badge>
                     </div>
                   </div>
-                  <span className="text-muted-foreground">›</span>
-                </div>
+                </CardContent>
+              </Card>
+            </div>
 
-                {/* Dating Tips */}
-                <div 
-                  onClick={() => window.open('https://www.gottman.com/blog/', '_blank')}
-                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-blue-500/10 p-2 rounded-lg">
-                      <Lightbulb className="h-4 w-4 text-blue-500" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-sm">Dating Tips & Advice</h4>
-                      <p className="text-xs text-muted-foreground">Expert guidance</p>
-                    </div>
-                  </div>
-                  <span className="text-muted-foreground">›</span>
-                </div>
-
-                {/* Reading List */}
-                <div 
+            {/* Resources Grid */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                  Learning Resources
+                </h3>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {/* Books */}
+                <Card 
                   onClick={() => window.open('https://www.goodreads.com/shelf/show/relationship', '_blank')}
-                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
+                  className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/30 hover:border-orange-500/50"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-orange-500/10 p-2 rounded-lg">
-                      <BookOpen className="h-4 w-4 text-orange-500" />
+                  <CardContent className="p-5 text-center">
+                    <div className="mb-3 flex justify-center">
+                      <div className="p-4 bg-orange-500/15 rounded-2xl group-hover:bg-orange-500/25 transition-all group-hover:scale-110 group-hover:rotate-6 duration-300 shadow-md">
+                        <BookOpen className="h-7 w-7 text-orange-500" />
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-sm">Reading List</h4>
-                      <p className="text-xs text-muted-foreground">Must-read books</p>
-                    </div>
-                  </div>
-                  <span className="text-muted-foreground">›</span>
-                </div>
+                    <h4 className="font-bold text-sm mb-1">Reading List</h4>
+                    <p className="text-xs text-muted-foreground">Must-read books</p>
+                  </CardContent>
+                </Card>
 
                 {/* Podcasts */}
-                <div 
+                <Card 
                   onClick={() => window.open('https://open.spotify.com/search/relationship%20podcast', '_blank')}
-                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
+                  className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-gradient-to-br from-purple-500/5 to-purple-500/10 border-purple-500/30 hover:border-purple-500/50"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-purple-500/10 p-2 rounded-lg">
-                      <Headphones className="h-4 w-4 text-purple-500" />
+                  <CardContent className="p-5 text-center">
+                    <div className="mb-3 flex justify-center">
+                      <div className="p-4 bg-purple-500/15 rounded-2xl group-hover:bg-purple-500/25 transition-all group-hover:scale-110 group-hover:rotate-6 duration-300 shadow-md">
+                        <Headphones className="h-7 w-7 text-purple-500" />
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-sm">Podcasts</h4>
-                      <p className="text-xs text-muted-foreground">Expert discussions</p>
-                    </div>
-                  </div>
-                  <span className="text-muted-foreground">›</span>
-                </div>
+                    <h4 className="font-bold text-sm mb-1">Podcasts</h4>
+                    <p className="text-xs text-muted-foreground">Expert discussions</p>
+                  </CardContent>
+                </Card>
 
-                {/* Video Guides */}
-                <div 
+                {/* Videos */}
+                <Card 
                   onClick={() => window.open('https://www.youtube.com/results?search_query=relationship+advice', '_blank')}
-                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
+                  className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-gradient-to-br from-red-500/5 to-red-500/10 border-red-500/30 hover:border-red-500/50"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-red-500/10 p-2 rounded-lg">
-                      <Video className="h-4 w-4 text-red-500" />
+                  <CardContent className="p-5 text-center">
+                    <div className="mb-3 flex justify-center">
+                      <div className="p-4 bg-red-500/15 rounded-2xl group-hover:bg-red-500/25 transition-all group-hover:scale-110 group-hover:rotate-6 duration-300 shadow-md">
+                        <Video className="h-7 w-7 text-red-500" />
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-sm">Video Guides</h4>
-                      <p className="text-xs text-muted-foreground">Visual learning</p>
-                    </div>
-                  </div>
-                  <span className="text-muted-foreground">›</span>
-                </div>
+                    <h4 className="font-bold text-sm mb-1">Video Guides</h4>
+                    <p className="text-xs text-muted-foreground">Visual learning</p>
+                  </CardContent>
+                </Card>
 
                 {/* Trends */}
-                <div 
+                <Card 
                   onClick={() => window.open('https://www.psychologytoday.com/us/blog/the-attraction-doctor', '_blank')}
-                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer flex items-center justify-between"
+                  className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-gradient-to-br from-green-500/5 to-green-500/10 border-green-500/30 hover:border-green-500/50"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-green-500/10 p-2 rounded-lg">
-                      <TrendingUp className="h-4 w-4 text-green-500" />
+                  <CardContent className="p-5 text-center">
+                    <div className="mb-3 flex justify-center">
+                      <div className="p-4 bg-green-500/15 rounded-2xl group-hover:bg-green-500/25 transition-all group-hover:scale-110 group-hover:rotate-6 duration-300 shadow-md">
+                        <TrendingUp className="h-7 w-7 text-green-500" />
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-sm">Dating Trends</h4>
-                      <p className="text-xs text-muted-foreground">Latest insights</p>
-                    </div>
+                    <h4 className="font-bold text-sm mb-1">Trends</h4>
+                    <p className="text-xs text-muted-foreground">Latest insights</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Pro Tip */}
+            <Card className="bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-500/15 border-amber-500/40 shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 bg-amber-500/25 rounded-xl shadow-sm">
+                    <Award className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                   </div>
-                  <span className="text-muted-foreground">›</span>
+                  <div>
+                    <h4 className="font-bold text-sm mb-1.5 text-amber-900 dark:text-amber-100 flex items-center gap-2">
+                      💡 Pro Tip of the Day
+                    </h4>
+                    <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed font-medium">
+                      Authenticity attracts authentic people. Be yourself—the right match will appreciate the real you.
+                    </p>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
               </>
             )}
           </div>
