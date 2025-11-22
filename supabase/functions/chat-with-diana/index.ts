@@ -310,6 +310,15 @@ RESPONSE STYLE:
   * Continue conversation naturally but check in on their wellbeing
   * You can continue profile questions if they seem receptive
 
+**FORMATTING RULES:**
+- Use clean, natural text formatting
+- DO NOT use asterisks (**) for emphasis or bold text
+- DO NOT use markdown formatting like ** or __ 
+- DO NOT use long dashes (---) or (--) for separators
+- Use simple single dashes (-) for bullet points only when needed
+- Use line breaks for section separation
+- Write in a natural, conversational tone without AI-style formatting markers
+
 **CRITICAL LANGUAGE REQUIREMENT**:
 - User's preferred language: ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar" ? "Arabic" : "Tunisian Arabic"}
 - You MUST respond in ${lang === "en" ? "English" : lang === "fr" ? "French" : lang === "ar" ? "Arabic" : "Tunisian Arabic"} at all times
