@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Send, ArrowLeft, Sparkles, ChevronDown, Edit2, Check, X } from "lucide-react";
+import { Send, ArrowLeft, Sparkles, ChevronDown, Edit2, Check, X, RotateCcw } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ImageViewer } from "@/components/ImageViewer";
 import { QuestionProgressTracker } from "@/components/QuestionProgressTracker";
@@ -451,6 +451,50 @@ const Chat = () => {
     }
   };
 
+  const handleRestartConversation = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please log in to restart conversation");
+        return;
+      }
+
+      // Delete all messages for this user
+      const { error } = await supabase
+        .from("messages")
+        .delete()
+        .or(`sender_id.eq.${session.user.id},receiver_id.eq.${session.user.id}`);
+
+      if (error) {
+        console.error("Error clearing messages:", error);
+        toast.error("Failed to clear messages. Please try again.");
+        return;
+      }
+
+      // Reset state and show initial greeting
+      setMessages([
+        {
+          role: "assistant",
+          content:
+            "Hi! I'm Diana, your AI matchmaking assistant. I'll help you build your profile by asking questions about your life, interests, and what you're looking for. Once your profile is complete, I'll connect you with compatible matches. Ready to get started? 💕",
+          timestamp: new Date(),
+        },
+      ]);
+      setUserBio("");
+      setEditedBio("");
+      setIsEditingBio(false);
+      hasShown50Toast.current = false;
+      hasShown100Toast.current = false;
+      
+      toast.success("Conversation restarted!");
+    } catch (error) {
+      console.error("Error restarting conversation:", error);
+      toast.error("Failed to restart conversation. Please try again.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#e5ddd5] flex flex-col max-w-full">
       {/* WhatsApp-style Header */}
@@ -483,6 +527,15 @@ const Chat = () => {
             </div>
           </div>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRestartConversation}
+          className="hover:bg-white/20 text-white"
+          title="Restart Conversation"
+        >
+          <RotateCcw className="h-4 w-4" />
+        </Button>
         <Button
           variant="ghost"
           size="sm"
