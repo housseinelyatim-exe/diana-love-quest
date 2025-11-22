@@ -491,10 +491,10 @@ RESPONSE STYLE:
 
     // Update with progress tracking
     if (extractedData && Object.keys(extractedData).length > 0) {
-      // Conditional logic: if disabilities_and_special_need is "no", set disabilities_and_special_need_type to null
+      // Conditional logic: if disabilities_and_special_need is "no", set disabilities_and_special_need_type to "no"
       if (extractedData.disabilities_and_special_need === "no") {
-        extractedData.disabilities_and_special_need_type = null;
-        console.log("🔄 Auto-setting disabilities_and_special_need_type to null because disabilities_and_special_need is 'no'");
+        extractedData.disabilities_and_special_need_type = "no";
+        console.log("🔄 Auto-setting disabilities_and_special_need_type to 'no' because disabilities_and_special_need is 'no'");
       }
 
       // CRITICAL FIX: Filter out null/undefined values to prevent marking fields as "answered" when they weren't mentioned
